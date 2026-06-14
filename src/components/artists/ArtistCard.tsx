@@ -19,7 +19,7 @@ export default function ArtistCard({
   return (
     <Link
       href={`/kuenstler/${artist.slug}`}
-      className={`glass-card group block overflow-hidden rounded-section transition-all hover:shadow-card-hover ${isList ? 'flex items-center gap-4' : ''}`}
+      className={`glass-card group block overflow-hidden rounded-section motion-safe:transition-all motion-safe:hover:shadow-card-hover ${isList ? 'flex items-center gap-4' : ''}`}
     >
       <div className={isList ? 'h-24 w-24 flex-shrink-0 overflow-hidden' : 'aspect-[4/3] w-full overflow-hidden'}>
         {artist.heroImage ? (
@@ -32,7 +32,7 @@ export default function ArtistCard({
             className="h-full w-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-brand-primary/10 text-brand-primary">♪</div>
+          <div aria-hidden="true" className="flex h-full w-full items-center justify-center bg-brand-primary/10 text-brand-primary">♪</div>
         )}
       </div>
       <div className="p-5">

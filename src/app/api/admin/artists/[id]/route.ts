@@ -49,8 +49,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (body.origin !== undefined) data.origin = body.origin ? String(body.origin) : null
   if (body.excerpt !== undefined) data.excerpt = body.excerpt ? String(body.excerpt) : null
   if (body.bio !== undefined) data.bio = body.bio ? String(body.bio) : null
-  if (body.bioJson !== undefined) data.bioJson = body.bioJson ?? null
-  if (body.editorMode !== undefined) data.editorMode = String(body.editorMode)
+  if (body.bioJson !== undefined) data.bioJson = Array.isArray(body.bioJson) ? body.bioJson : null
+  if (body.editorMode !== undefined) {
+    const mode = String(body.editorMode)
+    data.editorMode = ['markdown', 'wysiwyg'].includes(mode) ? mode : 'markdown'
+  }
   if (body.heroImage !== undefined) data.heroImage = safeCloudinaryUrl(body.heroImage)
   if (body.website !== undefined) data.website = safeHttpsUrl(body.website)
   if (body.socials !== undefined) data.socials = sanitizeSocials(body.socials)

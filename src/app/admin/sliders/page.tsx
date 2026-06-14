@@ -58,10 +58,12 @@ interface SliderItem {
   productId: string | null
   vendorId: string | null
   mediaId: string | null
+  artistId: string | null
   page: { id: string; title: string; slug: string; ogImage: string | null; featureImage?: string | null; featureVideo?: string | null } | null
   product: { id: string; label: string; url: string; image: string | null } | null
   vendor: { id: string; name: string; slug: string; imageUrl: string | null; description: string | null } | null
   media: { id: string; url: string; type: string; filename: string } | null
+  artist: { id: string; name: string; slug: string; heroImage: string | null; origin: string | null } | null
   config: { gradient?: 'none' | 'dark' | 'light'; kenBurns?: boolean } | null
 }
 
@@ -132,9 +134,9 @@ const DEFAULT_CONFIG: SliderConfig = {
 const ITEM_TYPE_LABELS: Record<ItemType, string> = {
   PAGE: 'Seiten',
   PRODUCT: 'Produkte',
-  VENDOR: 'Haendler',
+  VENDOR: 'Händler',
   MEDIA: 'Medien',
-  ARTIST: 'Kuenstler',
+  ARTIST: 'Künstler',
 }
 
 const FILTER_MODE_LABELS: Record<string, string> = {
@@ -779,9 +781,9 @@ export default function AdminSlidersPage() {
             {([
               { value: 'PAGE' as ItemType, label: 'Seiten', description: 'Inhaltsseiten verlinken', Icon: Square3Stack3DIcon },
               { value: 'PRODUCT' as ItemType, label: 'Produkte', description: 'Produkte aus dem Katalog', Icon: CurrencyEuroIcon },
-              { value: 'VENDOR' as ItemType, label: 'Haendler', description: 'Haendler-Profile anzeigen', Icon: MegaphoneIcon },
+              { value: 'VENDOR' as ItemType, label: 'Händler', description: 'Händler-Profile anzeigen', Icon: MegaphoneIcon },
               { value: 'MEDIA' as ItemType, label: 'Medien', description: 'Bilder & Videos mit Verlinkung', Icon: PhotoIcon },
-              { value: 'ARTIST' as ItemType, label: 'Kuenstler', description: 'Kuenstler-Profile anzeigen', Icon: MegaphoneIcon },
+              { value: 'ARTIST' as ItemType, label: 'Künstler', description: 'Künstler-Profile anzeigen', Icon: MegaphoneIcon },
             ]).map((opt) => (
               <label
                 key={opt.value}
@@ -1169,13 +1171,13 @@ export default function AdminSlidersPage() {
 
             {/* Vendors filter */}
             <div>
-              <label className="block text-xs font-medium text-brand-text mb-1">Haendler</label>
+              <label className="block text-xs font-medium text-brand-text mb-1">Händler</label>
               <input
                 type="text"
                 value={vendorSearch}
                 onChange={(e) => setVendorSearch(e.target.value)}
                 className="input-glass w-full text-sm mb-1"
-                placeholder="Haendler suchen..."
+                placeholder="Händler suchen..."
               />
               <div className="max-h-32 overflow-y-auto space-y-0.5 p-2 rounded-lg border border-brand-border bg-brand-surface">
                 {allVendors
@@ -1264,7 +1266,7 @@ export default function AdminSlidersPage() {
                     if (formItemType === 'MEDIA') return item.mediaId === result.id
                     if (formItemType === 'PAGE') return item.pageId === result.id
                     if (formItemType === 'PRODUCT') return item.productId === result.id
-                    if (formItemType === 'ARTIST') return (item as any).artistId === result.id
+                    if (formItemType === 'ARTIST') return item.artistId === result.id
                     return item.vendorId === result.id
                   })
                   return (
@@ -1563,7 +1565,7 @@ export default function AdminSlidersPage() {
       <div className="space-y-6">
         {/* Sponsor vendor */}
         <div>
-          <label className="block text-sm font-medium text-brand-text mb-1">Sponsor-Haendler</label>
+          <label className="block text-sm font-medium text-brand-text mb-1">Sponsor-Händler</label>
           {selectedSponsor && (
             <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-[#b87333]/10 border border-[#b87333]/20">
               <MegaphoneIcon className="w-4 h-4 text-[#b87333]" />
@@ -1582,7 +1584,7 @@ export default function AdminSlidersPage() {
             value={sponsorVendorSearch}
             onChange={(e) => setSponsorVendorSearch(e.target.value)}
             className="input-glass w-full text-sm"
-            placeholder="Haendler suchen..."
+            placeholder="Händler suchen..."
           />
           {sponsorVendorSearch && (
             <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border border-brand-border bg-brand-surface">

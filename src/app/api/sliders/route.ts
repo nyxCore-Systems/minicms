@@ -120,6 +120,7 @@ async function getAutoItems(
   if (slider.itemType === 'ARTIST') {
     const artists = await prisma.artist.findMany({
       where: { tenantId, isPublished: true, isActive: true, ...(slider.filterTags?.length ? { genres: { hasSome: slider.filterTags } } : {}) },
+      select: { id: true, name: true, slug: true, heroImage: true, origin: true, genres: true },
       orderBy: [{ isFeatured: 'desc' }, { sortOrder: 'asc' }],
       take: slider.maxItems || 12,
     })

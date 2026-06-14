@@ -20,27 +20,41 @@ function embedSrc(item: GalleryItem): string | null {
 
 export default function ArtistGallery({ items, artistName }: { items: GalleryItem[]; artistName: string }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
-  const dialogRef = useRef<HTMLDivElement>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
 
   const images = items.filter((i) => i.kind === 'image' && i.imageUrl)
 
   const close = useCallback(() => {
+    dialogRef.current?.close()
     setLightboxIndex(null)
     triggerRef.current?.focus()
   }, [])
 
+  const goPrev = useCallback(() => {
+    setLightboxIndex((i) => (i === null ? i : (i - 1 + images.length) % images.length))
+  }, [images.length])
+
+  const goNext = useCallback(() => {
+    setLightboxIndex((i) => (i === null ? i : (i + 1) % images.length))
+  }, [images.length])
+
+  useEffect(() => {
+    if (lightboxIndex === null) return
+    const dialog = dialogRef.current
+    if (!dialog) return
+    if (!dialog.open) dialog.showModal()
+  }, [lightboxIndex])
+
   useEffect(() => {
     if (lightboxIndex === null) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close()
-      if (e.key === 'ArrowRight') setLightboxIndex((i) => (i === null ? i : (i + 1) % images.length))
-      if (e.key === 'ArrowLeft') setLightboxIndex((i) => (i === null ? i : (i - 1 + images.length) % images.length))
+      if (e.key === 'ArrowRight') goNext()
+      if (e.key === 'ArrowLeft') goPrev()
     }
     document.addEventListener('keydown', onKey)
-    dialogRef.current?.focus()
     return () => document.removeEventListener('keydown', onKey)
-  }, [lightboxIndex, images.length, close])
+  }, [lightboxIndex, goNext, goPrev])
 
   if (!items.length) return null
 
@@ -86,27 +100,51 @@ export default function ArtistGallery({ items, artistName }: { items: GalleryIte
         })}
       </div>
 
-      {lightboxIndex !== null && images[lightboxIndex] && (
-        <div
-          ref={dialogRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label={`${artistName} – Bild ${lightboxIndex + 1} von ${images.length}`}
-          tabIndex={-1}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-          onClick={close}
-        >
-          <Image
-            src={images[lightboxIndex].imageUrl as string}
-            alt={images[lightboxIndex].altText || artistName}
-            width={1200}
-            height={1200}
-            className="max-h-[90vh] w-auto max-w-[90vw] object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <button onClick={close} className="absolute right-4 top-4 text-white" aria-label="Schließen">✕</button>
-        </div>
-      )}
+      {/* Native <dialog> provides built-in focus trap, Escape key, and correct AT behaviour */}
+      <dialog
+        ref={dialogRef}
+        aria-label={lightboxIndex !== null ? `${artistName} – Bild ${lightboxIndex + 1} von ${images.length}` : undefined}
+        className="fixed inset-0 z-50 m-auto max-h-screen max-w-screen bg-transparent p-0 backdrop:bg-black/80 open:flex open:items-center open:justify-center"
+        onClick={(e) => { if (e.target === e.currentTarget) close() }}
+        onClose={close}
+      >
+        {lightboxIndex !== null && images[lightboxIndex] && (
+          <div className="relative flex items-center justify-center p-4">
+            {images.length > 1 && (
+              <button
+                onClick={goPrev}
+                aria-label="Vorheriges Bild"
+                className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/80"
+              >
+                ‹
+              </button>
+            )}
+            <Image
+              src={images[lightboxIndex].imageUrl as string}
+              alt={images[lightboxIndex].altText || artistName}
+              width={1200}
+              height={1200}
+              className="max-h-[90vh] w-auto max-w-[90vw] object-contain"
+            />
+            {images.length > 1 && (
+              <button
+                onClick={goNext}
+                aria-label="Nächstes Bild"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/80"
+              >
+                ›
+              </button>
+            )}
+            <button
+              onClick={close}
+              className="absolute right-4 top-4 text-white"
+              aria-label="Schließen"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+      </dialog>
     </div>
   )
 }

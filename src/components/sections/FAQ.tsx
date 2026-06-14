@@ -82,7 +82,12 @@ export default function FAQ({ data }: FAQProps) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(faqSchema)
+              .replace(/</g, '\\u003c')
+              .replace(/>/g, '\\u003e')
+              .replace(/&/g, '\\u0026'),
+          }}
         />
 
         <div className="text-center mb-12">

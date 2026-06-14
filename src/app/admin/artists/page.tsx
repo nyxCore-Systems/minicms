@@ -21,16 +21,18 @@ export default function AdminArtistsPage() {
   }, [])
 
   async function toggleField(id: string, field: 'isPublished' | 'isActive' | 'isFeatured', current: boolean) {
-    await fetch(`/api/admin/artists/${id}`, {
+    const res = await fetch(`/api/admin/artists/${id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ [field]: !current }),
     })
+    if (!res.ok) return
     setArtists((prev) => prev.map((a) => (a.id === id ? { ...a, [field]: !current } : a)))
   }
 
   async function remove(id: string) {
     if (!confirm('Künstler wirklich löschen?')) return
-    await fetch(`/api/admin/artists/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/admin/artists/${id}`, { method: 'DELETE' })
+    if (!res.ok) return
     setArtists((prev) => prev.filter((a) => a.id !== id))
   }
 
@@ -54,10 +56,20 @@ export default function AdminArtistsPage() {
                 <p className="text-sm text-brand-text-muted">/{a.slug}{a.origin ? ` · ${a.origin}` : ''}</p>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <button onClick={() => toggleField(a.id, 'isPublished', a.isPublished)} className="rounded-pill px-3 py-1 glass">
+                <button
+                  onClick={() => toggleField(a.id, 'isPublished', a.isPublished)}
+                  aria-pressed={a.isPublished}
+                  aria-label="Veröffentlichungsstatus"
+                  className="rounded-pill px-3 py-1 glass"
+                >
                   {a.isPublished ? 'Veröffentlicht' : 'Entwurf'}
                 </button>
-                <button onClick={() => toggleField(a.id, 'isFeatured', a.isFeatured)} className="rounded-pill px-3 py-1 glass">
+                <button
+                  onClick={() => toggleField(a.id, 'isFeatured', a.isFeatured)}
+                  aria-pressed={a.isFeatured}
+                  aria-label="Headliner-Status"
+                  className="rounded-pill px-3 py-1 glass"
+                >
                   {a.isFeatured ? '★ Headliner' : '☆'}
                 </button>
                 <Link href={`/admin/artists/${a.id}`} className="btn-secondary px-3 py-1">Bearbeiten</Link>
