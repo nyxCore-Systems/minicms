@@ -1,0 +1,380 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* leder.de-inspired theme — clean, professional marketplace */
+    --brand-primary: #32373c;
+    --brand-primary-light: #5a6068;
+    --brand-accent: #a90707;
+    --brand-accent-light: #c43030;
+    --brand-bg: #ffffff;
+    --brand-bg-dark: #f5f5f5;
+    --brand-text: #32373c;
+    --brand-text-muted: #4a4f54;
+    --brand-text-light: #717579;
+    --brand-surface: #ffffff;
+    --brand-border: #e0e0e0;
+    --brand-selection: rgba(169, 7, 7, 0.15);
+    /* CTA color */
+    --brand-cta: #5bc0de;
+    --brand-cta-hover: #46b8da;
+    /* Shadows — clean, natural */
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --shadow-natural: 6px 6px 9px rgba(0, 0, 0, 0.2);
+    /* Buttons */
+    --btn-primary-bg: #32373c;
+    --btn-primary-hover-bg: #1d2124;
+    --btn-primary-shadow: rgba(50, 55, 60, 0.2);
+    /* Legacy variable mappings (keep for backward compat) */
+    --glass-white: #ffffff;
+    --glass-white-hover: #f5f5f5;
+    --glass-border: #e0e0e0;
+    --glass-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --glass-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --btn-primary-from: #32373c;
+    --btn-primary-to: #32373c;
+    --btn-primary-hover-from: #1d2124;
+    --btn-primary-hover-to: #1d2124;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body {
+    @apply transition-colors duration-300;
+  }
+
+  body {
+    @apply antialiased;
+    color: var(--brand-text);
+    background: var(--brand-bg);
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: var(--brand-selection);
+  }
+}
+
+@layer components {
+  /* Clean card surfaces — replaces glass morphism */
+  .glass {
+    background: var(--brand-surface);
+    border: 1px solid var(--brand-border);
+    box-shadow: var(--shadow-card);
+  }
+
+  .glass-strong {
+    background: var(--brand-surface);
+    border: 1px solid var(--brand-border);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .glass-dark {
+    background: var(--brand-bg-dark);
+    border: 1px solid var(--brand-border);
+  }
+
+  .glass-card {
+    @apply glass rounded-sm p-6 transition-all duration-300;
+  }
+
+  .glass-card:hover {
+    background: var(--brand-surface);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+  }
+
+  .dark .glass-card:hover {
+    background: var(--brand-surface);
+  }
+
+  /* Buttons — flat, solid, professional */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-medium text-white transition-all duration-300 cursor-pointer;
+    background: var(--btn-primary-bg);
+    box-shadow: 0 2px 8px var(--btn-primary-shadow);
+  }
+
+  .btn-primary:hover {
+    background: var(--btn-primary-hover-bg);
+    box-shadow: 0 4px 16px var(--btn-primary-shadow);
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0) scale(1);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-medium transition-all duration-300 cursor-pointer;
+    color: var(--brand-text);
+    background: transparent;
+    border: 2px solid var(--brand-border);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--brand-primary);
+    background: var(--brand-bg-dark);
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  .btn-copper {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-medium text-white transition-all duration-300 cursor-pointer;
+    background: var(--brand-accent);
+    box-shadow: 0 2px 8px var(--btn-primary-shadow);
+  }
+
+  .btn-copper:hover {
+    background: var(--brand-accent-light);
+    box-shadow: 0 4px 16px var(--btn-primary-shadow);
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  /* CTA button — cyan accent per leder.de */
+  .btn-cta {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-medium text-white transition-all duration-300 cursor-pointer;
+    background: var(--brand-cta);
+    box-shadow: 0 2px 8px rgba(91, 192, 222, 0.25);
+  }
+
+  .btn-cta:hover {
+    background: var(--brand-cta-hover);
+    box-shadow: 0 4px 16px var(--btn-primary-shadow);
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  /* Dark mode button overrides */
+  .dark .btn-primary {
+    color: #111417;
+  }
+
+  .dark .btn-secondary {
+    border-color: var(--brand-border);
+    color: var(--brand-text);
+  }
+
+  .dark .btn-secondary:hover {
+    border-color: var(--brand-primary);
+    background: var(--brand-bg-dark);
+  }
+
+  /* Inputs — clean flat */
+  .input-glass {
+    @apply w-full px-4 py-3 rounded-sm transition-all duration-300 outline-none;
+    color: var(--brand-text);
+    background: var(--brand-surface);
+    border: 1px solid var(--brand-border);
+  }
+
+  .input-glass::placeholder {
+    color: var(--brand-text-light);
+  }
+
+  .input-glass:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px var(--brand-selection);
+  }
+
+  /* Prose — clean professional typography */
+  .prose-glass h1,
+  .prose-glass h2,
+  .prose-glass h3,
+  .prose-glass h4 {
+    @apply font-display;
+    color: var(--brand-text);
+  }
+
+  .prose-glass h1 {
+    @apply text-3xl md:text-4xl font-bold mb-6;
+  }
+
+  .prose-glass h2 {
+    @apply text-2xl md:text-3xl font-semibold mb-4 mt-10;
+  }
+
+  .prose-glass h3 {
+    @apply text-xl md:text-2xl font-medium mb-3 mt-8;
+  }
+
+  .prose-glass p {
+    @apply leading-relaxed mb-4;
+    color: var(--brand-text-muted);
+  }
+
+  .prose-glass ul,
+  .prose-glass ol {
+    @apply mb-4 pl-6;
+    color: var(--brand-text-muted);
+  }
+
+  .prose-glass li {
+    @apply mb-2 leading-relaxed;
+  }
+
+  .prose-glass a {
+    color: var(--brand-accent);
+    @apply underline transition-colors;
+    text-decoration-color: var(--brand-accent-light);
+  }
+
+  .prose-glass a:hover {
+    text-decoration-color: var(--brand-accent);
+  }
+
+  .prose-glass blockquote {
+    @apply pl-4 italic my-4;
+    border-left: 4px solid var(--brand-accent);
+    color: var(--brand-text-muted);
+  }
+
+  .prose-glass strong {
+    @apply font-semibold;
+    color: var(--brand-text);
+  }
+
+  .prose-glass img {
+    @apply rounded-sm my-6 max-w-full h-auto;
+  }
+
+  .prose-glass table {
+    @apply w-full my-6;
+  }
+
+  .prose-glass th {
+    @apply text-left p-3 font-semibold;
+    color: var(--brand-text);
+    border-bottom: 2px solid var(--brand-primary);
+  }
+
+  .prose-glass td {
+    @apply p-3;
+    color: var(--brand-text-muted);
+    border-bottom: 1px solid var(--brand-border);
+  }
+
+  /* Prose hero — scaled-up typography */
+  .prose-glass-hero h1,
+  .prose-glass-hero h2,
+  .prose-glass-hero h3,
+  .prose-glass-hero h4 {
+    @apply font-display;
+    color: var(--brand-text);
+  }
+
+  .prose-glass-hero h1 {
+    @apply text-4xl md:text-5xl font-bold mb-4;
+  }
+
+  .prose-glass-hero h2 {
+    @apply text-3xl md:text-4xl font-semibold mb-4;
+  }
+
+  .prose-glass-hero h3 {
+    @apply text-2xl md:text-3xl font-medium mb-3;
+  }
+
+  .prose-glass-hero p {
+    @apply text-xl leading-relaxed mb-4;
+    color: var(--brand-text-muted);
+  }
+
+  .prose-glass-hero a {
+    color: var(--brand-accent);
+    @apply underline transition-colors;
+    text-decoration-color: var(--brand-accent-light);
+  }
+
+  .prose-glass-hero a:hover {
+    text-decoration-color: var(--brand-accent);
+  }
+
+  .prose-glass-hero strong {
+    @apply font-semibold;
+    color: var(--brand-text);
+  }
+}
+
+/* Scrollbar — clean, minimal */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(50, 55, 60, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(50, 55, 60, 0.4);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(140, 145, 150, 0.3);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 145, 150, 0.5);
+}
+
+/* Schwarz-Weiss theme overrides */
+[data-theme="schwarz-weiss"] .glass-card,
+[data-theme="schwarz-weiss"] .btn-primary,
+[data-theme="schwarz-weiss"] .btn-secondary,
+[data-theme="schwarz-weiss"] .btn-copper,
+[data-theme="schwarz-weiss"] .btn-cta,
+[data-theme="schwarz-weiss"] .input-glass,
+[data-theme="schwarz-weiss"] .glass,
+[data-theme="schwarz-weiss"] .glass-strong {
+  border-radius: 0;
+}
+
+[data-theme="schwarz-weiss"] .glass-card:hover {
+  transform: none;
+}
+
+[data-theme="schwarz-weiss"] .btn-primary:hover,
+[data-theme="schwarz-weiss"] .btn-secondary:hover,
+[data-theme="schwarz-weiss"] .btn-copper:hover,
+[data-theme="schwarz-weiss"] .btn-cta:hover {
+  transform: none;
+}
+
+/* Copper theme — forged depth, warm metallic glow */
+[data-theme="copper"] .glass-card {
+  border-radius: 4px;
+}
+
+[data-theme="copper"].dark .glass-card,
+.dark [data-theme="copper"] .glass-card {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 1px rgba(184, 115, 51, 0.15);
+}
+
+[data-theme="copper"].dark .glass-card:hover,
+.dark [data-theme="copper"] .glass-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 2px rgba(184, 115, 51, 0.2);
+}
+
+/* Wald theme — forest depth, organic shadows */
+[data-theme="wald"] .glass-card {
+  border-radius: 4px;
+}
+
+[data-theme="wald"].dark .glass-card,
+.dark [data-theme="wald"] .glass-card {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 1px rgba(143, 181, 160, 0.1);
+}
+
+[data-theme="wald"].dark .glass-card:hover,
+.dark [data-theme="wald"] .glass-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 2px rgba(143, 181, 160, 0.15);
+}

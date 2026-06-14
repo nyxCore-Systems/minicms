@@ -1,0 +1,85 @@
+name: Database Backup
+
+on:
+  schedule:
+    # Täglich um 03:00 UTC (04:00 CET / 05:00 CEST)
+    - cron: '0 3 * * *'
+  workflow_dispatch: # Manueller Trigger über GitHub UI
+
+env:
+  BACKUP_RETENTION_DAYS: 30
+  R2_BUCKET: dasmesser-backups
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+          /usr/lib/postgresql/17/bin/pg_dump --version
+
+      - name: Create database backup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_UNPOOLED }}
+        run: |
+          set -o pipefail
+
+          TIMESTAMP=$(date +%Y-%m-%d_%H-%M)
+          FILENAME="neondb_${TIMESTAMP}.sql.gz"
+          echo "FILENAME=${FILENAME}" >> $GITHUB_ENV
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+
+          /usr/lib/postgresql/17/bin/pg_dump --no-owner --no-acl "$DATABASE_URL" | gzip > "${FILENAME}"
+
+          SIZE=$(stat -c%s "${FILENAME}")
+          if [ "$SIZE" -lt 1000 ]; then
+            echo "ERROR: Backup file too small (${SIZE} bytes), pg_dump likely failed"
+            exit 1
+          fi
+
+          SIZE_H=$(du -h "${FILENAME}" | cut -f1)
+          echo "Backup created: ${FILENAME} (${SIZE_H})"
+
+      - name: Configure AWS CLI for R2
+        run: |
+          aws configure set aws_access_key_id "${{ secrets.R2_ACCESS_KEY_ID }}"
+          aws configure set aws_secret_access_key "${{ secrets.R2_SECRET_ACCESS_KEY }}"
+          aws configure set default.region auto
+
+      - name: Upload backup to Cloudflare R2
+        run: |
+          aws s3 cp "${FILENAME}" \
+            "s3://${R2_BUCKET}/db/${FILENAME}" \
+            --endpoint-url "${{ secrets.R2_ENDPOINT }}"
+
+          echo "Uploaded ${FILENAME} to R2"
+
+      - name: Delete old backups (> ${{ env.BACKUP_RETENTION_DAYS }} days)
+        run: |
+          CUTOFF_DATE=$(date -d "-${BACKUP_RETENTION_DAYS} days" +%Y-%m-%d)
+          echo "Deleting backups older than ${CUTOFF_DATE}"
+
+          aws s3 ls "s3://${R2_BUCKET}/db/" \
+            --endpoint-url "${{ secrets.R2_ENDPOINT }}" \
+            | while read -r line; do
+              FILE=$(echo "$line" | awk '{print $4}')
+              # Extract date from filename (neondb_YYYY-MM-DD_HH-MM.sql.gz)
+              FILE_DATE=$(echo "$FILE" | grep -oP '\d{4}-\d{2}-\d{2}' | head -1)
+              if [[ -n "$FILE_DATE" && "$FILE_DATE" < "$CUTOFF_DATE" ]]; then
+                echo "Deleting old backup: ${FILE}"
+                aws s3 rm "s3://${R2_BUCKET}/db/${FILE}" \
+                  --endpoint-url "${{ secrets.R2_ENDPOINT }}"
+              fi
+            done
+
+      - name: Verify backup exists in R2
+        run: |
+          aws s3api head-object \
+            --bucket "${R2_BUCKET}" \
+            --key "db/${FILENAME}" \
+            --endpoint-url "${{ secrets.R2_ENDPOINT }}"
+          echo "Backup verified in R2: db/${FILENAME}"

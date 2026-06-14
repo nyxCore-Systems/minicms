@@ -1,0 +1,611 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum VendorCategory {
+  KITCHEN
+  OUTDOOR
+  COLLECTION
+  OTHER
+}
+
+enum BannerType {
+  HOMEPAGE_SLIDER
+  HOMEPAGE_FIXED
+  CONTENT_FIXED_WIDE
+  CONTENT_FIXED_TALL
+}
+
+enum SliderItemType {
+  PAGE
+  PRODUCT
+  VENDOR
+  MEDIA
+}
+
+model Tenant {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  domain    String?
+  logoUrl   String?
+  plan      String   @default("starter")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users            User[]
+  leads            Lead[]
+  vendors          Vendor[]
+  pages            Page[]
+  media            Media[]
+  keywords         SeoKeyword[]
+  pageViews        PageView[]
+  trackingEvents   TrackingEvent[]
+  vendorClicks     VendorClick[]
+  siteSettings     SiteSettings?
+  menuItems        MenuItem[]
+  tenantUsers      TenantUser[]
+  homepageSections HomepageSection[]
+  products         Product[]
+  bannerImpressions  BannerImpression[]
+  sliders            Slider[]
+  sliderImpressions  SliderImpression[]
+  categories         ProductCategory[]
+  pageVersions       PageVersion[]
+}
+
+model SiteSettings {
+  id              String   @id @default(cuid())
+  tenantId        String   @unique
+  siteName        String   @default("My Site")
+  logoUrl         String?
+  darkMode        Boolean  @default(false)
+  footerText      String?  @db.Text
+  primaryColor    String   @default("#2d5016")
+  accentColor     String   @default("#b87333")
+  backgroundColor String   @default("#faf8f0")
+  fontHeading     String   @default("Georgia")
+  fontBody        String   @default("Inter")
+  faviconUrl      String?
+  backgroundImage String?
+  themeSlug       String   @default("messer")
+  defaultDarkMode Boolean  @default(false)
+  ctaButtonLabel  String?
+  ctaButtonHref   String?
+  locale          String   @default("de")
+  logoMode        String   @default("auto")
+  openaiApiKeyEncrypted String?  @db.Text
+  openaiModel     String   @default("auto")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+}
+
+model MenuItem {
+  id        String   @id @default(cuid())
+  tenantId  String
+  parentId  String?
+  pageId    String?
+  label     String
+  href      String
+  location  String   @default("header")
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant     @relation(fields: [tenantId], references: [id])
+  parent   MenuItem?  @relation("MenuItemChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children MenuItem[] @relation("MenuItemChildren")
+  page     Page?      @relation(fields: [pageId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([parentId])
+}
+
+model TenantUser {
+  id       String   @id @default(cuid())
+  userId   String
+  tenantId String
+  role     UserRole @default(EDITOR)
+
+  user   User   @relation(fields: [userId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([userId, tenantId])
+  @@index([userId])
+  @@index([tenantId])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  tenantId  String
+  email     String   @unique
+  name      String
+  password  String
+  role      UserRole @default(EDITOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  tenantUsers TenantUser[]
+
+  @@index([tenantId])
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  email     String
+  phone     String?
+  company   String?
+  message   String?
+  source    String?
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Vendor {
+  id            String         @id @default(cuid())
+  tenantId      String
+  name          String
+  slug          String         @unique
+  affiliateId   String         @unique @default(cuid())
+  description   String?        @db.Text
+  category      VendorCategory @default(OTHER)
+  website       String?
+  email         String?
+  phone         String?
+  contactPerson String?
+  content       String?        @db.Text
+  location      String?
+  since         String?
+  logoUrl       String?
+  imageUrl      String?
+  validUntil    DateTime?
+  isActive      Boolean        @default(true)
+  isFeatured    Boolean        @default(false)
+  isPromoted    Boolean        @default(false)
+  tags          String[]
+  images        String[]
+  promotedLinks Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  tenant           Tenant        @relation(fields: [tenantId], references: [id])
+  ads              VendorAd[]
+  detail           VendorDetail?
+  clicks           VendorClick[]
+  products         Product[]
+  sliderItems      SliderItem[]
+  sponsoredSliders Slider[]      @relation("SliderSponsor")
+
+  @@index([tenantId])
+  @@index([category])
+}
+
+model VendorDetail {
+  id             String    @id @default(cuid())
+  vendorId       String    @unique
+  street         String?
+  city           String?
+  zip            String?
+  country        String?   @default("Deutschland")
+  phone2         String?
+  fax            String?
+  taxId          String?
+  commercialReg  String?
+  bankName       String?
+  iban           String?
+  bic            String?
+  affiliateModel String?   @default("cpc")
+  affiliateRate  Float?    @default(0)
+  contractStart  DateTime?
+  contractEnd    DateTime?
+  notes          String?   @db.Text
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+}
+
+model VendorClick {
+  id        String   @id @default(cuid())
+  vendorId  String
+  tenantId  String
+  clickType String
+  sessionId String?
+  referrer  String?
+  userAgent String?
+  country   String?
+  device    String?
+  path      String?
+  targetUrl String?
+  createdAt DateTime @default(now())
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([vendorId])
+  @@index([tenantId])
+  @@index([clickType])
+  @@index([createdAt])
+}
+
+model VendorAd {
+  id              String      @id @default(cuid())
+  vendorId        String
+  title           String
+  content         String?     @db.Text
+  imageUrl        String?
+  videoUrl        String?
+  linkUrl         String?
+  position        String      @default("sidebar")
+  bannerType      BannerType?
+  weight          Int         @default(1)
+  impressionTarget Int?
+  costPerMille    Float?
+  width           Int?
+  height          Int?
+  isActive        Boolean     @default(true)
+  startDate       DateTime?
+  endDate         DateTime?
+  clicks          Int         @default(0)
+  views           Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  vendor      Vendor             @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  impressions BannerImpression[]
+
+  @@index([vendorId])
+  @@index([isActive])
+  @@index([bannerType])
+}
+
+model BannerImpression {
+  id        String   @id @default(cuid())
+  adId      String
+  tenantId  String
+  sessionId String?
+  path      String
+  eventType String
+  createdAt DateTime @default(now())
+
+  ad     VendorAd @relation(fields: [adId], references: [id], onDelete: Cascade)
+  tenant Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([adId])
+  @@index([tenantId])
+  @@index([createdAt])
+  @@index([eventType])
+}
+
+model Page {
+  id              String   @id @default(cuid())
+  tenantId        String
+  slug            String
+  title           String
+  path            String?
+  content         String   @db.Text
+  contentJson     Json?
+  editorMode      String?  @default("markdown")
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  metaKeywords    String?
+  ogImage         String?
+  featureImage    String?
+  featureVideo    String?
+  backgroundImage String?
+  faqSchema       Json?
+  seoData         Json?
+  contentHash     String?
+  noIndex         Boolean  @default(false)
+  ctaSource       String?
+  ctaTitle        String?
+  ctaSubtitle     String?
+  isPublished     Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  sliderItems SliderItem[]
+  parentLinks PageParent[] @relation("PageChildren")
+  childLinks  PageParent[] @relation("PageParents")
+  menuItems   MenuItem[]
+  versions    PageVersion[]
+
+  @@unique([tenantId, slug])
+  @@unique([tenantId, path])
+  @@index([tenantId])
+}
+
+model PageParent {
+  id        String @id @default(cuid())
+  parentId  String
+  childId   String
+  sortOrder Int    @default(0)
+  parent    Page   @relation("PageChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  child     Page   @relation("PageParents", fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, childId])
+  @@index([parentId])
+  @@index([childId])
+}
+
+model HomepageSection {
+  id        String   @id @default(cuid())
+  tenantId  String
+  type      String
+  title     String?
+  subtitle  String?
+  content   Json?
+  config    Json?
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+}
+
+model SeoKeyword {
+  id           String    @id @default(cuid())
+  tenantId     String
+  keyword      String
+  searchVolume Int?
+  ranking      Int?
+  difficulty   Int?
+  pageSlug     String?
+  isTracked    Boolean   @default(true)
+  lastChecked  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([keyword])
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  tenantId  String
+  path      String
+  referrer  String?
+  userAgent String?
+  country   String?
+  device    String?
+  sessionId String?
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([path])
+  @@index([createdAt])
+}
+
+model TrackingEvent {
+  id        String   @id @default(cuid())
+  tenantId  String
+  sessionId String?
+  path      String
+  eventType String
+  eventData Json?
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([eventType])
+  @@index([path])
+  @@index([createdAt])
+}
+
+model Media {
+  id           String    @id @default(cuid())
+  tenantId     String
+  type         MediaType
+  filename     String
+  url          String
+  cloudinaryId String
+  width        Int?
+  height       Int?
+  bytes        Int?
+  format       String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  sliderItems SliderItem[]
+
+  @@index([tenantId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  label     String
+  url       String
+  image     String?
+  content   String?  @db.Text
+  position  String?  @default("top")
+  tags      String[]
+  vendorId  String
+  tenantId  String
+  isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  vendor      Vendor              @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  tenant      Tenant              @relation(fields: [tenantId], references: [id])
+  sliderItems SliderItem[]
+  categories  ProductCategory[]
+
+  @@index([vendorId])
+  @@index([tenantId])
+  @@index([tags])
+}
+
+model Slider {
+  id        String         @id @default(cuid())
+  tenantId  String
+  name      String
+  slug      String
+  itemType  SliderItemType
+  config    Json?
+  isActive  Boolean        @default(true)
+
+  // Content filtering
+  filterMode        String   @default("manual") // manual | auto | mixed
+  filterTags        String[]
+  filterCategoryIds String[]
+  filterVendorIds   String[]
+  maxItems          Int?
+  sortBy            String   @default("manual") // manual | newest | random
+
+  // Sponsor / billing
+  sponsorVendorId String?
+  costPerMille    Float?
+  impressionTarget Int?
+  impressions     Int      @default(0)
+  clicks          Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant        Tenant             @relation(fields: [tenantId], references: [id])
+  sponsorVendor Vendor?            @relation("SliderSponsor", fields: [sponsorVendorId], references: [id], onDelete: SetNull)
+  items         SliderItem[]
+  sliderImpressions SliderImpression[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@index([sponsorVendorId])
+}
+
+model SliderItem {
+  id         String  @id @default(cuid())
+  sliderId   String
+  pageId     String?
+  productId  String?
+  vendorId   String?
+  mediaId    String?
+  title      String?
+  subtitle   String?
+  imageUrl   String?
+  videoUrl   String?
+  linkUrl    String?
+  buttonText String?
+  sortOrder  Int     @default(0)
+  isActive   Boolean @default(true)
+  config     Json?
+
+  slider  Slider   @relation(fields: [sliderId], references: [id], onDelete: Cascade)
+  page    Page?    @relation(fields: [pageId], references: [id], onDelete: SetNull)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  vendor  Vendor?  @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  media   Media?   @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+
+  @@index([sliderId])
+}
+
+model SliderImpression {
+  id        String   @id @default(cuid())
+  sliderId  String
+  tenantId  String
+  sessionId String?
+  path      String
+  eventType String   // view | click
+  itemId    String?  // which SliderItem was clicked
+  createdAt DateTime @default(now())
+
+  slider Slider @relation(fields: [sliderId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([sliderId])
+  @@index([tenantId])
+  @@index([createdAt])
+  @@index([eventType])
+}
+
+model ProductCategory {
+  id          String   @id @default(cuid())
+  tenantId    String
+  slug        String
+  name        String
+  description String?  @db.Text
+  image       String?
+  parentId    String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant   Tenant            @relation(fields: [tenantId], references: [id])
+  parent   ProductCategory?  @relation("CategoryChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children ProductCategory[] @relation("CategoryChildren")
+  products Product[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@index([parentId])
+}
+
+model PageVersion {
+  id              String   @id @default(cuid())
+  pageId          String
+  tenantId        String
+  title           String
+  content         String   @db.Text
+  contentJson     Json?
+  editorMode      String?
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  metaKeywords    String?
+  backgroundImage String?
+  faqSchema       Json?
+  seoData         Json?
+  noIndex         Boolean  @default(false)
+  isPublished     Boolean  @default(true)
+  savedBy         String?
+  savedAt         DateTime @default(now())
+
+  page   Page   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([pageId, savedAt(sort: Desc)])
+  @@index([tenantId])
+}
