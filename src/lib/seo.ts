@@ -122,6 +122,23 @@ export function buildVendorJsonLd(vendor: {
   }
 }
 
+export function buildArtistJsonLd(artist: {
+  name: string; slug: string; origin?: string | null; genres?: string[]
+  heroImage?: string | null; excerpt?: string | null; socials?: { platform: string; url: string }[] | null
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'MusicGroup',
+    name: artist.name,
+    url: `${SITE_URL}/kuenstler/${artist.slug}`,
+    ...(artist.genres?.length ? { genre: artist.genres } : {}),
+    ...(artist.heroImage ? { image: artist.heroImage } : {}),
+    ...(artist.excerpt ? { description: artist.excerpt } : {}),
+    ...(artist.origin ? { foundingLocation: artist.origin } : {}),
+    ...(artist.socials?.length ? { sameAs: artist.socials.map((s) => s.url) } : {}),
+  }
+}
+
 export const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
