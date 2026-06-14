@@ -38,6 +38,7 @@ enum SliderItemType {
   PRODUCT
   VENDOR
   MEDIA
+  ARTIST
 }
 
 model Tenant {
@@ -70,6 +71,7 @@ model Tenant {
   sliderImpressions  SliderImpression[]
   categories         ProductCategory[]
   pageVersions       PageVersion[]
+  artists            Artist[]
 }
 
 model SiteSettings {
@@ -448,6 +450,7 @@ model Media {
 
   tenant      Tenant       @relation(fields: [tenantId], references: [id])
   sliderItems SliderItem[]
+  artistMedia ArtistMedia[]
 
   @@index([tenantId])
   @@index([type])
@@ -521,6 +524,7 @@ model SliderItem {
   sliderId   String
   pageId     String?
   productId  String?
+  artistId   String?
   vendorId   String?
   mediaId    String?
   title      String?
@@ -536,6 +540,7 @@ model SliderItem {
   slider  Slider   @relation(fields: [sliderId], references: [id], onDelete: Cascade)
   page    Page?    @relation(fields: [pageId], references: [id], onDelete: SetNull)
   product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  artist  Artist?  @relation(fields: [artistId], references: [id], onDelete: SetNull)
   vendor  Vendor?  @relation(fields: [vendorId], references: [id], onDelete: SetNull)
   media   Media?   @relation(fields: [mediaId], references: [id], onDelete: SetNull)
 
@@ -608,4 +613,55 @@ model PageVersion {
 
   @@index([pageId, savedAt(sort: Desc)])
   @@index([tenantId])
+}
+
+model Artist {
+  id              String   @id @default(cuid())
+  tenantId        String
+  slug            String
+  name            String
+  origin          String?
+  genres          String[]
+  heroImage       String?
+  excerpt         String?  @db.Text
+  bio             String?  @db.Text
+  bioJson         Json?
+  editorMode      String?  @default("markdown")
+  website         String?
+  socials         Json?
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  isActive        Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+  isPublished     Boolean  @default(false)
+  sortOrder       Int      @default(0)
+  createdById     String?
+  updatedById     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant      Tenant        @relation(fields: [tenantId], references: [id])
+  media       ArtistMedia[]
+  sliderItems SliderItem[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@index([genres])
+}
+
+model ArtistMedia {
+  id        String  @id @default(cuid())
+  artistId  String
+  kind      String  @default("image")
+  mediaId   String?
+  imageUrl  String?
+  videoId   String?
+  altText   String?
+  caption   String?
+  sortOrder Int     @default(0)
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  media  Media? @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+
+  @@index([artistId])
 }
