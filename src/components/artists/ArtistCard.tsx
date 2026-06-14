@@ -14,6 +14,7 @@ export type ArtistSummary = {
 export default function ArtistCard({
   artist, variant = 'grid', priority = false,
 }: { artist: ArtistSummary; variant?: 'grid' | 'list' | 'carousel'; priority?: boolean }) {
+  // 'carousel' shares grid styling in Spec 1; carousel layout is handled by the parent Swiper later.
   const isList = variant === 'list'
   return (
     <Link

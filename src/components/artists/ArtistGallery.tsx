@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 
 type GalleryItem = {
@@ -25,6 +25,11 @@ export default function ArtistGallery({ items, artistName }: { items: GalleryIte
 
   const images = items.filter((i) => i.kind === 'image' && i.imageUrl)
 
+  const close = useCallback(() => {
+    setLightboxIndex(null)
+    triggerRef.current?.focus()
+  }, [])
+
   useEffect(() => {
     if (lightboxIndex === null) return
     const onKey = (e: KeyboardEvent) => {
@@ -35,12 +40,7 @@ export default function ArtistGallery({ items, artistName }: { items: GalleryIte
     document.addEventListener('keydown', onKey)
     dialogRef.current?.focus()
     return () => document.removeEventListener('keydown', onKey)
-  }, [lightboxIndex, images.length])
-
-  function close() {
-    setLightboxIndex(null)
-    triggerRef.current?.focus()
-  }
+  }, [lightboxIndex, images.length, close])
 
   if (!items.length) return null
 
@@ -68,8 +68,7 @@ export default function ArtistGallery({ items, artistName }: { items: GalleryIte
             return (
               <button
                 key={item.id}
-                ref={imageIndex === 0 ? triggerRef : undefined}
-                onClick={() => setLightboxIndex(imageIndex)}
+                onClick={(e) => { triggerRef.current = e.currentTarget; setLightboxIndex(imageIndex) }}
                 className="aspect-square overflow-hidden rounded-section glass-card"
                 aria-label={`${item.altText || artistName} vergrößern`}
               >
@@ -102,7 +101,7 @@ export default function ArtistGallery({ items, artistName }: { items: GalleryIte
             alt={images[lightboxIndex].altText || artistName}
             width={1200}
             height={1200}
-            className="max-h-[90vh] w-auto object-contain"
+            className="max-h-[90vh] w-auto max-w-[90vw] object-contain"
             onClick={(e) => e.stopPropagation()}
           />
           <button onClick={close} className="absolute right-4 top-4 text-white" aria-label="Schließen">✕</button>

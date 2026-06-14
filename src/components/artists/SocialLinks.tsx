@@ -19,7 +19,7 @@ export default function SocialLinks({
               href={l.url}
               target="_blank"
               rel="noopener noreferrer nofollow"
-              aria-label={label}
+              aria-label={variant === 'icon' ? label : undefined}
               className="glass-card inline-flex items-center gap-2 rounded-pill px-4 py-2 text-sm text-brand-text transition-all hover:shadow-card-hover"
             >
               {variant === 'labeled' ? label : <span aria-hidden="true">{label[0]}</span>}

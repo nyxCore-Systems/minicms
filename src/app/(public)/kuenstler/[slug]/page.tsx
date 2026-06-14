@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { getPublishedArtistBySlug } from '@/lib/artists'
@@ -10,11 +11,13 @@ import ArtistGallery from '@/components/artists/ArtistGallery'
 
 export const dynamic = 'force-dynamic'
 
+const getArtist = cache(getPublishedArtistBySlug)
+
 type Props = { params: Promise<{ slug: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const artist = await getPublishedArtistBySlug(slug)
+  const artist = await getArtist(slug)
   if (!artist) return buildMetadata(null, `/kuenstler/${slug}`, { title: 'Künstler nicht gefunden', description: '' })
   return buildMetadata(null, `/kuenstler/${slug}`, {
     title: artist.metaTitle || `${artist.name} – e-Ventschau`,
@@ -25,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ArtistDetailPage({ params }: Props) {
   const { slug } = await params
-  const artist = await getPublishedArtistBySlug(slug)
+  const artist = await getArtist(slug)
   if (!artist) notFound()
 
   const socials = Array.isArray(artist.socials) ? (artist.socials as { platform: string; url: string }[]) : []
