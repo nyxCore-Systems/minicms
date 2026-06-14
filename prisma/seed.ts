@@ -114,8 +114,12 @@ async function main() {
     data: { tenantId: tenant.id, label: 'Programm 2026', href: '/programm-2026', sortOrder: 2 },
   })
 
+  await prisma.menuItem.create({
+    data: { tenantId: tenant.id, label: 'Künstler', href: '/kuenstler', sortOrder: 3 },
+  })
+
   const rueckschau = await prisma.menuItem.create({
-    data: { tenantId: tenant.id, label: 'Rückschau', href: '/rueckschau', sortOrder: 3 },
+    data: { tenantId: tenant.id, label: 'Rückschau', href: '/rueckschau', sortOrder: 4 },
   })
   await prisma.menuItem.createMany({
     data: [
@@ -131,11 +135,11 @@ async function main() {
   })
 
   await prisma.menuItem.create({
-    data: { tenantId: tenant.id, label: 'Presse', href: '/presse', sortOrder: 4 },
+    data: { tenantId: tenant.id, label: 'Presse', href: '/presse', sortOrder: 5 },
   })
 
   const unterstuetzung = await prisma.menuItem.create({
-    data: { tenantId: tenant.id, label: 'Unterstützung', href: '/unterstuetzung', sortOrder: 5 },
+    data: { tenantId: tenant.id, label: 'Unterstützung', href: '/unterstuetzung', sortOrder: 6 },
   })
   await prisma.menuItem.createMany({
     data: [
@@ -145,7 +149,7 @@ async function main() {
   })
 
   await prisma.menuItem.create({
-    data: { tenantId: tenant.id, label: 'Kontakt', href: '/kontakt', sortOrder: 6 },
+    data: { tenantId: tenant.id, label: 'Kontakt', href: '/kontakt', sortOrder: 7 },
   })
 
   // Footer
@@ -183,6 +187,28 @@ async function main() {
     ],
   })
   console.log('Menu items created (header + footer)')
+
+  // ── Artists (Line-up 2026) ──────────────────────────────
+  const lineup = [
+    { slug: 'thorbjorn-risager', name: 'Thorbjørn Risager & The Black Tornado', origin: 'Dänemark', genres: ['Blues Rock', 'Soul'], featured: true },
+    { slug: 'lebron-johnson', name: 'Lebron Johnson', origin: 'Italien', genres: ['Rock', 'Funk'], featured: true },
+    { slug: 'killabeatmaker', name: 'Killabeatmaker', origin: 'Kolumbien', genres: ['Latin', 'Electronic'], featured: false },
+    { slug: 'jed-thomas-band', name: 'Jed Thomas Band', origin: 'Großbritannien', genres: ['Heavy Blues Rock'], featured: false },
+    { slug: 'rovar', name: 'ROVAR', origin: 'Münster', genres: ['Stoner', '70s Rock'], featured: false },
+    { slug: 'nanny-goats', name: 'Nanny Goats', origin: 'Lüneburg', genres: ['Semi-Acoustic'], featured: false },
+    { slug: 'the-klaxon', name: 'The Klaxon', origin: 'Kolumbien', genres: ['Ska', 'Latin'], featured: false },
+  ]
+  for (const [i, band] of lineup.entries()) {
+    await prisma.artist.upsert({
+      where: { tenantId_slug: { tenantId: tenant.id, slug: band.slug } },
+      update: { name: band.name, origin: band.origin, genres: band.genres, isFeatured: band.featured, isPublished: true },
+      create: {
+        tenantId: tenant.id, slug: band.slug, name: band.name, origin: band.origin,
+        genres: band.genres, isFeatured: band.featured, isPublished: true, isActive: true, sortOrder: i,
+      },
+    })
+  }
+  console.log(`Artists seeded: ${lineup.length}`)
 
   // ── Content pages from src/content/*.md ─────────────────
   const contentDir = path.join(process.cwd(), 'src/content')
