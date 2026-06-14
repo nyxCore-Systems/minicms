@@ -29,7 +29,7 @@ export default function ArtistCard({
             width={600}
             height={450}
             priority={priority}
-            className="h-full w-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
+            className="h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-105"
           />
         ) : (
           <div aria-hidden="true" className="flex h-full w-full items-center justify-center bg-brand-primary/10 text-brand-primary">♪</div>
