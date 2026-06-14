@@ -5,9 +5,9 @@ const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 export function normalizeSlug(input: string): string {
   return (input || '')
     .toLowerCase()
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
-    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 96)
@@ -21,8 +21,9 @@ export function safeHttpsUrl(input: unknown): string | null {
   if (typeof input !== 'string' || !input.trim()) return null
   try {
     const u = new URL(input.trim())
-    if (u.protocol === 'https:' || u.protocol === 'mailto:') return u.toString()
-    return null
+    if (u.protocol !== 'https:') return null
+    if (u.username || u.password) return null
+    return u.toString()
   } catch { return null }
 }
 

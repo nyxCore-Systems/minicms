@@ -60,7 +60,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (body.isActive !== undefined) data.isActive = body.isActive === true
   if (body.isFeatured !== undefined) data.isFeatured = body.isFeatured === true
   if (body.sortOrder !== undefined) data.sortOrder = Number(body.sortOrder) || 0
-  if (Array.isArray(body.genres)) data.genres = body.genres.map((t: unknown) => String(t).trim()).filter(Boolean)
+  if (body.genres !== undefined) {
+    data.genres = Array.isArray(body.genres)
+      ? body.genres.map((t: unknown) => String(t).trim()).filter(Boolean)
+      : String(body.genres || '').split(',').map((t) => t.trim()).filter(Boolean)
+  }
   if (body.slug !== undefined) {
     const slug = normalizeSlug(body.slug)
     if (!isValidSlug(slug)) return NextResponse.json({ error: 'Ungültiger Slug' }, { status: 400 })
@@ -75,9 +79,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       prisma.artistMedia.deleteMany({ where: { artistId: id } }),
       prisma.artist.update({ where: { id }, data }),
       prisma.artistMedia.createMany({
-        data: clean.map((m) => ({
+        data: clean.map((m, i) => ({
           artistId: id, kind: m.kind, imageUrl: m.imageUrl ?? null, videoId: m.videoId ?? null,
-          altText: m.altText ?? null, caption: m.caption ?? null, sortOrder: m.sortOrder ?? 0,
+          altText: m.altText ?? null, caption: m.caption ?? null, sortOrder: i,
         })),
       }),
     ])

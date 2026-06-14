@@ -4,6 +4,7 @@ import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/lib/prisma'
 import { getTenant } from '@/lib/tenant'
 import { normalizeSlug, isValidSlug, safeHttpsUrl, safeCloudinaryUrl, sanitizeSocials } from '@/lib/artist-validation'
+import { getArtistsForAdmin } from '@/lib/artists'
 
 async function getSessionToken() {
   const cookieStore = await cookies()
@@ -22,14 +23,7 @@ export async function GET() {
   if (!token || !['ADMIN', 'SUPER_ADMIN'].includes(token.role as string)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  const tenant = await getTenant()
-  if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
-  const artists = await prisma.artist.findMany({
-    where: { tenantId: tenant.id },
-    include: { _count: { select: { media: true } } },
-    orderBy: [{ isFeatured: 'desc' }, { sortOrder: 'asc' }, { name: 'asc' }],
-  })
-  return NextResponse.json(artists)
+  return NextResponse.json(await getArtistsForAdmin())
 }
 
 export async function POST(req: NextRequest) {
