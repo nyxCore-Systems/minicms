@@ -25,6 +25,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     select: { slug: true, path: true, updatedAt: true },
   })
 
+  const artists = await prisma.artist.findMany({
+    where: { tenantId: tenant.id, isPublished: true, isActive: true },
+    select: { slug: true, updatedAt: true },
+  })
+
   const dynamicPages: MetadataRoute.Sitemap = pages
     .map((page) => {
       const route = page.path || `/${page.slug}`
@@ -36,5 +41,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     })
 
-  return [...staticPages, ...dynamicPages]
+  return [
+    ...staticPages,
+    ...dynamicPages,
+    ...artists.map((a) => ({
+      url: `${SITE_URL}/kuenstler/${a.slug}`,
+      lastModified: a.updatedAt,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
+  ]
 }

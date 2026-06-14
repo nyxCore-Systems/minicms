@@ -36,13 +36,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const lineup2026 = [
-  { name: 'Thorbjørn Risager & The Black Tornado', origin: 'Dänemark', genre: 'Blues Rock / Soul' },
-  { name: 'Lebron Johnson', origin: 'Italien', genre: 'Rock / Funk' },
-  { name: 'Killabeatmaker', origin: 'Kolumbien', genre: 'Latin / Electronic' },
-  { name: 'Jed Thomas Band', origin: 'Großbritannien', genre: 'Heavy Blues Rock' },
-  { name: 'ROVAR', origin: 'Münster', genre: 'Stoner / 70s Rock' },
-  { name: 'Nanny Goats', origin: 'Lüneburg', genre: 'Semi-Acoustic' },
-  { name: 'The Klaxon', origin: 'Kolumbien', genre: 'Ska / Latin' },
+  { slug: 'thorbjorn-risager', name: 'Thorbjørn Risager & The Black Tornado', origin: 'Dänemark', genre: 'Blues Rock / Soul' },
+  { slug: 'lebron-johnson', name: 'Lebron Johnson', origin: 'Italien', genre: 'Rock / Funk' },
+  { slug: 'killabeatmaker', name: 'Killabeatmaker', origin: 'Kolumbien', genre: 'Latin / Electronic' },
+  { slug: 'jed-thomas-band', name: 'Jed Thomas Band', origin: 'Großbritannien', genre: 'Heavy Blues Rock' },
+  { slug: 'rovar', name: 'ROVAR', origin: 'Münster', genre: 'Stoner / 70s Rock' },
+  { slug: 'nanny-goats', name: 'Nanny Goats', origin: 'Lüneburg', genre: 'Semi-Acoustic' },
+  { slug: 'the-klaxon', name: 'The Klaxon', origin: 'Kolumbien', genre: 'Ska / Latin' },
 ]
 
 export default function HomePage() {
@@ -85,11 +85,11 @@ export default function HomePage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {lineup2026.map((band) => (
-            <div key={band.name} className="glass-card rounded-section p-6 transition-all hover:shadow-card-hover">
+            <Link key={band.name} href={`/kuenstler/${band.slug}`} className="glass-card rounded-section p-6 transition-all hover:shadow-card-hover block">
               <p className="text-xs uppercase tracking-wider text-brand-accent font-semibold">{band.origin}</p>
               <h3 className="mt-2 font-display text-xl font-bold text-brand-text leading-snug">{band.name}</h3>
               <p className="mt-1 text-sm text-brand-text-muted">{band.genre}</p>
-            </div>
+            </Link>
           ))}
         </div>
         <div className="text-center mt-10">
