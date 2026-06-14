@@ -11,6 +11,7 @@ export async function getSliderBySlug(slug: string, tenantId: string) {
           page: { select: { id: true, title: true, slug: true, ogImage: true, featureImage: true, featureVideo: true } },
           product: { select: { id: true, label: true, url: true, image: true } },
           vendor: { select: { id: true, name: true, slug: true, imageUrl: true, description: true } },
+          artist: { select: { id: true, name: true, slug: true, heroImage: true, origin: true } },
           media: { select: { id: true, url: true, type: true, filename: true } },
         },
       },

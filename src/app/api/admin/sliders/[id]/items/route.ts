@@ -38,7 +38,7 @@ export async function POST(
   }
 
   const body = await request.json()
-  const { pageId, productId, vendorId, mediaId, title, subtitle, imageUrl, videoUrl, linkUrl, buttonText, sortOrder, config } = body
+  const { pageId, productId, vendorId, artistId, mediaId, title, subtitle, imageUrl, videoUrl, linkUrl, buttonText, sortOrder, config } = body
 
   const item = await prisma.sliderItem.create({
     data: {
@@ -46,6 +46,7 @@ export async function POST(
       pageId: pageId || null,
       productId: productId || null,
       vendorId: vendorId || null,
+      artistId: artistId || null,
       mediaId: mediaId || null,
       title: title || null,
       subtitle: subtitle || null,
@@ -60,6 +61,7 @@ export async function POST(
       page: { select: { id: true, title: true, slug: true, ogImage: true, featureImage: true, featureVideo: true } },
       product: { select: { id: true, label: true, url: true, image: true } },
       vendor: { select: { id: true, name: true, slug: true, imageUrl: true, description: true } },
+      artist: { select: { id: true, name: true, slug: true, heroImage: true, origin: true } },
       media: { select: { id: true, url: true, type: true, filename: true } },
     },
   })

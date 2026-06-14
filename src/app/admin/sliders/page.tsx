@@ -28,7 +28,7 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────
 
-type ItemType = 'PAGE' | 'PRODUCT' | 'VENDOR' | 'MEDIA'
+type ItemType = 'PAGE' | 'PRODUCT' | 'VENDOR' | 'MEDIA' | 'ARTIST'
 
 interface SliderConfig {
   animation: 'slide' | 'fade' | 'cube' | 'flip' | 'coverflow' | 'cards'
@@ -134,6 +134,7 @@ const ITEM_TYPE_LABELS: Record<ItemType, string> = {
   PRODUCT: 'Produkte',
   VENDOR: 'Haendler',
   MEDIA: 'Medien',
+  ARTIST: 'Kuenstler',
 }
 
 const FILTER_MODE_LABELS: Record<string, string> = {
@@ -467,6 +468,7 @@ export default function AdminSlidersPage() {
       let endpoint = ''
       if (itemType === 'PAGE') endpoint = '/api/admin/pages'
       else if (itemType === 'PRODUCT') endpoint = '/api/admin/products'
+      else if (itemType === 'ARTIST') endpoint = '/api/admin/artists'
       else endpoint = '/api/admin/vendors'
 
       const res = await fetch(endpoint)
@@ -510,6 +512,8 @@ export default function AdminSlidersPage() {
         body.pageId = refId
       } else if (itemType === 'PRODUCT') {
         body.productId = refId
+      } else if (itemType === 'ARTIST') {
+        body.artistId = refId
       } else {
         body.vendorId = refId
       }
@@ -777,6 +781,7 @@ export default function AdminSlidersPage() {
               { value: 'PRODUCT' as ItemType, label: 'Produkte', description: 'Produkte aus dem Katalog', Icon: CurrencyEuroIcon },
               { value: 'VENDOR' as ItemType, label: 'Haendler', description: 'Haendler-Profile anzeigen', Icon: MegaphoneIcon },
               { value: 'MEDIA' as ItemType, label: 'Medien', description: 'Bilder & Videos mit Verlinkung', Icon: PhotoIcon },
+              { value: 'ARTIST' as ItemType, label: 'Kuenstler', description: 'Kuenstler-Profile anzeigen', Icon: MegaphoneIcon },
             ]).map((opt) => (
               <label
                 key={opt.value}
@@ -1259,6 +1264,7 @@ export default function AdminSlidersPage() {
                     if (formItemType === 'MEDIA') return item.mediaId === result.id
                     if (formItemType === 'PAGE') return item.pageId === result.id
                     if (formItemType === 'PRODUCT') return item.productId === result.id
+                    if (formItemType === 'ARTIST') return (item as any).artistId === result.id
                     return item.vendorId === result.id
                   })
                   return (

@@ -117,6 +117,22 @@ async function getAutoItems(
     return items
   }
 
+  if (slider.itemType === 'ARTIST') {
+    const artists = await prisma.artist.findMany({
+      where: { tenantId, isPublished: true, isActive: true, ...(slider.filterTags?.length ? { genres: { hasSome: slider.filterTags } } : {}) },
+      orderBy: [{ isFeatured: 'desc' }, { sortOrder: 'asc' }],
+      take: slider.maxItems || 12,
+    })
+    return artists.map((a) => ({
+      id: a.id,
+      title: a.name,
+      subtitle: a.origin || (a.genres[0] ?? ''),
+      imageUrl: a.heroImage || '',
+      linkUrl: `/kuenstler/${a.slug}`,
+      type: 'ARTIST' as const,
+    }))
+  }
+
   if (slider.itemType === 'PAGE') {
     const pages = await prisma.page.findMany({
       where: { tenantId, isPublished: true, isFeatured: true },
@@ -167,14 +183,16 @@ export async function GET(request: Request) {
     // Map manual items from SliderItem relations
     const manualItems: SliderItem[] = slider.items.map((item) => {
       const isMedia = !!item.mediaId
+      const artistItem = (item as any).artist as { id: string; name: string; slug: string; heroImage: string | null; origin: string | null } | null
       return {
         id: item.id,
-        title: item.title || item.page?.title || item.product?.label || item.vendor?.name || (item.media?.filename || ''),
-        subtitle: item.subtitle || item.vendor?.description || null,
+        title: item.title || item.page?.title || item.product?.label || item.vendor?.name || artistItem?.name || (item.media?.filename || ''),
+        subtitle: item.subtitle || item.vendor?.description || artistItem?.origin || null,
         imageUrl: item.imageUrl ||
           (item.page ? ((item.page as any).featureImage || item.page.ogImage) : null) ||
           item.product?.image ||
           item.vendor?.imageUrl ||
+          artistItem?.heroImage ||
           (item.media?.type === 'IMAGE' ? item.media.url : null) ||
           null,
         videoUrl: item.videoUrl ||
@@ -185,9 +203,10 @@ export async function GET(request: Request) {
           item.linkUrl ||
           (item.page ? `/${item.page.slug}` : null) ||
           (item.product ? item.product.url : null) ||
-          (item.vendor ? `/haendler/${item.vendor.slug}` : null),
+          (item.vendor ? `/haendler/${item.vendor.slug}` : null) ||
+          (artistItem ? `/kuenstler/${artistItem.slug}` : null),
         buttonText: item.buttonText || null,
-        type: isMedia ? 'media' : item.vendorId ? 'vendor' : item.productId ? 'product' : 'page',
+        type: isMedia ? 'media' : item.vendorId ? 'vendor' : (item as any).artistId ? 'ARTIST' : item.productId ? 'product' : 'page',
         config: (item as any).config ?? null,
       }
     })
