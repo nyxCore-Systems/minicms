@@ -21,6 +21,7 @@ import {
   TagIcon,
   ChevronDownIcon,
   ServerStackIcon,
+  MusicalNoteIcon,
 } from '@heroicons/react/24/outline'
 import { signOut } from 'next-auth/react'
 
@@ -76,6 +77,7 @@ const navStructure: NavEntry[] = [
         { name: 'Seiten', href: '/admin/content', icon: DocumentTextIcon },
         { name: 'Medien', href: '/admin/media', icon: PhotoIcon },
         { name: 'Navigation', href: '/admin/menu', icon: Bars3BottomLeftIcon },
+        { name: 'Künstler', href: '/admin/artists', icon: MusicalNoteIcon },
       ],
     },
   },
