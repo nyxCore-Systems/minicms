@@ -260,6 +260,7 @@ export function normalizeSlug(input: string): string {
   return (input || '')
     .toLowerCase()
     .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+    .replace(/ø/g, 'o').replace(/æ/g, 'ae').replace(/å/g, 'a')
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
@@ -288,7 +289,7 @@ export function safeCloudinaryUrl(input: unknown): string | null {
 }
 ```
 
-> NOTE: the original `artist-validation.ts` used a literal combining-marks character class. `[̀-ͯ]` is the identical Unicode range written in escape form (safer in source). It strips the same diacritics after NFKD.
+> NOTE: the umlaut/Nordic replacements run BEFORE `.normalize('NFKD')` (order is load-bearing: `Motörhead → motoerhead`, `Thorbjørn → thorbjorn`). The `ä/ö/ü/ß` set is verbatim from the original `artist-validation.ts`; the `ø/æ/å` set was added during Task 2 because `ø` does not decompose under NFKD and `ø→o` matches the seeded `thorbjorn-risager` slug (safe — stored slugs are never recomputed). `[̀-ͯ]` is the original combining-marks range in escape form; it strips diacritics after NFKD.
 
 - [ ] **Step 4: Run the test to verify it passes**
 
