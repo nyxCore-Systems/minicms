@@ -72,6 +72,7 @@ model Tenant {
   categories         ProductCategory[]
   pageVersions       PageVersion[]
   artists            Artist[]
+  events             Event[]
 }
 
 model SiteSettings {
@@ -643,6 +644,7 @@ model Artist {
   tenant      Tenant        @relation(fields: [tenantId], references: [id])
   media       ArtistMedia[]
   sliderItems SliderItem[]
+  appearances Appearance[]
 
   @@unique([tenantId, slug])
   @@index([tenantId])
@@ -664,4 +666,96 @@ model ArtistMedia {
   media  Media? @relation(fields: [mediaId], references: [id], onDelete: SetNull)
 
   @@index([artistId])
+}
+
+model Event {
+  id              String   @id @default(cuid())
+  tenantId        String
+  slug            String
+  title           String
+  subtitle        String?
+  eventType       String   @default("festival")
+  startDate       DateTime
+  endDate         DateTime?
+  locationName    String?
+  locationAddress String?
+  locationUrl     String?
+  heroImage       String?
+  excerpt         String?  @db.Text
+  description     String?  @db.Text
+  descriptionJson Json?
+  editorMode      String?  @default("markdown")
+  ticketUrl       String?
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  isPublished     Boolean  @default(false)
+  isFeatured      Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdById     String?
+  updatedById     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  stages      Stage[]
+  appearances Appearance[]
+  priceTiers  PriceTier[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@index([startDate])
+}
+
+model Stage {
+  id        String  @id @default(cuid())
+  eventId   String
+  name      String
+  color     String?
+  sortOrder Int     @default(0)
+
+  event       Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  appearances Appearance[]
+
+  @@index([eventId])
+}
+
+model Appearance {
+  id        String    @id @default(cuid())
+  eventId   String
+  stageId   String
+  artistId  String?
+  title     String?
+  role      String    @default("support")
+  startTime DateTime
+  endTime   DateTime?
+  note      String?
+  sortOrder Int       @default(0)
+
+  event  Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  stage  Stage   @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  artist Artist? @relation(fields: [artistId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([stageId])
+  @@index([artistId])
+}
+
+model PriceTier {
+  id          String    @id @default(cuid())
+  eventId     String
+  name        String
+  description String?
+  price       Float?
+  currency    String    @default("EUR")
+  validFrom   DateTime?
+  validUntil  DateTime?
+  isSoldOut   Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  buyUrl      String?
+  sortOrder   Int       @default(0)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
 }
