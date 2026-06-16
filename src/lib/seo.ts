@@ -139,6 +139,56 @@ export function buildArtistJsonLd(artist: {
   }
 }
 
+export function buildEventJsonLd(event: {
+  title: string
+  slug: string
+  startDate: string | Date
+  endDate?: string | Date | null
+  excerpt?: string | null
+  heroImage?: string | null
+  locationName?: string | null
+  locationAddress?: string | null
+  performers?: { name: string; slug: string }[] | null
+  priceTiers?: { name: string; price: number | null; currency?: string | null; buyUrl?: string | null }[] | null
+}) {
+  const iso = (d: string | Date) => (typeof d === 'string' ? d : d.toISOString())
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'MusicEvent',
+    name: event.title,
+    url: `${SITE_URL}/events/${event.slug}`,
+    startDate: iso(event.startDate),
+    eventStatus: 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    ...(event.endDate ? { endDate: iso(event.endDate) } : {}),
+    ...(event.excerpt ? { description: event.excerpt } : {}),
+    ...(event.heroImage ? { image: event.heroImage } : {}),
+    ...(event.locationName
+      ? {
+          location: {
+            '@type': 'Place',
+            name: event.locationName,
+            ...(event.locationAddress ? { address: event.locationAddress } : {}),
+          },
+        }
+      : {}),
+    ...(event.performers?.length
+      ? { performer: event.performers.map((p) => ({ '@type': 'MusicGroup', name: p.name, url: `${SITE_URL}/kuenstler/${p.slug}` })) }
+      : {}),
+    ...(event.priceTiers?.length
+      ? {
+          offers: event.priceTiers.map((t) => ({
+            '@type': 'Offer',
+            name: t.name,
+            ...(t.price !== null && t.price !== undefined ? { price: t.price, priceCurrency: t.currency || 'EUR' } : {}),
+            availability: 'https://schema.org/InStock',
+            url: t.buyUrl || `${SITE_URL}/events/${event.slug}`,
+          })),
+        }
+      : {}),
+  }
+}
+
 export const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
