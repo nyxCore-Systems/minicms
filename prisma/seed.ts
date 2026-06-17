@@ -79,15 +79,15 @@ async function main() {
   // ── Site settings ───────────────────────────────────────
   await prisma.siteSettings.upsert({
     where: { tenantId: tenant.id },
-    update: { themeSlug: 'eventschau', siteName: 'e-Ventschau' },
+    update: { themeSlug: 'eventschau', siteName: 'e-Ventschau', primaryColor: '#006799', accentColor: '#2EA3F2', backgroundColor: '#FAFBFD' },
     create: {
       tenantId: tenant.id,
       siteName: 'e-Ventschau',
       themeSlug: 'eventschau',
       defaultDarkMode: false,
-      primaryColor: '#0E5A57',
-      accentColor: '#E0A11E',
-      backgroundColor: '#FAFAF6',
+      primaryColor: '#006799',
+      accentColor: '#2EA3F2',
+      backgroundColor: '#FAFBFD',
       fontHeading: 'Playfair Display',
       fontBody: 'Inter',
       locale: 'de',
