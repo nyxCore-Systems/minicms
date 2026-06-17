@@ -17,9 +17,9 @@ const getEvent = cache(getPublishedEventBySlug)
 type Props = { params: Promise<{ slug: string }> }
 
 function formatRange(start: Date, end: Date | null): string {
-  const fmt = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
+  const fmt = new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', day: '2-digit', month: 'long', year: 'numeric' })
   if (!end || start.toDateString() === end.toDateString()) return fmt.format(start)
-  const dayFmt = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'long' })
+  const dayFmt = new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', day: '2-digit', month: 'long' })
   return `${dayFmt.format(start)} – ${fmt.format(end)}`
 }
 

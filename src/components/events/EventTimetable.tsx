@@ -3,9 +3,10 @@ import type { EventWithRelations } from '@/lib/events'
 
 type Appearance = EventWithRelations['appearances'][number]
 
-const dayKey = (d: Date) => d.toISOString().slice(0, 10)
-const dayLabel = (d: Date) => new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }).format(d)
-const timeLabel = (d: Date) => new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(d)
+const BERLIN_TZ = 'Europe/Berlin'
+const dayKey = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: BERLIN_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d)
+const dayLabel = (d: Date) => new Intl.DateTimeFormat('de-DE', { timeZone: BERLIN_TZ, weekday: 'short', day: '2-digit', month: '2-digit' }).format(d)
+const timeLabel = (d: Date) => new Intl.DateTimeFormat('de-DE', { timeZone: BERLIN_TZ, hour: '2-digit', minute: '2-digit' }).format(d)
 
 function slotLabel(a: Appearance) {
   return a.artist ? a.artist.name : (a.title ?? '')
@@ -42,7 +43,7 @@ export default function EventTimetable({ event }: { event: EventWithRelations })
           return (
             <div key={day}>
               <h3 className="mb-2 border-b border-brand-text/10 pb-1 font-display text-lg font-bold text-brand-text">
-                {dayLabel(new Date(day + 'T00:00:00'))}
+                {dayLabel(rows[0].startTime)}
               </h3>
               <ul className="space-y-1">
                 {rows.map((a) => (
@@ -65,7 +66,7 @@ export default function EventTimetable({ event }: { event: EventWithRelations })
           const times = Array.from(new Set(dayRows.map((a) => a.startTime.toISOString()))).sort()
           return (
             <div key={day} className="overflow-x-auto">
-              <h3 className="mb-3 font-display text-lg font-bold text-brand-text">{dayLabel(new Date(day + 'T00:00:00'))}</h3>
+              <h3 className="mb-3 font-display text-lg font-bold text-brand-text">{dayLabel(dayRows[0].startTime)}</h3>
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr>
