@@ -65,7 +65,7 @@ export default async function EventDetailPage({ params }: Props) {
           locationName: event.locationName,
           locationAddress: event.locationAddress,
           performers: uniqueLineup.map((a) => ({ name: a.artist!.name, slug: a.artist!.slug })),
-          priceTiers: event.priceTiers.map((t) => ({ name: t.name, price: t.price, currency: t.currency, buyUrl: t.buyUrl })),
+          priceTiers: event.priceTiers.map((t) => ({ name: t.name, price: t.price, currency: t.currency, buyUrl: t.buyUrl, isSoldOut: t.isSoldOut })),
         })}
       />
 

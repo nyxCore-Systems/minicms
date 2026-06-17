@@ -47,9 +47,13 @@ export default function EditEventPage() {
   const [pickHero, setPickHero] = useState(false)
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/admin/events/${id}`).then((r) => r.json()).then((e) => {
+    async function load() {
+      const res = await fetch(`/api/admin/events/${id}`)
+      if (!res.ok) { setSaveError('Event konnte nicht geladen werden.'); return }
+      const e = await res.json()
       setForm({
         title: e.title || '', slug: e.slug || '', subtitle: e.subtitle || '',
         eventType: e.eventType || 'festival',
@@ -63,7 +67,9 @@ export default function EditEventPage() {
       setTiers(Array.isArray(e.priceTiers) ? e.priceTiers.map((t: TierRow) => ({
         ...t, validFrom: toLocalInput(t.validFrom), validUntil: toLocalInput(t.validUntil),
       })) : [])
-    })
+      setLoaded(true)
+    }
+    load()
   }, [id])
 
   function set<K extends keyof typeof form>(field: K, value: (typeof form)[K]) {
@@ -143,6 +149,14 @@ export default function EditEventPage() {
         {descJson !== null && <PlateEditor initialValue={descJson} onChange={(v: TElement[]) => setDescJson(v)} />}
       </div>
 
+      {/* SEO */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label className="flex flex-col gap-1"><span className="text-sm font-medium">Meta-Titel (SEO)</span>
+          <input className="glass rounded-lg px-3 py-2" value={form.metaTitle} onChange={(e) => set('metaTitle', e.target.value)} /></label>
+        <label className="flex flex-col gap-1"><span className="text-sm font-medium">Meta-Beschreibung (SEO)</span>
+          <input className="glass rounded-lg px-3 py-2" value={form.metaDescription} onChange={(e) => set('metaDescription', e.target.value)} /></label>
+      </div>
+
       {/* Stage manager + timetable builder (Tasks 20–21) */}
       <StageManager eventId={id} />
       <TimetableBuilder eventId={id} />
@@ -176,7 +190,7 @@ export default function EditEventPage() {
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished} onChange={(e) => set('isPublished', e.target.checked)} /> Veröffentlicht</label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isFeatured} onChange={(e) => set('isFeatured', e.target.checked)} /> Hauptevent (Homepage)</label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isActive} onChange={(e) => set('isActive', e.target.checked)} /> Aktiv</label>
-        <button type="button" onClick={save} className="btn-primary px-5 py-2">Speichern</button>
+        <button type="button" onClick={save} disabled={!loaded} className="btn-primary px-5 py-2">Speichern</button>
         {saved && <span className="text-sm text-green-600">Gespeichert ✓</span>}
         {saveError && <span className="text-sm text-red-600">{saveError}</span>}
       </div>

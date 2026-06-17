@@ -10,9 +10,17 @@ export default function StageManager({ eventId }: { eventId: string }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetch(`/api/admin/events/${eventId}`).then((r) => r.json()).then((e) => {
-      setStages(Array.isArray(e.stages) ? e.stages : [])
-    })
+    async function load() {
+      try {
+        const res = await fetch(`/api/admin/events/${eventId}`)
+        if (!res.ok) { setError('Bühnen konnten nicht geladen werden.'); return }
+        const e = await res.json()
+        setStages(Array.isArray(e.stages) ? e.stages : [])
+      } catch {
+        setError('Bühnen konnten nicht geladen werden.')
+      }
+    }
+    load()
   }, [eventId])
 
   async function add() {
@@ -34,7 +42,8 @@ export default function StageManager({ eventId }: { eventId: string }) {
       body: JSON.stringify({ name, color: stage.color, sortOrder: stage.sortOrder }),
     })
     if (!res.ok) return
-    setStages((p) => p.map((s) => (s.id === stage.id ? { ...s, name } : s)))
+    const updated = await res.json()
+    setStages((p) => p.map((s) => (s.id === stage.id ? updated : s)))
   }
 
   async function remove(id: string) {

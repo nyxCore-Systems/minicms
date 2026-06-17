@@ -149,7 +149,7 @@ export function buildEventJsonLd(event: {
   locationName?: string | null
   locationAddress?: string | null
   performers?: { name: string; slug: string }[] | null
-  priceTiers?: { name: string; price: number | null; currency?: string | null; buyUrl?: string | null }[] | null
+  priceTiers?: { name: string; price: number | null; currency?: string | null; buyUrl?: string | null; isSoldOut?: boolean }[] | null
 }) {
   const iso = (d: string | Date) => (typeof d === 'string' ? d : d.toISOString())
   return {
@@ -181,7 +181,7 @@ export function buildEventJsonLd(event: {
             '@type': 'Offer',
             name: t.name,
             ...(t.price !== null && t.price !== undefined ? { price: t.price, priceCurrency: t.currency || 'EUR' } : {}),
-            availability: 'https://schema.org/InStock',
+            availability: t.isSoldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
             url: t.buyUrl || `${SITE_URL}/events/${event.slug}`,
           })),
         }
