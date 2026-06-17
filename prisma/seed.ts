@@ -194,21 +194,21 @@ async function main() {
 
   // ── Artists (Line-up 2026) ──────────────────────────────
   const lineup = [
-    { slug: 'thorbjorn-risager', name: 'Thorbjørn Risager & The Black Tornado', origin: 'Dänemark', genres: ['Blues Rock', 'Soul'], featured: true },
-    { slug: 'lebron-johnson', name: 'Lebron Johnson', origin: 'Italien', genres: ['Rock', 'Funk'], featured: true },
-    { slug: 'killabeatmaker', name: 'Killabeatmaker', origin: 'Kolumbien', genres: ['Latin', 'Electronic'], featured: false },
-    { slug: 'jed-thomas-band', name: 'Jed Thomas Band', origin: 'Großbritannien', genres: ['Heavy Blues Rock'], featured: false },
-    { slug: 'rovar', name: 'ROVAR', origin: 'Münster', genres: ['Stoner', '70s Rock'], featured: false },
-    { slug: 'nanny-goats', name: 'Nanny Goats', origin: 'Lüneburg', genres: ['Semi-Acoustic'], featured: false },
-    { slug: 'the-klaxon', name: 'The Klaxon', origin: 'Kolumbien', genres: ['Ska', 'Latin'], featured: false },
+    { slug: 'thorbjorn-risager', name: 'Thorbjørn Risager & The Black Tornado', origin: 'Dänemark', genres: ['Blues Rock', 'Soul'], featured: true, heroImage: 'https://e-ventschau.de/wp-content/uploads/2026/05/Thorbjorn-Risager-The-Black-Tornado-Daenemark-scaled.jpg' },
+    { slug: 'lebron-johnson', name: 'Lebron Johnson', origin: 'Italien', genres: ['Rock', 'Funk'], featured: true, heroImage: 'https://e-ventschau.de/wp-content/uploads/2026/05/Lebron-Johnson-Italien.jpg' },
+    { slug: 'killabeatmaker', name: 'Killabeatmaker', origin: 'Kolumbien', genres: ['Latin', 'Electronic'], featured: false, heroImage: 'https://e-ventschau.de/wp-content/uploads/2026/05/BMB4449-scaled-1-scaled.jpg' },
+    { slug: 'jed-thomas-band', name: 'Jed Thomas Band', origin: 'Großbritannien', genres: ['Heavy Blues Rock'], featured: false, heroImage: 'https://e-ventschau.de/wp-content/uploads/2023/05/Jed-Thomas_small_CR_JRoberts.jpg' },
+    { slug: 'rovar', name: 'ROVAR', origin: 'Münster', genres: ['Stoner', '70s Rock'], featured: false, heroImage: 'https://e-ventschau.de/wp-content/uploads/2026/05/Rovar-1.jpg' },
+    { slug: 'nanny-goats', name: 'Nanny Goats', origin: 'Lüneburg', genres: ['Semi-Acoustic'], featured: false, heroImage: 'https://e-ventschau.de/wp-content/uploads/2026/05/Nanny-Goats-Sofa.jpg' },
+    { slug: 'the-klaxon', name: 'The Klaxon', origin: 'Kolumbien', genres: ['Ska', 'Latin'], featured: false, heroImage: 'https://e-ventschau.de/wp-content/uploads/2026/05/The-Klaxon-2025-Edit.png' },
   ]
   for (const [i, band] of lineup.entries()) {
     await prisma.artist.upsert({
       where: { tenantId_slug: { tenantId: tenant.id, slug: band.slug } },
-      update: { name: band.name, origin: band.origin, genres: band.genres, isFeatured: band.featured, isPublished: true },
+      update: { name: band.name, origin: band.origin, genres: band.genres, isFeatured: band.featured, isPublished: true, heroImage: band.heroImage },
       create: {
         tenantId: tenant.id, slug: band.slug, name: band.name, origin: band.origin,
-        genres: band.genres, isFeatured: band.featured, isPublished: true, isActive: true, sortOrder: i,
+        genres: band.genres, isFeatured: band.featured, isPublished: true, isActive: true, sortOrder: i, heroImage: band.heroImage,
       },
     })
   }
