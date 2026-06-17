@@ -4,6 +4,7 @@ import { getSiteSettings } from '@/lib/menu'
 import { getFeaturedEventLineup } from '@/lib/events'
 import { buildMetadata, websiteJsonLd } from '@/lib/seo'
 import JsonLd from '@/components/JsonLd'
+import ArtistCard from '@/components/artists/ArtistCard'
 
 export const dynamic = 'force-dynamic'
 
@@ -77,12 +78,8 @@ export default async function HomePage() {
           <p className="mt-3 text-brand-text-muted">Sieben Bands aus aller Welt – Blues-Rock, Funk, Latin und mehr.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {lineup2026.map((band) => (
-            <Link key={band.slug} href={`/kuenstler/${band.slug}`} className="glass-card rounded-section p-6 transition-all hover:shadow-card-hover block">
-              {band.origin && <p className="text-xs uppercase tracking-wider text-brand-accent font-semibold">{band.origin}</p>}
-              <h3 className="mt-2 font-display text-xl font-bold text-brand-text leading-snug">{band.name}</h3>
-              {band.genres?.length ? <p className="mt-1 text-sm text-brand-text-muted">{band.genres.join(' · ')}</p> : null}
-            </Link>
+          {lineup2026.map((band, i) => (
+            <ArtistCard key={band.slug} artist={band} priority={i < 3} />
           ))}
         </div>
         <div className="text-center mt-10">
