@@ -23,7 +23,7 @@ export default async function Footer() {
     {
       title: 'Festival',
       links: [
-        { name: 'Programm 2026', href: '/programm-2026' },
+        { name: 'Programm 2026', href: '/events/e-ventschau-2026' },
         { name: 'Über uns', href: '/informationen' },
         { name: 'Rückschau', href: '/rueckschau' },
         { name: 'Festival-Filme', href: '/festival-filme' },

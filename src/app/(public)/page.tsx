@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getSiteSettings } from '@/lib/menu'
+import { getFeaturedEventLineup } from '@/lib/events'
 import { buildMetadata, websiteJsonLd } from '@/lib/seo'
 import JsonLd from '@/components/JsonLd'
 
@@ -35,17 +36,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return metadata
 }
 
-const lineup2026 = [
-  { slug: 'thorbjorn-risager', name: 'Thorbjørn Risager & The Black Tornado', origin: 'Dänemark', genre: 'Blues Rock / Soul' },
-  { slug: 'lebron-johnson', name: 'Lebron Johnson', origin: 'Italien', genre: 'Rock / Funk' },
-  { slug: 'killabeatmaker', name: 'Killabeatmaker', origin: 'Kolumbien', genre: 'Latin / Electronic' },
-  { slug: 'jed-thomas-band', name: 'Jed Thomas Band', origin: 'Großbritannien', genre: 'Heavy Blues Rock' },
-  { slug: 'rovar', name: 'ROVAR', origin: 'Münster', genre: 'Stoner / 70s Rock' },
-  { slug: 'nanny-goats', name: 'Nanny Goats', origin: 'Lüneburg', genre: 'Semi-Acoustic' },
-  { slug: 'the-klaxon', name: 'The Klaxon', origin: 'Kolumbien', genre: 'Ska / Latin' },
-]
-
-export default function HomePage() {
+export default async function HomePage() {
+  const lineup2026 = await getFeaturedEventLineup()
   return (
     <div className="relative">
       <JsonLd data={websiteJsonLd} />
@@ -67,7 +59,7 @@ export default function HomePage() {
             für den guten Zweck.
           </p>
           <div className="mt-9 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/programm-2026" className="btn-primary text-base px-7 py-3">
+            <Link href="/events/e-ventschau-2026" className="btn-primary text-base px-7 py-3">
               Programm 2026 ansehen
             </Link>
             <Link href="/unterstuetzung" className="btn-secondary text-base px-7 py-3">
@@ -78,6 +70,7 @@ export default function HomePage() {
       </section>
 
       {/* Line-up */}
+      {lineup2026.length > 0 && (
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="text-center mb-10">
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-brand-text">Line-up 2026</h2>
@@ -85,19 +78,20 @@ export default function HomePage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {lineup2026.map((band) => (
-            <Link key={band.name} href={`/kuenstler/${band.slug}`} className="glass-card rounded-section p-6 transition-all hover:shadow-card-hover block">
-              <p className="text-xs uppercase tracking-wider text-brand-accent font-semibold">{band.origin}</p>
+            <Link key={band.slug} href={`/kuenstler/${band.slug}`} className="glass-card rounded-section p-6 transition-all hover:shadow-card-hover block">
+              {band.origin && <p className="text-xs uppercase tracking-wider text-brand-accent font-semibold">{band.origin}</p>}
               <h3 className="mt-2 font-display text-xl font-bold text-brand-text leading-snug">{band.name}</h3>
-              <p className="mt-1 text-sm text-brand-text-muted">{band.genre}</p>
+              {band.genres?.length ? <p className="mt-1 text-sm text-brand-text-muted">{band.genres.join(' · ')}</p> : null}
             </Link>
           ))}
         </div>
         <div className="text-center mt-10">
-          <Link href="/programm-2026" className="btn-primary text-base px-7 py-3">
+          <Link href="/events/e-ventschau-2026" className="btn-primary text-base px-7 py-3">
             Zum vollständigen Programm
           </Link>
         </div>
       </section>
+      )}
 
       {/* Benefiz teaser */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
