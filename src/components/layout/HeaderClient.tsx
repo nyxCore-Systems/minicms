@@ -91,7 +91,7 @@ export default function HeaderClient({ navigation, settings }: HeaderClientProps
   // Quick-access nav items for the bottom bar
   const quickNavItems = [
     { label: 'Start', href: '/', icon: HomeIcon },
-    { label: 'Programm', href: '/programm-2026', icon: Squares2X2Icon },
+    { label: 'Programm', href: '/events/e-ventschau-2026', icon: Squares2X2Icon },
     { label: 'Rückschau', href: '/rueckschau', icon: BookOpenIcon },
     { label: 'Kontakt', href: '/kontakt', icon: EnvelopeIcon },
   ]

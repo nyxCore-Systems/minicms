@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import { getPublishedArtistBySlug } from '@/lib/artists'
+import { getArtistAppearances } from '@/lib/events'
 import { buildMetadata, buildArtistJsonLd } from '@/lib/seo'
 import JsonLd from '@/components/JsonLd'
 import MarkdownContent from '@/components/MarkdownContent'
@@ -30,6 +32,8 @@ export default async function ArtistDetailPage({ params }: Props) {
   const { slug } = await params
   const artist = await getArtist(slug)
   if (!artist) notFound()
+
+  const appearances = await getArtistAppearances(artist.id)
 
   const socials = Array.isArray(artist.socials) ? (artist.socials as { platform: string; url: string }[]) : []
 
@@ -75,7 +79,25 @@ export default async function ArtistDetailPage({ params }: Props) {
         </section>
       )}
 
-      {/* "Auftritte"-Sektion wird erst in Spec 2 (Events) befüllt — bis dahin bewusst nicht gerendert. */}
+      {appearances.length > 0 && (
+        <section className="mb-10">
+          <h2 className="mb-4 font-display text-2xl font-bold text-brand-text">Auftritte</h2>
+          <ul className="space-y-2">
+            {appearances.map((a) => {
+              const date = new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', day: '2-digit', month: 'long', year: 'numeric' }).format(a.startTime)
+              const time = new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit' }).format(a.startTime)
+              return (
+                <li key={a.id} className="glass-card rounded-section p-4">
+                  <Link href={`/events/${a.event.slug}`} className="font-semibold text-brand-text hover:text-brand-accent">
+                    {a.event.title}
+                  </Link>
+                  <p className="mt-1 text-sm text-brand-text-muted">{date} · {time} Uhr · {a.stage.name}</p>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }
