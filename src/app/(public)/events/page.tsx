@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata(null, '/events', {
-    title: 'Events & Programm – e-Ventschau',
+    title: 'Events & Programm',
     description: 'Alle Veranstaltungen des e-Ventschau-Benefiz-Festivals – Termine, Line-up und Tickets.',
   })
 }

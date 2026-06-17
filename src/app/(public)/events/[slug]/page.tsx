@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const event = await getEvent(slug)
   if (!event) return buildMetadata(null, `/events/${slug}`, { title: 'Event nicht gefunden', description: '' })
   return buildMetadata(null, `/events/${slug}`, {
-    title: event.metaTitle || `${event.title} – e-Ventschau`,
+    title: event.metaTitle || event.title,
     description: event.metaDescription || event.excerpt || `${event.title} beim e-Ventschau-Festival.`,
     ogImage: event.heroImage || undefined,
   })

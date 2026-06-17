@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings()
   const metadata = buildMetadata(null, '/', {
-    title: 'e-Ventschau – Das 11. Benefiz-Festival am 7. & 8. August 2026',
+    title: 'Das 11. Benefiz-Festival am 7. & 8. August 2026',
     description:
       'Internationale Live-Musik für den guten Zweck: Das e-Ventschau-Benefiz-Festival in Ventschau (Landkreis Lüneburg) vereint Blues-Rock, Funk und Latin mit Ausstellungen und Vorträgen – zugunsten von Opfern nuklearer Katastrophen in Tschernobyl und Fukushima.',
     keywords: [
