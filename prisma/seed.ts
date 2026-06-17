@@ -111,15 +111,19 @@ async function main() {
     data: { tenantId: tenant.id, label: 'Über uns', href: '/informationen', sortOrder: 1 },
   })
   await prisma.menuItem.create({
-    data: { tenantId: tenant.id, label: 'Programm 2026', href: '/programm-2026', sortOrder: 2 },
+    data: { tenantId: tenant.id, label: 'Programm 2026', href: '/events/e-ventschau-2026', sortOrder: 2 },
   })
 
   await prisma.menuItem.create({
-    data: { tenantId: tenant.id, label: 'Künstler', href: '/kuenstler', sortOrder: 3 },
+    data: { tenantId: tenant.id, label: 'Events', href: '/events', sortOrder: 3 },
+  })
+
+  await prisma.menuItem.create({
+    data: { tenantId: tenant.id, label: 'Künstler', href: '/kuenstler', sortOrder: 4 },
   })
 
   const rueckschau = await prisma.menuItem.create({
-    data: { tenantId: tenant.id, label: 'Rückschau', href: '/rueckschau', sortOrder: 4 },
+    data: { tenantId: tenant.id, label: 'Rückschau', href: '/rueckschau', sortOrder: 5 },
   })
   await prisma.menuItem.createMany({
     data: [
@@ -135,11 +139,11 @@ async function main() {
   })
 
   await prisma.menuItem.create({
-    data: { tenantId: tenant.id, label: 'Presse', href: '/presse', sortOrder: 5 },
+    data: { tenantId: tenant.id, label: 'Presse', href: '/presse', sortOrder: 6 },
   })
 
   const unterstuetzung = await prisma.menuItem.create({
-    data: { tenantId: tenant.id, label: 'Unterstützung', href: '/unterstuetzung', sortOrder: 6 },
+    data: { tenantId: tenant.id, label: 'Unterstützung', href: '/unterstuetzung', sortOrder: 7 },
   })
   await prisma.menuItem.createMany({
     data: [
@@ -149,7 +153,7 @@ async function main() {
   })
 
   await prisma.menuItem.create({
-    data: { tenantId: tenant.id, label: 'Kontakt', href: '/kontakt', sortOrder: 7 },
+    data: { tenantId: tenant.id, label: 'Kontakt', href: '/kontakt', sortOrder: 8 },
   })
 
   // Footer
@@ -158,7 +162,7 @@ async function main() {
   })
   await prisma.menuItem.createMany({
     data: [
-      { tenantId: tenant.id, parentId: footerFestival.id, label: 'Programm 2026', href: '/programm-2026', location: 'footer', sortOrder: 0 },
+      { tenantId: tenant.id, parentId: footerFestival.id, label: 'Programm 2026', href: '/events/e-ventschau-2026', location: 'footer', sortOrder: 0 },
       { tenantId: tenant.id, parentId: footerFestival.id, label: 'Über uns', href: '/informationen', location: 'footer', sortOrder: 1 },
       { tenantId: tenant.id, parentId: footerFestival.id, label: 'Rückschau', href: '/rueckschau', location: 'footer', sortOrder: 2 },
       { tenantId: tenant.id, parentId: footerFestival.id, label: 'Festival-Filme', href: '/festival-filme', location: 'footer', sortOrder: 3 },
@@ -209,6 +213,76 @@ async function main() {
     })
   }
   console.log(`Artists seeded: ${lineup.length}`)
+
+  // ── Event: e-Ventschau 2026 ─────────────────────────────
+  const festival = await prisma.event.upsert({
+    where: { tenantId_slug: { tenantId: tenant.id, slug: 'e-ventschau-2026' } },
+    update: {
+      title: 'e-Ventschau 2026', subtitle: '11. Benefiz-Festival',
+      startDate: new Date('2026-08-07T17:00:00+02:00'), endDate: new Date('2026-08-08T23:59:00+02:00'),
+      locationName: 'Resthof Thiele, Ventschau', locationAddress: '21368 Ventschau, Landkreis Lüneburg',
+      excerpt: 'Zwei Tage internationale Live-Musik für den guten Zweck.',
+      eventType: 'festival', isPublished: true, isFeatured: true,
+    },
+    create: {
+      tenantId: tenant.id, slug: 'e-ventschau-2026',
+      title: 'e-Ventschau 2026', subtitle: '11. Benefiz-Festival', eventType: 'festival',
+      startDate: new Date('2026-08-07T17:00:00+02:00'), endDate: new Date('2026-08-08T23:59:00+02:00'),
+      locationName: 'Resthof Thiele, Ventschau', locationAddress: '21368 Ventschau, Landkreis Lüneburg',
+      excerpt: 'Zwei Tage internationale Live-Musik für den guten Zweck.',
+      isPublished: true, isFeatured: true, isActive: true, sortOrder: 0,
+    },
+  })
+
+  // children: delete-then-recreate (idempotent re-seed)
+  await prisma.appearance.deleteMany({ where: { eventId: festival.id } })
+  await prisma.priceTier.deleteMany({ where: { eventId: festival.id } })
+  await prisma.stage.deleteMany({ where: { eventId: festival.id } })
+
+  const haupt = await prisma.stage.create({ data: { eventId: festival.id, name: 'Hauptbühne', color: '#b87333', sortOrder: 0 } })
+  const zelt = await prisma.stage.create({ data: { eventId: festival.id, name: 'Zeltbühne', color: '#7c9a6c', sortOrder: 1 } })
+
+  const bySlug = (slug: string) =>
+    prisma.artist.findUnique({ where: { tenantId_slug: { tenantId: tenant.id, slug } } })
+
+  const [risager, lebron, killa, jed, rovar, nanny, klaxon] = await Promise.all([
+    bySlug('thorbjorn-risager'), bySlug('lebron-johnson'), bySlug('killabeatmaker'),
+    bySlug('jed-thomas-band'), bySlug('rovar'), bySlug('nanny-goats'), bySlug('the-klaxon'),
+  ])
+
+  const eventAppearances: { stageId: string; artistId?: string; title?: string; role: string; startTime: Date }[] = [
+    // Freitag 07.08.
+    { stageId: haupt.id, artistId: nanny?.id, role: 'support', startTime: new Date('2026-08-07T18:00:00+02:00') },
+    { stageId: haupt.id, artistId: rovar?.id, role: 'support', startTime: new Date('2026-08-07T19:00:00+02:00') },
+    { stageId: zelt.id, artistId: klaxon?.id, role: 'support', startTime: new Date('2026-08-07T19:00:00+02:00') },
+    { stageId: haupt.id, artistId: jed?.id, role: 'support', startTime: new Date('2026-08-07T20:30:00+02:00') },
+    { stageId: zelt.id, artistId: killa?.id, role: 'guest', startTime: new Date('2026-08-07T20:30:00+02:00') },
+    { stageId: haupt.id, artistId: risager?.id, role: 'headliner', startTime: new Date('2026-08-07T22:00:00+02:00') },
+    // Samstag 08.08.
+    { stageId: haupt.id, title: 'Soundcheck & Begrüßung', role: 'break', startTime: new Date('2026-08-08T17:30:00+02:00') },
+    { stageId: haupt.id, artistId: lebron?.id, role: 'support', startTime: new Date('2026-08-08T19:00:00+02:00') },
+    { stageId: zelt.id, artistId: nanny?.id, role: 'support', startTime: new Date('2026-08-08T19:00:00+02:00') },
+    { stageId: haupt.id, artistId: killa?.id, role: 'headliner', startTime: new Date('2026-08-08T21:30:00+02:00') },
+  ]
+  for (const [i, a] of eventAppearances.entries()) {
+    await prisma.appearance.create({
+      data: {
+        eventId: festival.id, stageId: a.stageId,
+        artistId: a.artistId ?? null, title: a.title ?? null,
+        role: a.role, startTime: a.startTime, sortOrder: i,
+      },
+    })
+  }
+
+  await prisma.priceTier.createMany({
+    data: [
+      { eventId: festival.id, name: 'Festival-Pass (2 Tage)', price: 39, currency: 'EUR', sortOrder: 0 },
+      { eventId: festival.id, name: 'Tagesticket', price: 22, currency: 'EUR', sortOrder: 1 },
+      { eventId: festival.id, name: 'Early-Bird Festival-Pass', price: 29, currency: 'EUR', validFrom: new Date('2026-01-01T00:00:00+01:00'), validUntil: new Date('2026-04-30T23:59:00+02:00'), sortOrder: 2 },
+      { eventId: festival.id, name: 'Förder-Ticket (Spende)', price: null, currency: 'EUR', sortOrder: 3 },
+    ],
+  })
+  console.log(`Event seeded: e-Ventschau 2026 with ${eventAppearances.length} appearances`)
 
   // ── Content pages from src/content/*.md ─────────────────
   const contentDir = path.join(process.cwd(), 'src/content')
