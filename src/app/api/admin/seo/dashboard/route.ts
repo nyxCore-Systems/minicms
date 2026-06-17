@@ -653,11 +653,11 @@ async function computeSeoHealth(tenantId: string) {
 
   // Synthetic homepage entry — metadata is hardcoded in generateMetadata()
   const homepageEntry = computeSeoScore({
-    metaTitle: 'Das Messer – Ihr Marktplatz für hochwertige Messer aus Meisterhand',
+    metaTitle: 'e-Ventschau – Benefiz-Festival für internationale Live-Musik',
     metaDescription:
-      'Entdecken Sie handgefertigte Küchenmesser, Outdoormesser und Damastmesser von ausgewählten Herstellern. Qualität, Tradition und Handwerkskunst — direkt vom Hersteller, ohne Provision.',
+      'Das e-Ventschau Benefiz-Musikfestival in Ventschau (Landkreis Lüneburg): Blues-Rock, Funk und Latin live, Ausstellungen, Vorträge — und Spenden für Opfer nuklearer Katastrophen.',
     metaKeywords:
-      'Messer kaufen, Küchenmesser, Damastmesser, Outdoormesser, Messer Marktplatz, Kochmesser, Jagdmesser, handgefertigte Messer, Messer Hersteller, Solingen Messer',
+      'e-Ventschau, Benefiz Festival, Musikfestival Lüneburg, Blues-Rock Festival, Funk Festival, Latin Musik, Tschernobyl, Fukushima, Ventschau, Live Musik Niedersachsen',
     faqSchema: (homepageFaq?.content as Record<string, unknown>)?.items ?? null,
     ogImage: null,
     content: '',

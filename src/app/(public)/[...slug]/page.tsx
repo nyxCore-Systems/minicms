@@ -17,7 +17,7 @@ export async function generateMetadata(
   const data = await getPublishedContentByPath(path)
 
   const base = buildMetadata(data, path, {
-    title: data?.metadata.title || 'Das Messer',
+    title: data?.metadata.title || 'e-Ventschau',
     description: data?.metadata.description || '',
   })
 
