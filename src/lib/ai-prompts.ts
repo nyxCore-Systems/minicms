@@ -29,7 +29,7 @@ Zielgruppe: Festivalbesucher, Musikfans (Blues-Rock, Funk, Latin), Unterstützer
 Deine Aufgabe: Erstelle SEO-optimierte Metadaten basierend auf dem Seiteninhalt.
 
 Regeln:
-- metaTitle: Max. 60 Zeichen, enthält Hauptkeyword, endet mit "| e-Ventschau"
+- metaTitle: Max. 50 Zeichen, enthält Hauptkeyword. KEIN Marken-Suffix anhängen (kein "| e-Ventschau", kein "| Das Messer") — das Seiten-Template ergänzt die Marke automatisch
 - metaDescription: Max. 155 Zeichen, enthält Call-to-Action, spricht die Zielgruppe direkt an
 - metaKeywords: 10-15 relevante deutsche Keywords, Long-Tail bevorzugt, keine generischen Begriffe
 - Sprache: Deutsch, professionell aber zugänglich
