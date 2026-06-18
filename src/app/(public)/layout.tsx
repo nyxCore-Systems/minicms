@@ -11,9 +11,12 @@ export default function PublicLayout({
 }) {
   return (
     <LenisProvider>
+      <a href="#hauptinhalt" className="nh-skip">Zum Inhalt springen</a>
+      <div className="nh-grain" aria-hidden="true" />
+      <div className="nh-scan" aria-hidden="true" />
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-1">{children}</main>
+        <main id="hauptinhalt" className="flex-1">{children}</main>
         <Footer />
         <TrackPageView />
         <MiniRagWidget />

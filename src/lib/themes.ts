@@ -799,6 +799,60 @@ const eventschau: ThemePreset = {
   },
 }
 
+// "Feldradikal Noir" — dark navy + gold, sharp corners, flat surfaces.
+// Dark-only theme: light and dark share one token set so the look holds
+// regardless of the .dark toggle. Structural overrides (border-radius 0,
+// grain/scan, mono buttons, gold focus ring) live under [data-theme="noir"]
+// in globals.css. Brand palette: navy #051A2E / navy-7 #082843 / gold #FAB90C.
+const noirVars: ThemeVariables = {
+  '--brand-primary': '#FAB90C',
+  '--brand-primary-light': '#FBCB52',
+  '--brand-accent': '#FAB90C',
+  '--brand-accent-light': '#FBCB52',
+  '--brand-bg': '#051A2E',
+  '--brand-bg-dark': '#082843',
+  '--brand-text': '#FBF7EF',
+  '--brand-text-muted': '#8AA0B4',
+  '--brand-text-light': '#7E94A8',
+  '--brand-surface': '#082843',
+  '--brand-border': '#123E63',
+  '--brand-selection': 'rgba(250, 185, 12, 0.28)',
+  '--glass-white': '#082843',
+  '--glass-white-hover': '#0B3457',
+  '--glass-border': '#123E63',
+  '--glass-shadow': 'none',
+  '--glass-shadow-lg': 'none',
+  '--gradient-1-color': 'rgba(250, 185, 12, 0.06)',
+  '--gradient-2-color': 'rgba(210, 107, 67, 0.05)',
+  '--gradient-3-color': 'rgba(14, 65, 109, 0.12)',
+  '--gradient-bg-start': '#051A2E',
+  '--gradient-bg-mid': '#061F33',
+  '--gradient-bg-end': '#051A2E',
+  '--brand-cta': '#FAB90C',
+  '--brand-cta-hover': '#FBCB52',
+  '--shadow-card': 'none',
+  '--shadow-card-hover': '0 0 24px rgba(250, 185, 12, 0.14)',
+  '--shadow-natural': 'none',
+  '--btn-primary-bg': '#FAB90C',
+  '--btn-primary-hover-bg': '#FBCB52',
+  '--btn-primary-from': '#FAB90C',
+  '--btn-primary-to': '#FAB90C',
+  '--btn-primary-shadow': 'rgba(250, 185, 12, 0.45)',
+  '--btn-primary-hover-from': '#FBCB52',
+  '--btn-primary-hover-to': '#FBCB52',
+}
+
+const noir: ThemePreset = {
+  slug: 'noir',
+  name: 'Noir',
+  description: 'Feldradikal Noir – dunkles Navy + Gold, scharfe Kanten, postindustrielle Nacht',
+  defaultDarkMode: true,
+  fontHeading: 'Space Grotesk',
+  fontBody: 'Inter',
+  light: noirVars,
+  dark: noirVars,
+}
+
 export const themes: Record<string, ThemePreset> = {
   eventschau,
   vinyl,
@@ -809,6 +863,7 @@ export const themes: Record<string, ThemePreset> = {
   wald,
   stahl,
   'schwarz-weiss': schwarzWeiss,
+  noir,
 }
 
 export const DEFAULT_THEME = 'eventschau'

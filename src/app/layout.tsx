@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Playfair_Display, Space_Grotesk } from 'next/font/google'
+import { Inter, Playfair_Display, Space_Grotesk, IBM_Plex_Mono } from 'next/font/google'
 import JsonLd from '@/components/JsonLd'
 import { organizationJsonLd } from '@/lib/seo'
 import { getSiteSettings } from '@/lib/menu'
@@ -23,6 +23,13 @@ const playfair = Playfair_Display({
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
   variable: '--font-space-grotesk',
+  display: 'swap',
+})
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-mono',
   display: 'swap',
 })
 
@@ -71,7 +78,9 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   const settings = await getSiteSettings()
-  const theme = getTheme(settings.themeSlug || 'eventschau')
+  // NEXT_PUBLIC_THEME_OVERRIDE lets a preview deploy force a theme without
+  // mutating the shared production DB (e.g. previewing 'noir' before go-live).
+  const theme = getTheme(process.env.NEXT_PUBLIC_THEME_OVERRIDE || settings.themeSlug || 'eventschau')
   const isDark = settings.defaultDarkMode || theme.defaultDarkMode
 
   const lightVars = themeToStyleString(theme, false)
@@ -82,7 +91,7 @@ export default async function RootLayout({
   return (
     <html
       lang={settings.locale || 'de'}
-      className={`${inter.variable} ${playfair.variable} ${spaceGrotesk.variable} ${isDark ? 'dark' : ''}`}
+      className={`${inter.variable} ${playfair.variable} ${spaceGrotesk.variable} ${ibmPlexMono.variable} ${isDark ? 'dark' : ''}`}
       data-theme={theme.slug}
       suppressHydrationWarning
     >
