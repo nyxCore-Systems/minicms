@@ -1,12 +1,34 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { getSiteSettings } from '@/lib/menu'
-import { getFeaturedEventLineup } from '@/lib/events'
+import { getFeaturedEvent, getFeaturedEventLineup, getPublishedEventBySlug } from '@/lib/events'
 import { buildMetadata, websiteJsonLd } from '@/lib/seo'
 import JsonLd from '@/components/JsonLd'
-import ArtistCard from '@/components/artists/ArtistCard'
+import NoirTimetable, { type NoirDay } from '@/components/noir/NoirTimetable'
 
 export const dynamic = 'force-dynamic'
+
+const TZ = 'Europe/Berlin'
+const fmtTime = (d: Date) =>
+  new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit', timeZone: TZ }).format(d)
+const fmtDayShort = (d: Date) =>
+  new Intl.DateTimeFormat('de-DE', { weekday: 'short', timeZone: TZ }).format(d).replace('.', '')
+const fmtWeekdayLong = (d: Date) =>
+  new Intl.DateTimeFormat('de-DE', { weekday: 'long', timeZone: TZ }).format(d)
+const fmtDayNum = (d: Date) => new Intl.DateTimeFormat('de-DE', { day: '2-digit', timeZone: TZ }).format(d)
+const fmtMonthNum = (d: Date) => new Intl.DateTimeFormat('de-DE', { month: '2-digit', timeZone: TZ }).format(d)
+const fmtMonthShort = (d: Date) =>
+  new Intl.DateTimeFormat('de-DE', { month: 'short', timeZone: TZ }).format(d).replace('.', '').toUpperCase()
+const dayKey = (d: Date) =>
+  new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: TZ }).format(d)
+
+const ROLE_TYPE: Record<string, string> = {
+  headliner: 'Headliner',
+  support: 'Musik',
+  guest: 'Gast',
+  break: 'Pause',
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings()
@@ -38,77 +60,361 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const lineup2026 = await getFeaturedEventLineup()
+  const featured = await getFeaturedEvent()
+  const [lineup, event] = await Promise.all([
+    getFeaturedEventLineup(),
+    featured ? getPublishedEventBySlug(featured.slug) : Promise.resolve(null),
+  ])
+
+  // Map artist slug → richer summary (origin/genres) for subtitles + card meta
+  const lineupBySlug = new Map(lineup.map((a) => [a.slug, a]))
+
+  // Per-artist appearance meta (earliest slot) for the line-up cards: "Fr · 22:00 · Hauptbühne"
+  const apMetaBySlug = new Map<string, string>()
+  if (event) {
+    for (const ap of event.appearances) {
+      if (!ap.artist || apMetaBySlug.has(ap.artist.slug)) continue
+      const parts = [fmtDayShort(ap.startTime), fmtTime(ap.startTime)]
+      if (ap.stage?.name) parts.push(ap.stage.name)
+      apMetaBySlug.set(ap.artist.slug, parts.join(' · '))
+    }
+  }
+
+  // Timetable days grouped by calendar day (Europe/Berlin)
+  const days: NoirDay[] = []
+  if (event) {
+    const byDay = new Map<string, typeof event.appearances>()
+    for (const ap of event.appearances) {
+      const k = dayKey(ap.startTime)
+      if (!byDay.has(k)) byDay.set(k, [])
+      byDay.get(k)!.push(ap)
+    }
+    for (const [, aps] of [...byDay.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+      const first = aps[0].startTime
+      days.push({
+        id: dayKey(first).replace(/-/g, ''),
+        label: `${fmtWeekdayLong(first)} · ${fmtDayNum(first)}.${fmtMonthNum(first)}.`,
+        rows: aps.map((ap) => {
+          const sum = ap.artist ? lineupBySlug.get(ap.artist.slug) : undefined
+          const subParts: string[] = []
+          if (sum?.genres?.length) subParts.push(sum.genres.join(' / '))
+          if (sum?.origin) subParts.push(sum.origin)
+          if (ap.note) subParts.push(ap.note)
+          if (ap.stage?.name) subParts.push(ap.stage.name)
+          return {
+            time: fmtTime(ap.startTime),
+            title: ap.artist?.name ?? ap.title ?? '—',
+            subtitle: subParts.join(' · '),
+            type: ROLE_TYPE[ap.role] ?? 'Programm',
+            highlight: ap.role === 'headliner',
+          }
+        }),
+      })
+    }
+  }
+
+  const features = lineup.slice(0, 2)
+  const regulars = lineup.slice(2, 6)
+  const stageCount = event?.stages.length ?? 0
+
+  const start = featured?.startDate
+  const end = featured?.endDate ?? start
+  const location = featured?.locationName ?? 'Hof Thiele, Ventschau'
+  const year = start
+    ? new Intl.DateTimeFormat('de-DE', { year: 'numeric', timeZone: TZ }).format(start)
+    : ''
+  const kicker = start
+    ? `11. Ausgabe // ${fmtDayNum(start)}–${fmtDayNum(end!)} ${fmtMonthShort(start)} ${year} // ${location.toUpperCase()}`
+    : '11. Ausgabe // Benefiz-Festival'
+  const dateMeta = start
+    ? `${fmtDayShort(start)}–${fmtDayShort(end!)}, ${fmtDayNum(start)}.–${fmtDayNum(end!)}. ${fmtMonthShort(start)}`
+    : '7.–8. Aug'
+
   return (
-    <div className="relative">
+    <div className="nh">
       <JsonLd data={websiteJsonLd} />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-brand-primary/10 via-transparent to-transparent" />
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 sm:pt-28 sm:pb-24 text-center">
-          <span className="inline-block glass-card px-4 py-1.5 rounded-pill text-sm font-medium text-brand-accent mb-6 animate-fade-in">
-            11. e-Ventschau-Benefiz-Festival
-          </span>
-          <h1 className="font-display text-4xl sm:text-6xl font-bold text-brand-text leading-tight animate-slide-up">
-            Musik, die <span className="text-brand-primary">bewegt</span>.
-            <br className="hidden sm:block" /> Spenden, die <span className="text-brand-accent">helfen</span>.
+      {/* HERO */}
+      <section className="nh-hero">
+        <div className="nh-hero-bg" aria-hidden="true" />
+        <div className="nh-fog" aria-hidden="true" />
+        <div className="nh-sun" aria-hidden="true" />
+        <div className="nh-wrap">
+          <div className="nh-kick">
+            {kicker.split(' // ').map((part, i, arr) => (
+              <span key={i}>
+                {i === 0 ? part : <span style={{ color: 'var(--gold, #FAB90C)' }}>{part}</span>}
+                {i < arr.length - 1 && <span> // </span>}
+              </span>
+            ))}
+          </div>
+          <h1>
+            e-Ventschau
+            <span className="nh-sub">
+              <b>Benefiz</b> · Kultur · <i>Widerstand</i> — zwei Nächte auf dem Hof
+            </span>
           </h1>
-          <p className="mt-6 text-lg sm:text-xl text-brand-text-muted max-w-2xl mx-auto leading-relaxed">
-            Am <strong className="text-brand-text">7. &amp; 8. August 2026</strong> verwandelt sich der
-            Resthof Thiele in Ventschau wieder in eine Festival-Bühne für internationale Live-Musik –
-            für den guten Zweck.
-          </p>
-          <div className="mt-9 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/events/e-ventschau-2026" className="btn-primary text-base px-7 py-3">
-              Programm 2026 ansehen
+          <div className="nh-cta">
+            <Link className="btn-primary" href="#programm">
+              Programm ansehen
             </Link>
-            <Link href="/unterstuetzung" className="btn-secondary text-base px-7 py-3">
-              Jetzt unterstützen
+            <Link className="btn-secondary" href="#spenden">
+              Tickets &amp; Spenden
             </Link>
+          </div>
+          <div className="nh-meta">
+            <div className="nh-hm">
+              <div className="k">Acts</div>
+              <div className="v">
+                {lineup.length} Bands{stageCount > 0 ? ` · ${stageCount} Bühnen` : ''}
+              </div>
+            </div>
+            <div className="nh-hm">
+              <div className="k">Datum</div>
+              <div className="v">{dateMeta}</div>
+            </div>
+            <div className="nh-hm">
+              <div className="k">Camping</div>
+              <div className="v">Frei auf der Wiese</div>
+            </div>
+            <div className="nh-hm">
+              <div className="k">Zweck</div>
+              <div className="v">100% Benefiz</div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Line-up */}
-      {lineup2026.length > 0 && (
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div className="text-center mb-10">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-brand-text">Line-up 2026</h2>
-          <p className="mt-3 text-brand-text-muted">Sieben Bands aus aller Welt – Blues-Rock, Funk, Latin und mehr.</p>
+      {/* MARQUEE */}
+      {lineup.length > 0 && (
+        <div className="nh-marq">
+          <div className="nh-marq-track">
+            <MarqueeRun names={lineup.map((a) => a.name)} />
+            <MarqueeRun names={lineup.map((a) => a.name)} ariaHidden />
+          </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {lineup2026.map((band, i) => (
-            <ArtistCard key={band.slug} artist={band} priority={i < 3} />
-          ))}
-        </div>
-        <div className="text-center mt-10">
-          <Link href="/events/e-ventschau-2026" className="btn-primary text-base px-7 py-3">
-            Zum vollständigen Programm
-          </Link>
-        </div>
-      </section>
       )}
 
-      {/* Benefiz teaser */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div className="glass-strong rounded-section p-8 sm:p-12 text-center">
-          <h2 className="font-display text-2xl sm:text-3xl font-bold text-brand-text">Ein Festival mit Haltung</h2>
-          <p className="mt-4 text-brand-text-muted max-w-3xl mx-auto leading-relaxed">
-            Seit 2013 weist die e-Ventschau auf die Risiken der Atomenergie hin und sammelt Spenden für
-            Menschen in den Regionen Tschernobyl und Fukushima. Rund 20 Ehrenamtliche bringen das Fest jedes
-            Jahr auf die Beine – mit Live-Musik, Ausstellungen und Vorträgen.
+      {/* LINE-UP */}
+      {lineup.length > 0 && (
+        <section className="nh-sec" id="lineup">
+          <div className="nh-wrap">
+            <div className="nh-sec-head">
+              <div className="nh-lab">Line-up 2026</div>
+              <h2>
+                {lineup.length} Acts.
+                <br />
+                Zwei Nächte. Ein Hof.
+              </h2>
+              <p className="nh-sub">
+                Von skandinavischem Blues-Rock bis kolumbianischem Club-Beat – kuratiert für die Nacht,
+                gespielt unter freiem Himmel.
+              </p>
+            </div>
+            <div className="nh-lu">
+              {features.map((a, i) => (
+                <LineupCard
+                  key={a.slug}
+                  artist={a}
+                  meta={apMetaBySlug.get(a.slug)}
+                  index={i + 1}
+                  size="xl"
+                  headliner={i === 0 ? 'gold' : 'clay'}
+                />
+              ))}
+              {regulars.map((a, i) => (
+                <LineupCard key={a.slug} artist={a} meta={apMetaBySlug.get(a.slug)} index={i + 3} size="md" />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* PROGRAMM / TIMETABLE */}
+      {days.length > 0 && (
+        <section className="nh-sec nh-sec-coal" id="programm">
+          <div className="nh-wrap">
+            <div className="nh-sec-head">
+              <div className="nh-lab">Timetable</div>
+              <h2>Der Ablauf</h2>
+              <p className="nh-sub">
+                Musik, Vorträge, Ausstellung und Kinderprogramm – zwei Tage durchgetaktet.
+              </p>
+            </div>
+            <NoirTimetable days={days} />
+          </div>
+        </section>
+      )}
+
+      {/* MANIFEST */}
+      <section className="nh-manifest" id="manifest">
+        <div className="nh-wrap">
+          <h2>
+            Wir machen <em>Lärm gegen das Vergessen.</em>
+          </h2>
+          <p>
+            Seit 2013 erinnert e-Ventschau an Tschernobyl und Fukushima – mit Musik, Kunst und Haltung.
+            Ehrenamtlich organisiert, solidarisch finanziert, 100% Benefiz. Ein Hof, zwei Nächte, eine
+            klare Botschaft: Kultur ist Widerstand.
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/informationen" className="btn-secondary text-base px-7 py-3">
-              Über uns
-            </Link>
-            <Link href="/unterstuetzung" className="btn-primary text-base px-7 py-3">
-              Spendenkonto
-            </Link>
+          <div className="nh-mstats">
+            <div className="nh-ms">
+              <div className="v">11.</div>
+              <div className="k">Ausgabe</div>
+            </div>
+            <div className="nh-ms">
+              <div className="v">20</div>
+              <div className="k">Ehrenamtliche</div>
+            </div>
+            <div className="nh-ms">
+              <div className="v">2013</div>
+              <div className="k">seit</div>
+            </div>
+            <div className="nh-ms">
+              <div className="v">100%</div>
+              <div className="k">Benefiz</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* DONATE */}
+      <section className="nh-sec nh-sec-coal" id="spenden">
+        <div className="nh-wrap">
+          <div className="nh-don">
+            <div>
+              <div className="nh-sec-head" style={{ marginBottom: 0 }}>
+                <div className="nh-lab">Tickets &amp; Spenden</div>
+                <h2>Zahl, was du kannst.</h2>
+                <p className="nh-sub">
+                  Der Eintritt bleibt sozial verträglich – wer mehr gibt, sichert das Festival. Jeder Euro
+                  fließt in den Benefiz-Zweck.
+                </p>
+              </div>
+              <div className="nh-chips">
+                {['10 €', '25 €', '50 €', 'Frei'].map((c) => (
+                  <Link key={c} className="nh-chip" href="/unterstuetzung">
+                    {c}
+                  </Link>
+                ))}
+              </div>
+              <Link className="btn-primary" href="/unterstuetzung">
+                Jetzt spenden
+              </Link>
+            </div>
+            <div className="nh-dcard">
+              <h3>Spendenziel 2026</h3>
+              <p style={{ color: 'var(--muted, #8AA0B4)', fontSize: 14 }}>
+                Für Technik, Bühne &amp; Künstler:innen.
+              </p>
+              <div
+                className="nh-pbar"
+                role="progressbar"
+                aria-valuenow={70}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Spendenziel 2026: 70 % erreicht"
+              >
+                <i style={{ width: '70%' }} />
+              </div>
+              <div className="nh-drow">
+                <span>
+                  <b>8.420 €</b> gesammelt
+                </span>
+                <span>Ziel 12.000 €</span>
+              </div>
+              <div
+                className="nh-drow"
+                style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid var(--b2, #123E63)' }}
+              >
+                <span>70% erreicht</span>
+                <span>noch 3.580 €</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
     </div>
+  )
+}
+
+function MarqueeRun({ names, ariaHidden }: { names: string[]; ariaHidden?: boolean }) {
+  return (
+    <span aria-hidden={ariaHidden}>
+      {names.map((n) => (
+        <span key={n}>
+          {n.toUpperCase()}
+          <span className="d"> // </span>
+        </span>
+      ))}
+    </span>
+  )
+}
+
+type LineupArtist = {
+  slug: string
+  name: string
+  origin?: string | null
+  genres?: string[]
+  heroImage?: string | null
+  excerpt?: string | null
+}
+
+function LineupCard({
+  artist,
+  meta,
+  index,
+  size,
+  headliner,
+}: {
+  artist: LineupArtist
+  meta?: string
+  index: number
+  size: 'xl' | 'md'
+  headliner?: 'gold' | 'clay'
+}) {
+  const genreLine = [artist.genres?.join(' / '), artist.origin].filter(Boolean).join(' · ')
+  return (
+    <Link
+      href={`/kuenstler/${artist.slug}`}
+      className={`nh-act ${size === 'xl' ? 'nh-act-xl' : 'nh-act-md'}`}
+      aria-label={`${artist.name} – zum Künstlerprofil`}
+    >
+      <div className="nh-ph">
+        {artist.heroImage && (
+          <Image
+            src={artist.heroImage}
+            alt=""
+            fill
+            sizes={size === 'xl' ? '50vw' : '25vw'}
+            style={{ objectFit: 'cover' }}
+          />
+        )}
+        {headliner && <span className={`nh-tagline${headliner === 'gold' ? ' l' : ''}`}>Headliner</span>}
+        <span className="nh-idx">{String(index).padStart(2, '0')}</span>
+        {!artist.heroImage && <span className="nh-ph-tag">Foto folgt</span>}
+      </div>
+      <div className="nh-act-b">
+        {meta && <div className="meta">{meta}</div>}
+        <h3>{artist.name}</h3>
+        {size === 'xl' ? (
+          <>
+            {artist.excerpt && <p>{artist.excerpt}</p>}
+            {genreLine && (
+              <div className="nh-gens">
+                {artist.genres?.map((g) => (
+                  <span key={g} className="nh-gen">
+                    {g}
+                  </span>
+                ))}
+                {artist.origin && <span className="nh-gen">{artist.origin}</span>}
+              </div>
+            )}
+          </>
+        ) : (
+          genreLine && <p>{genreLine}</p>
+        )}
+      </div>
+    </Link>
   )
 }

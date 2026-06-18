@@ -37,6 +37,7 @@ const config: Config = {
       fontFamily: {
         sans: ['var(--font-body, Inter)', 'system-ui', '-apple-system', 'sans-serif'],
         display: ['var(--font-heading, Georgia)', 'Cambria', 'serif'],
+        mono: ['var(--font-mono)', 'IBM Plex Mono', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
         'pill': '9999px',
