@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const artist = await getArtist(slug)
   if (!artist) return buildMetadata(null, `/kuenstler/${slug}`, { title: 'Künstler nicht gefunden', description: '' })
   return buildMetadata(null, `/kuenstler/${slug}`, {
-    title: artist.metaTitle || `${artist.name} – e-Ventschau`,
+    title: artist.metaTitle || artist.name,
     description: artist.metaDescription || artist.excerpt || `${artist.name} beim e-Ventschau-Festival.`,
     ogImage: artist.heroImage || undefined,
   })

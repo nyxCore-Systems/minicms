@@ -10,6 +10,7 @@ import {
   ChevronDownIcon,
   HomeIcon,
   Squares2X2Icon,
+  CalendarDaysIcon,
   BookOpenIcon,
   EnvelopeIcon,
 } from '@heroicons/react/24/outline'
@@ -92,6 +93,7 @@ export default function HeaderClient({ navigation, settings }: HeaderClientProps
   const quickNavItems = [
     { label: 'Start', href: '/', icon: HomeIcon },
     { label: 'Programm', href: '/events/e-ventschau-2026', icon: Squares2X2Icon },
+    { label: 'Events', href: '/events', icon: CalendarDaysIcon },
     { label: 'Rückschau', href: '/rueckschau', icon: BookOpenIcon },
     { label: 'Kontakt', href: '/kontakt', icon: EnvelopeIcon },
   ]

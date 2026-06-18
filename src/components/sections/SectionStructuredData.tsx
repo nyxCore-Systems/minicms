@@ -6,7 +6,7 @@ interface SectionStructuredDataProps {
   siteName?: string
 }
 
-export default function SectionStructuredData({ sections, siteUrl = 'https://DasMesser.de', siteName = 'Das Messer' }: SectionStructuredDataProps) {
+export default function SectionStructuredData({ sections, siteUrl = 'https://e-ventschau.de', siteName = 'e-Ventschau' }: SectionStructuredDataProps) {
   const visibleSections = sections.filter(s => s.isVisible)
   const jsonLd: Record<string, unknown>[] = []
 

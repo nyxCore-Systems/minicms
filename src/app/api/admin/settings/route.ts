@@ -83,7 +83,7 @@ export async function PUT(request: Request) {
     },
     create: {
       tenantId: tenant.id,
-      siteName: body.siteName ?? 'Das Messer',
+      siteName: body.siteName ?? 'e-Ventschau',
       logoUrl: body.logoUrl ?? null,
       backgroundImage: body.backgroundImage ?? null,
       darkMode: body.darkMode ?? false,

@@ -7,7 +7,7 @@ import AdminProviders from '@/components/admin/AdminProviders'
 export const metadata = {
   title: {
     default: 'Admin Dashboard',
-    template: '%s | Das Messer Admin',
+    template: '%s | e-Ventschau Admin',
   },
 }
 
