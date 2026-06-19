@@ -27,19 +27,31 @@ export async function POST() {
     return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
   }
 
+  // Fail fast with a clear message instead of handing the client an
+  // undefined cloud_name (which Cloudinary rejects as "cloud_name is disabled").
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+  const apiKey = process.env.CLOUDINARY_API_KEY
+  const apiSecret = process.env.CLOUDINARY_API_SECRET
+  const missing = [
+    !cloudName && 'CLOUDINARY_CLOUD_NAME',
+    !apiKey && 'CLOUDINARY_API_KEY',
+    !apiSecret && 'CLOUDINARY_API_SECRET',
+  ].filter(Boolean) as string[]
+  if (missing.length > 0) {
+    return NextResponse.json(
+      {
+        error: `Cloudinary ist nicht konfiguriert (fehlende Variablen: ${missing.join(
+          ', ',
+        )}). Bitte in den Vercel-Projekteinstellungen ergänzen und neu deployen.`,
+      },
+      { status: 503 },
+    )
+  }
+
   const timestamp = Math.round(Date.now() / 1000)
   const folder = `e-ventschau/${tenant.slug}`
 
-  const signature = cloudinary.utils.api_sign_request(
-    { timestamp, folder },
-    process.env.CLOUDINARY_API_SECRET!
-  )
+  const signature = cloudinary.utils.api_sign_request({ timestamp, folder }, apiSecret!)
 
-  return NextResponse.json({
-    signature,
-    timestamp,
-    apiKey: process.env.CLOUDINARY_API_KEY,
-    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-    folder,
-  })
+  return NextResponse.json({ signature, timestamp, apiKey, cloudName, folder })
 }

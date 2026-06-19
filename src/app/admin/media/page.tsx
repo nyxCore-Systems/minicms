@@ -43,6 +43,7 @@ export default function MediaPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [lightbox, setLightbox] = useState<MediaItem | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   const fetchMedia = useCallback(async () => {
     try {
@@ -62,6 +63,7 @@ export default function MediaPage() {
 
   const uploadFiles = async (files: FileList | File[]) => {
     setUploading(true)
+    setUploadError(null)
     const fileArray = Array.from(files)
 
     for (const file of fileArray) {
@@ -69,7 +71,9 @@ export default function MediaPage() {
         // 1. Get signed upload params from our API
         const signRes = await fetch('/api/admin/media/sign', { method: 'POST' })
         if (!signRes.ok) {
-          console.error('Failed to get upload signature')
+          const data = await signRes.json().catch(() => null)
+          setUploadError(data?.error || 'Upload-Konfiguration fehlgeschlagen.')
+          console.error('Failed to get upload signature', data)
           continue
         }
         const { signature, timestamp, apiKey, cloudName, folder } = await signRes.json()
@@ -90,7 +94,11 @@ export default function MediaPage() {
         )
 
         if (!uploadRes.ok) {
-          const err = await uploadRes.text()
+          const err = await uploadRes.json().catch(() => null)
+          const msg = err?.error?.message
+          setUploadError(
+            msg ? `Cloudinary: ${msg}` : `Cloudinary-Upload fehlgeschlagen (${uploadRes.status}).`,
+          )
           console.error('Cloudinary upload failed:', err)
           continue
         }
@@ -119,6 +127,7 @@ export default function MediaPage() {
         }
       } catch (err) {
         console.error('Upload failed:', err)
+        setUploadError('Upload fehlgeschlagen. Bitte erneut versuchen.')
       }
     }
 
@@ -223,6 +232,23 @@ export default function MediaPage() {
           JPG, PNG, GIF, WebP, SVG, MP4, WebM — max. 100 MB
         </p>
       </div>
+
+      {uploadError && (
+        <div
+          role="alert"
+          className="mb-6 flex items-start justify-between gap-3 rounded-lg border border-brand-accent/40 bg-brand-accent/10 px-4 py-3 text-sm text-brand-text"
+        >
+          <span>{uploadError}</span>
+          <button
+            type="button"
+            onClick={() => setUploadError(null)}
+            aria-label="Fehler schließen"
+            className="shrink-0 text-brand-text-muted hover:text-brand-text"
+          >
+            <XMarkIcon className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Gallery grid */}
       {loading ? (
