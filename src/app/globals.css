@@ -502,7 +502,8 @@
 .nh-hero-bg { position: absolute; inset: 0; background: radial-gradient(120% 90% at 70% 10%, #14517f 0, #072a45 42%, #051A2E 78%); }
 .nh-hero-bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(40% 50% at 72% 32%, rgba(250, 185, 12, 0.12), transparent 70%); }
 .nh-fog { position: absolute; inset: 0; opacity: 0.5; mix-blend-mode: screen; background: radial-gradient(50% 40% at 30% 80%, rgba(210, 107, 67, 0.4), transparent 70%), radial-gradient(40% 30% at 80% 70%, rgba(120, 160, 200, 0.22), transparent 70%); }
-.nh-sun { position: absolute; right: 6%; top: 12%; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle at 50% 50%, #FBCB52, #FAB90C 52%, transparent 70%); opacity: 0.22; filter: blur(6px); pointer-events: none; }
+.nh-logo { position: absolute; right: 3%; top: 6%; width: clamp(190px, 40vw, 600px); aspect-ratio: 1200 / 800; pointer-events: none; z-index: 1; }
+.nh-logo img { object-fit: contain; }
 .nh-hero .nh-wrap { padding: 70px 36px 64px; width: 100%; }
 .nh-kick { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold, #FAB90C); margin-bottom: 22px; display: flex; gap: 16px; flex-wrap: wrap; }
 .nh-kick span { color: var(--muted, #8AA0B4); }
@@ -608,7 +609,7 @@
 /* reduced motion (Harmonia 4 / WCAG 2.3.3, 2.2.2) */
 @media (prefers-reduced-motion: reduce) {
   .nh-marq-track { animation: none; white-space: normal; }
-  .nh-sun, .nh-fog { animation: none; }
+  .nh-fog { animation: none; }
   [data-theme="noir"] *,
   [data-theme="noir"] *::before,
   [data-theme="noir"] *::after {

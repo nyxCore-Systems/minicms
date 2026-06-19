@@ -138,7 +138,16 @@ export default async function HomePage() {
       <section className="nh-hero">
         <div className="nh-hero-bg" aria-hidden="true" />
         <div className="nh-fog" aria-hidden="true" />
-        <div className="nh-sun" aria-hidden="true" />
+        <div className="nh-logo" aria-hidden="true">
+          <Image
+            src="/e-ventschau-logo.png"
+            alt=""
+            fill
+            sizes="(max-width: 700px) 70vw, 600px"
+            style={{ objectFit: 'contain' }}
+            priority
+          />
+        </div>
         <div className="nh-wrap">
           <div className="nh-kick">
             {kicker.split(' // ').map((part, i, arr) => (
