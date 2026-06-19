@@ -163,7 +163,7 @@ export default async function HomePage() {
           <h1>
             e-Ventschau
             <span className="nh-sub">
-              <b>Benefiz</b> · Kultur · <i>Widerstand</i> — zwei Nächte auf dem Hof
+              <b>Benefiz</b> · Kultur · <i>Gemeinschaft</i> — zwei Nächte auf dem Hof
             </span>
           </h1>
           <div className="nh-cta">
