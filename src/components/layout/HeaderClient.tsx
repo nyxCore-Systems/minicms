@@ -73,12 +73,32 @@ export default function HeaderClient({ navigation, settings }: HeaderClientProps
     }
   }, [mobileOverlayOpen])
 
-  // Close overlay on Escape key
+  // Close on Escape + trap focus within the dialog (WCAG 2.1.2 / 2.4.3)
   useEffect(() => {
     if (!mobileOverlayOpen) return
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setMobileOverlayOpen(false)
+        return
+      }
+      if (e.key !== 'Tab') return
+      const root = overlayRef.current
+      if (!root) return
+      const focusables = root.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      const active = document.activeElement as HTMLElement | null
+      if (e.shiftKey) {
+        if (active === first || !root.contains(active)) {
+          e.preventDefault()
+          last.focus()
+        }
+      } else if (active === last || !root.contains(active)) {
+        e.preventDefault()
+        first.focus()
       }
     }
     document.addEventListener('keydown', handleKeyDown)
@@ -225,6 +245,7 @@ export default function HeaderClient({ navigation, settings }: HeaderClientProps
             }`}
             aria-label={mobileOverlayOpen ? 'Menü schließen' : 'Menü öffnen'}
             aria-expanded={mobileOverlayOpen}
+            aria-controls="mobile-nav-dialog"
           >
             {mobileOverlayOpen ? (
               <XMarkIcon className="w-5 h-5" />
@@ -238,15 +259,31 @@ export default function HeaderClient({ navigation, settings }: HeaderClientProps
 
       {/* ─── Mobile full-screen overlay ─── */}
       {mobileOverlayOpen && (
-        <div ref={overlayRef} className="fixed inset-0 z-40 lg:hidden animate-fade-in" role="dialog" aria-modal="true" aria-label="Navigation">
+        <div
+          ref={overlayRef}
+          id="mobile-nav-dialog"
+          className="fixed inset-0 z-40 lg:hidden animate-fade-in"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation"
+        >
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-brand-bg/95"
             onClick={toggleOverlay}
+            aria-hidden="true"
           />
 
           {/* Overlay content */}
           <div className="relative z-10 h-full overflow-y-auto px-6 pt-24 pb-32">
+            <button
+              type="button"
+              onClick={toggleOverlay}
+              aria-label="Menü schließen"
+              className="absolute top-5 right-5 z-20 flex items-center justify-center w-11 h-11 rounded-sm text-brand-text-muted hover:text-brand-text hover:bg-brand-bg-dark transition-colors"
+            >
+              <XMarkIcon className="w-6 h-6" />
+            </button>
             <div className="max-w-sm mx-auto space-y-1">
               {navigation.map((item) => (
                 <div key={item.id}>
