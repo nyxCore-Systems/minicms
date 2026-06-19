@@ -5,12 +5,16 @@ import type { Config } from 'tailwindcss'
 // (`rgb(var(--x) / <alpha>)` would yield invalid `rgb(#0d1b2a / …)`). Wrapping
 // each color as a function lets us emit `color-mix(...)` when a modifier is
 // present, so utilities like `bg-brand-accent/10` work across all themes.
-const brandColor =
-  (cssVar: string) =>
-  ({ opacityValue }: { opacityValue?: string }) =>
+// Returns a Tailwind color *function* at runtime, but typed as `string` so it
+// satisfies Config's RecursiveKeyValuePair<string, string> color type (the
+// types don't model the function form Tailwind supports at runtime).
+const brandColor = (cssVar: string): string => {
+  const resolve = ({ opacityValue }: { opacityValue?: string }) =>
     opacityValue === undefined
       ? `var(${cssVar})`
       : `color-mix(in srgb, var(${cssVar}) calc(${opacityValue} * 100%), transparent)`
+  return resolve as unknown as string
+}
 
 const config: Config = {
   darkMode: 'class',
