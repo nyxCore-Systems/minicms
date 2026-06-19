@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const data = leadSchema.parse(body)
 
-    const tenantSlug = process.env.TENANT_SLUG || 'rd-dasmesser'
+    const tenantSlug = process.env.TENANT_SLUG || 'rd-e-ventschau'
     const tenant = await prisma.tenant.findUnique({
       where: { slug: tenantSlug },
     })
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
 
-    const tenantSlug = process.env.TENANT_SLUG || 'rd-dasmesser'
+    const tenantSlug = process.env.TENANT_SLUG || 'rd-e-ventschau'
     const tenant = await prisma.tenant.findUnique({
       where: { slug: tenantSlug },
     })

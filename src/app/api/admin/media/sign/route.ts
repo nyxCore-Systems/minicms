@@ -28,7 +28,7 @@ export async function POST() {
   }
 
   const timestamp = Math.round(Date.now() / 1000)
-  const folder = `dasmesser/${tenant.slug}`
+  const folder = `e-ventschau/${tenant.slug}`
 
   const signature = cloudinary.utils.api_sign_request(
     { timestamp, folder },

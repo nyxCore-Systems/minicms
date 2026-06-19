@@ -115,7 +115,7 @@ export async function POST(request: Request) {
     const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
 
     const result = await cloudinary.uploader.upload(base64, {
-      folder: `dasmesser/${tenant.slug}`,
+      folder: `e-ventschau/${tenant.slug}`,
       resource_type: isVideo ? 'video' : 'image',
     })
 

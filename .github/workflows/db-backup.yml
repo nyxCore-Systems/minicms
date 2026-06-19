@@ -8,7 +8,7 @@ on:
 
 env:
   BACKUP_RETENTION_DAYS: 30
-  R2_BUCKET: dasmesser-backups
+  R2_BUCKET: e-ventschau-backups
 
 jobs:
   backup:

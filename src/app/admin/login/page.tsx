@@ -62,7 +62,7 @@ export default function AdminLoginPage() {
               id="login-email"
               required
               className="input-glass"
-              placeholder="admin@DasMesser.de"
+              placeholder="admin@e-ventschau.de"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"

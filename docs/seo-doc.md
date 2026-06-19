@@ -350,7 +350,7 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /api
-Sitemap: https://DasMesser.de/sitemap.xml
+Sitemap: https://e-ventschau.de/sitemap.xml
 ```
 
 ---

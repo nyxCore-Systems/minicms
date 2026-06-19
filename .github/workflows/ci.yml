@@ -32,5 +32,5 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: https://DasMesser.de
-          TENANT_SLUG: rd-dasmesser
+          NEXTAUTH_URL: https://e-ventschau.de
+          TENANT_SLUG: rd-e-ventschau

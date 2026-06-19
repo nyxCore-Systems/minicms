@@ -6,7 +6,7 @@
 
 ## Ziel
 
-Das wiederverwendbare CMS-Codegerüst (intern „minicms", aktuell als dasmesser-Messermarktplatz
+Das wiederverwendbare CMS-Codegerüst (intern „minicms", aktuell als e-ventschau-Messermarktplatz
 ausgeprägt) zu **e-ventschau** umbauen — der Website eines Benefiz-Musikfestivals (11. Ausgabe,
 7.–8. August 2026). Inhalte werden von der Live-Seite https://e-ventschau.de/ importiert.
 Neues GitHub-Repo mit frischer Git-History, neue Neon-Datenbank, Vercel-Deploy unter
@@ -35,13 +35,13 @@ umgehängt.
 ## Was entfernt/umgebaut wird
 
 **Löschen:**
-- `src/app/(public)/haendler/`, `src/app/(public)/produkte/` (dasmesser-spezifisch)
+- `src/app/(public)/haendler/`, `src/app/(public)/produkte/` (e-ventschau-spezifisch)
 - `src/content/*.md` (Messer-Inhalte: agb, herstellung, material, schleifen, so-funktioniert-es)
-- dasmesser-Seed-Daten
+- e-ventschau-Seed-Daten
 
 **Rebrand:**
 - `package.json` → name `e-ventschau`
-- Tenant-Slug `rd-dasmesser` → `e-ventschau` (DB-Tenant + `TENANT_SLUG`)
+- Tenant-Slug `rd-e-ventschau` → `e-ventschau` (DB-Tenant + `TENANT_SLUG`)
 - Header/Footer-Navigation auf neue Seitenstruktur
 - `layout.tsx` Metadata (Titel, Description, OG), `sitemap.ts`, `robots.ts`
 - Logo/Tagline → e-Ventschau / „11. e-Ventschau-Benefiz-Festival"
@@ -78,7 +78,7 @@ später ggf. als externer Link).
 ## Ausführung — 3 Phasen
 
 ### Phase 1 — Code-Rebrand (Hauptagent, sequenziell)
-dasmesser-Seiten löschen, umbenennen (package, tenant, metadata), Header/Footer-Nav auf neue
+e-ventschau-Seiten löschen, umbenennen (package, tenant, metadata), Header/Footer-Nav auf neue
 Struktur, Palette in `tailwind.config.ts` tauschen, CLAUDE.md/MEMORY.md anpassen.
 
 ### Phase 2 — Content-Import (parallel, günstige Models)
@@ -106,7 +106,7 @@ published). Bilder optional zu Cloudinary; im ersten Schritt direkte Bild-URLs /
 
 ## Erfolgskriterien
 
-- `npm run dev` zeigt e-ventschau-Branding, keine dasmesser-Reste (grep-clean).
+- `npm run dev` zeigt e-ventschau-Branding, keine e-ventschau-Reste (grep-clean).
 - Alle Seiten aus der Tabelle als veröffentlichte CMS-Inhalte erreichbar.
 - `npm run build` grün.
 - Live unter `e-ventschau.vercel.app` mit funktionierendem Admin-Login.

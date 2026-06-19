@@ -12,8 +12,8 @@
 
 1. Clone the repository:
    ```bash
-   git clone git@github.com:mrwind-up-bird/landingpage-dasmesser.git
-   cd landingpage-dasmesser
+   git clone git@github.com:mrwind-up-bird/landingpage-e-ventschau.git
+   cd landingpage-e-ventschau
    ```
 
 2. Install dependencies:
@@ -53,8 +53,8 @@
 | `DATABASE_URL_UNPOOLED` | Yes | Neon PostgreSQL direct connection string. Used by Prisma for migrations. |
 | `NEXTAUTH_SECRET` | Yes | Secret key for NextAuth JWT signing. Generate with `openssl rand -base64 32`. |
 | `NEXTAUTH_URL` | Yes | Canonical URL of the app. `http://localhost:3000` for local dev. |
-| `TENANT_SLUG` | Yes | Multi-tenant identifier. Default: `rd-dasmesser`. |
-| `NEXT_PUBLIC_SITE_URL` | No | Public site URL for SEO/sitemap. Defaults to `https://DasMesser.de`. |
+| `TENANT_SLUG` | Yes | Multi-tenant identifier. Default: `rd-e-ventschau`. |
+| `NEXT_PUBLIC_SITE_URL` | No | Public site URL for SEO/sitemap. Defaults to `https://e-ventschau.de`. |
 | `NEXT_PUBLIC_ROOT_DOMAIN` | No | Root domain for middleware tenant routing. Defaults to `localhost:3000`. |
 | `CLOUDINARY_CLOUD_NAME` | No | Cloudinary cloud name for media uploads. |
 | `CLOUDINARY_API_KEY` | No | Cloudinary API key. |
@@ -92,7 +92,7 @@ No test framework is currently configured. Verify changes manually:
 
 - Run `npm run build` to catch TypeScript and build errors
 - Run `npm run lint` to catch linting issues
-- Test admin features at `http://localhost:3000/admin` (login: `admin@DasMesser.de` / `admin2024!`)
+- Test admin features at `http://localhost:3000/admin` (login: `admin@e-ventschau.de` / `admin2024!`)
 
 ## Tech Stack
 

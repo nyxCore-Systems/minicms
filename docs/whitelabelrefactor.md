@@ -11,15 +11,15 @@ Transform Das Messer from a single-tenant knife marketplace landing page into a 
 ```mermaid
 graph LR
     subgraph "Current: Single Tenant"
-        A[Das Messer codebase] --> B[rd-dasmesser tenant]
-        B --> C[DasMesser.de]
+        A[Das Messer codebase] --> B[rd-e-ventschau tenant]
+        B --> C[e-ventschau.de]
     end
 
     subgraph "Target: Whitelabel Platform"
         D[Whitelabel CMS] --> E[Tenant A: Knives]
         D --> F[Tenant B: Watches]
         D --> G[Tenant C: Wine]
-        E --> H[DasMesser.de]
+        E --> H[e-ventschau.de]
         F --> I[diewatch.de]
         G --> J[derwein.de]
     end
@@ -55,9 +55,9 @@ Currently the tenant is resolved from a static env var. For whitelabel, it must 
 ```mermaid
 flowchart TB
     REQ[Incoming Request] --> MW[Middleware]
-    MW --> |"Host: DasMesser.de"| RESOLVE[Resolve Tenant]
+    MW --> |"Host: e-ventschau.de"| RESOLVE[Resolve Tenant]
     RESOLVE --> DB[(Tenant table)]
-    DB --> |"slug: rd-dasmesser"| TENANT[Set tenant context]
+    DB --> |"slug: rd-e-ventschau"| TENANT[Set tenant context]
     TENANT --> RENDER[Render page with tenant data]
 
     MW --> |"Host: diewatch.de"| RESOLVE
@@ -334,7 +334,7 @@ gantt
 ### Zero-Downtime Migration
 
 1. Deploy hostname-based tenant resolution with `TENANT_SLUG` fallback
-2. Add `domain: 'DasMesser.de'` to existing tenant record
+2. Add `domain: 'e-ventschau.de'` to existing tenant record
 3. Switch to hostname resolution (env var still works as fallback)
 4. Onboard second tenant to validate
 5. Gradually add theming/branding features

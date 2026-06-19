@@ -12,7 +12,7 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-function replaceDasMesser(s: string): string {
+function replaceBrand(s: string): string {
   return s.replace(/\| Das Messer/g, '| e-Ventschau').replace(/Das Messer/g, 'e-Ventschau')
 }
 
@@ -22,13 +22,13 @@ async function processPages() {
   for (const pg of pages) {
     const data: Record<string, unknown> = {}
     if (pg.metaTitle && pg.metaTitle.includes('Das Messer')) {
-      data.metaTitle = replaceDasMesser(pg.metaTitle)
+      data.metaTitle = replaceBrand(pg.metaTitle)
     }
     // Replace across the entire seoData JSON (covers metaTitle, faqItems answers/questions, etc.)
     if (pg.seoData) {
       const raw = JSON.stringify(pg.seoData)
       if (raw.includes('Das Messer')) {
-        data.seoData = JSON.parse(replaceDasMesser(raw))
+        data.seoData = JSON.parse(replaceBrand(raw))
       }
     }
     if (Object.keys(data).length) {
@@ -45,7 +45,7 @@ async function processArtists() {
   let n = 0
   for (const a of artists) {
     if (a.metaTitle && a.metaTitle.includes('Das Messer')) {
-      await prisma.artist.update({ where: { id: a.id }, data: { metaTitle: replaceDasMesser(a.metaTitle) } })
+      await prisma.artist.update({ where: { id: a.id }, data: { metaTitle: replaceBrand(a.metaTitle) } })
       n++
     }
   }
@@ -58,7 +58,7 @@ async function processEvents() {
   let n = 0
   for (const ev of events) {
     if (ev.metaTitle && ev.metaTitle.includes('Das Messer')) {
-      await prisma.event.update({ where: { id: ev.id }, data: { metaTitle: replaceDasMesser(ev.metaTitle) } })
+      await prisma.event.update({ where: { id: ev.id }, data: { metaTitle: replaceBrand(ev.metaTitle) } })
       n++
     }
   }

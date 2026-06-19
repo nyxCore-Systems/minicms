@@ -6,8 +6,8 @@
 
 Deployed on **Vercel** with automatic deploys from the `main` branch.
 
-- **Production URL:** https://landingpage-dasmesser.vercel.app/
-- **Admin URL:** https://landingpage-dasmesser.vercel.app/admin
+- **Production URL:** https://landingpage-e-ventschau.vercel.app/
+- **Admin URL:** https://landingpage-e-ventschau.vercel.app/admin
 
 ### Deploying
 
