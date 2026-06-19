@@ -6,6 +6,8 @@ import { getFeaturedEvent, getFeaturedEventLineup, getPublishedEventBySlug } fro
 import { buildMetadata, websiteJsonLd } from '@/lib/seo'
 import JsonLd from '@/components/JsonLd'
 import NoirTimetable, { type NoirDay } from '@/components/noir/NoirTimetable'
+import HomepageSectionRenderer from '@/components/sections/HomepageSectionRenderer'
+import { getHomepageSections } from '@/lib/sections'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,9 +63,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const featured = await getFeaturedEvent()
-  const [lineup, event] = await Promise.all([
+  const [lineup, event, sections] = await Promise.all([
     getFeaturedEventLineup(),
     featured ? getPublishedEventBySlug(featured.slug) : Promise.resolve(null),
+    getHomepageSections(),
   ])
 
   // Map artist slug → richer summary (origin/genres) for subtitles + card meta
@@ -253,6 +256,13 @@ export default async function HomePage() {
             <NoirTimetable days={days} />
           </div>
         </section>
+      )}
+
+      {/* CUSTOM SECTIONS — frei zusammenstellbar & sortierbar über /admin/sections */}
+      {sections.length > 0 && (
+        <div className="nh-sections">
+          <HomepageSectionRenderer sections={sections} />
+        </div>
       )}
 
       {/* MANIFEST */}

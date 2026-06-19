@@ -530,6 +530,8 @@
 /* sections */
 .nh-sec { padding: 96px 0; border-bottom: 1px solid var(--b1, #06223A); position: relative; z-index: 2; }
 .nh-sec-coal { background: var(--navy-7, #082843); }
+/* Zone für frei zusammenstellbare Sektionen (/admin/sections), zwischen Timetable und Manifest */
+.nh-sections { position: relative; z-index: 2; border-top: 1px solid var(--b1, #06223A); }
 .nh-sec-head { margin-bottom: 54px; }
 .nh-lab { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--clay-text, #D4724C); display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
 .nh-lab::before { content: ''; width: 34px; height: 1px; background: var(--clay-text, #D4724C); }
