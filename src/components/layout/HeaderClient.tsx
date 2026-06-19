@@ -267,9 +267,9 @@ export default function HeaderClient({ navigation, settings }: HeaderClientProps
           aria-modal="true"
           aria-label="Navigation"
         >
-          {/* Backdrop */}
+          {/* Backdrop — fully opaque so page content is never visible behind the menu */}
           <div
-            className="absolute inset-0 bg-brand-bg/95"
+            className="absolute inset-0 bg-brand-bg"
             onClick={toggleOverlay}
             aria-hidden="true"
           />

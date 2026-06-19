@@ -1,5 +1,17 @@
 import type { Config } from 'tailwindcss'
 
+// Brand colors are CSS variables holding full color values (e.g. #0d1b2a), so
+// Tailwind's `/opacity` modifier cannot inject an alpha channel the usual way
+// (`rgb(var(--x) / <alpha>)` would yield invalid `rgb(#0d1b2a / …)`). Wrapping
+// each color as a function lets us emit `color-mix(...)` when a modifier is
+// present, so utilities like `bg-brand-accent/10` work across all themes.
+const brandColor =
+  (cssVar: string) =>
+  ({ opacityValue }: { opacityValue?: string }) =>
+    opacityValue === undefined
+      ? `var(${cssVar})`
+      : `color-mix(in srgb, var(${cssVar}) calc(${opacityValue} * 100%), transparent)`
+
 const config: Config = {
   darkMode: 'class',
   content: [
@@ -9,28 +21,28 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          primary: 'var(--brand-primary)',
-          'primary-light': 'var(--brand-primary-light)',
-          accent: 'var(--brand-accent)',
-          'accent-light': 'var(--brand-accent-light)',
-          bg: 'var(--brand-bg)',
-          'bg-dark': 'var(--brand-bg-dark)',
-          text: 'var(--brand-text)',
-          'text-muted': 'var(--brand-text-muted)',
-          'text-light': 'var(--brand-text-light)',
-          surface: 'var(--brand-surface)',
-          border: 'var(--brand-border)',
+          primary: brandColor('--brand-primary'),
+          'primary-light': brandColor('--brand-primary-light'),
+          accent: brandColor('--brand-accent'),
+          'accent-light': brandColor('--brand-accent-light'),
+          bg: brandColor('--brand-bg'),
+          'bg-dark': brandColor('--brand-bg-dark'),
+          text: brandColor('--brand-text'),
+          'text-muted': brandColor('--brand-text-muted'),
+          'text-light': brandColor('--brand-text-light'),
+          surface: brandColor('--brand-surface'),
+          border: brandColor('--brand-border'),
           // Backwards-compatible aliases
-          forest: 'var(--brand-primary)',
-          sage: 'var(--brand-primary-light)',
-          'sage-light': 'var(--brand-primary-light)',
-          copper: 'var(--brand-accent)',
-          'copper-light': 'var(--brand-accent-light)',
-          cream: 'var(--brand-bg)',
-          'cream-dark': 'var(--brand-bg-dark)',
-          dark: 'var(--brand-text)',
-          warmgray: 'var(--brand-text-muted)',
-          'warmgray-light': 'var(--brand-text-light)',
+          forest: brandColor('--brand-primary'),
+          sage: brandColor('--brand-primary-light'),
+          'sage-light': brandColor('--brand-primary-light'),
+          copper: brandColor('--brand-accent'),
+          'copper-light': brandColor('--brand-accent-light'),
+          cream: brandColor('--brand-bg'),
+          'cream-dark': brandColor('--brand-bg-dark'),
+          dark: brandColor('--brand-text'),
+          warmgray: brandColor('--brand-text-muted'),
+          'warmgray-light': brandColor('--brand-text-light'),
           steel: '#4a6d8c',
         },
       },
