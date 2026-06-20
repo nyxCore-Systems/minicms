@@ -33,6 +33,14 @@ import MarkdownEditorField from '@/components/admin/MarkdownEditorField'
 // ---------------------------------------------------------------------------
 
 const SECTION_TYPES = [
+  // Festival-„Noir"-Elemente der Startseite (Live-Daten / eigenes Design)
+  { value: 'noir_hero', label: 'Festival Hero', icon: SparklesIcon },
+  { value: 'noir_marquee', label: 'Band-Laufschrift', icon: Bars3Icon },
+  { value: 'noir_lineup', label: 'Line-up', icon: RectangleGroupIcon },
+  { value: 'noir_timetable', label: 'Timetable', icon: ClockIcon },
+  { value: 'noir_manifest', label: 'Manifest', icon: DocumentTextIcon },
+  { value: 'noir_donate', label: 'Spenden', icon: MegaphoneIcon },
+  // Generische Bausteine
   { value: 'hero', label: 'Hero Banner', icon: SparklesIcon },
   { value: 'trust', label: 'Trust Indicators', icon: ShieldCheckIcon },
   { value: 'showcase', label: 'Product Showcase', icon: CubeIcon },
@@ -113,6 +121,27 @@ interface InfoCardForm {
   emoji: string
   label: string
   sublabel: string
+}
+
+// Noir homepage element forms
+interface NoirButtonForm {
+  label: string
+  href: string
+  variant: 'primary' | 'secondary'
+}
+
+interface NoirTileForm {
+  label: string
+  value: string
+}
+
+interface NoirStatForm {
+  value: string
+  label: string
+}
+
+interface NoirChipForm {
+  value: string
 }
 
 interface Section {
@@ -368,6 +397,7 @@ export default function AdminSectionsPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [importing, setImporting] = useState(false)
 
   // Sliders from Slider Manager
   const [sliders, setSliders] = useState<SliderData[]>([])
@@ -433,6 +463,28 @@ export default function AdminSectionsPage() {
   ])
   const [heroSliderMode, setHeroSliderMode] = useState<'manual' | 'slider'>('manual')
   const [heroSliderSlug, setHeroSliderSlug] = useState('')
+
+  // Noir Hero
+  const [noirHeroSubtitle, setNoirHeroSubtitle] = useState('')
+  const [noirHeroButtons, setNoirHeroButtons] = useState<NoirButtonForm[]>([
+    { label: '', href: '', variant: 'primary' },
+  ])
+  const [noirHeroTiles, setNoirHeroTiles] = useState<NoirTileForm[]>([{ label: '', value: '' }])
+  // Noir Manifest
+  const [noirManifestHeading, setNoirManifestHeading] = useState('')
+  const [noirManifestText, setNoirManifestText] = useState('')
+  const [noirManifestStats, setNoirManifestStats] = useState<NoirStatForm[]>([{ value: '', label: '' }])
+  // Noir Donate
+  const [noirDonateLabel, setNoirDonateLabel] = useState('')
+  const [noirDonateHeading, setNoirDonateHeading] = useState('')
+  const [noirDonateText, setNoirDonateText] = useState('')
+  const [noirDonateChips, setNoirDonateChips] = useState<NoirChipForm[]>([{ value: '' }])
+  const [noirDonateCtaLabel, setNoirDonateCtaLabel] = useState('')
+  const [noirDonateCtaHref, setNoirDonateCtaHref] = useState('')
+  const [noirDonateCardHeading, setNoirDonateCardHeading] = useState('')
+  const [noirDonateCardSubtext, setNoirDonateCardSubtext] = useState('')
+  const [noirDonateRaised, setNoirDonateRaised] = useState('')
+  const [noirDonateTarget, setNoirDonateTarget] = useState('')
 
   // ---------------------------------------------------------------------------
   // Data fetching
@@ -520,6 +572,25 @@ export default function AdminSectionsPage() {
     setHeroSliderSlides([{ image: '', heading: '', description: '', button: '', href: '' }])
     setHeroSliderMode('manual')
     setHeroSliderSlug('')
+    // Noir Hero
+    setNoirHeroSubtitle('')
+    setNoirHeroButtons([{ label: '', href: '', variant: 'primary' }])
+    setNoirHeroTiles([{ label: '', value: '' }])
+    // Noir Manifest
+    setNoirManifestHeading('')
+    setNoirManifestText('')
+    setNoirManifestStats([{ value: '', label: '' }])
+    // Noir Donate
+    setNoirDonateLabel('')
+    setNoirDonateHeading('')
+    setNoirDonateText('')
+    setNoirDonateChips([{ value: '' }])
+    setNoirDonateCtaLabel('')
+    setNoirDonateCtaHref('')
+    setNoirDonateCardHeading('')
+    setNoirDonateCardSubtext('')
+    setNoirDonateRaised('')
+    setNoirDonateTarget('')
     // UI
     setShowAddForm(false)
     setEditingId(null)
@@ -611,6 +682,39 @@ export default function AdminSectionsPage() {
       setHeroSliderAnimate(config?.animate !== false)
       setFormContent('')
       setFormConfig('')
+    } else if (section.type === 'noir_hero') {
+      setNoirHeroSubtitle((content?.subtitle as string) || '')
+      const buttons = (content?.buttons as NoirButtonForm[]) || []
+      setNoirHeroButtons(buttons.length > 0 ? buttons : [{ label: '', href: '', variant: 'primary' }])
+      const tiles = (content?.tiles as NoirTileForm[]) || []
+      setNoirHeroTiles(tiles.length > 0 ? tiles : [{ label: '', value: '' }])
+      setFormContent('')
+      setFormConfig('')
+    } else if (section.type === 'noir_manifest') {
+      setNoirManifestHeading((content?.heading as string) || '')
+      setNoirManifestText((content?.text as string) || '')
+      const stats = (content?.stats as NoirStatForm[]) || []
+      setNoirManifestStats(stats.length > 0 ? stats : [{ value: '', label: '' }])
+      setFormContent('')
+      setFormConfig('')
+    } else if (section.type === 'noir_donate') {
+      setNoirDonateLabel((content?.label as string) || '')
+      setNoirDonateHeading((content?.heading as string) || '')
+      setNoirDonateText((content?.text as string) || '')
+      const chips = (content?.chips as string[]) || []
+      setNoirDonateChips(chips.length > 0 ? chips.map((c) => ({ value: c })) : [{ value: '' }])
+      setNoirDonateCtaLabel((content?.ctaLabel as string) || '')
+      setNoirDonateCtaHref((content?.ctaHref as string) || '')
+      setNoirDonateCardHeading((content?.cardHeading as string) || '')
+      setNoirDonateCardSubtext((content?.cardSubtext as string) || '')
+      setNoirDonateRaised(content?.raised !== undefined ? String(content.raised) : '')
+      setNoirDonateTarget(content?.target !== undefined ? String(content.target) : '')
+      setFormContent('')
+      setFormConfig('')
+    } else if (section.type === 'noir_marquee' || section.type === 'noir_lineup' || section.type === 'noir_timetable') {
+      // Auto data from events/artists; only title/subtitle (already set above) apply.
+      setFormContent('')
+      setFormConfig('')
     } else {
       // Unknown type — fall back to JSON
       setFormContent(section.content ? JSON.stringify(section.content, null, 2) : '')
@@ -626,6 +730,7 @@ export default function AdminSectionsPage() {
     'hero', 'trust', 'info', 'faq', 'cta', 'content',
     'showcase', 'vendors',
     'slider', 'ads_banner', 'hero_slider',
+    'noir_hero', 'noir_marquee', 'noir_lineup', 'noir_timetable', 'noir_manifest', 'noir_donate',
   ]
 
   // ---------------------------------------------------------------------------
@@ -697,6 +802,40 @@ export default function AdminSectionsPage() {
           parsedContent = { slides: validSlides }
         }
         parsedConfig = { variant: heroSliderVariant, gradient: heroSliderGradient, animate: heroSliderAnimate }
+      } else if (formType === 'noir_hero') {
+        const filteredButtons = noirHeroButtons.filter((b) => b.label.trim() && b.href.trim())
+        const filteredTiles = noirHeroTiles.filter((t) => t.label.trim() && t.value.trim())
+        parsedContent = {
+          ...(noirHeroSubtitle.trim() ? { subtitle: noirHeroSubtitle.trim() } : {}),
+          ...(filteredButtons.length > 0 ? { buttons: filteredButtons } : {}),
+          ...(filteredTiles.length > 0 ? { tiles: filteredTiles } : {}),
+        }
+      } else if (formType === 'noir_manifest') {
+        const filteredStats = noirManifestStats.filter((s) => s.value.trim() || s.label.trim())
+        parsedContent = {
+          ...(noirManifestHeading.trim() ? { heading: noirManifestHeading.trim() } : {}),
+          ...(noirManifestText.trim() ? { text: noirManifestText.trim() } : {}),
+          ...(filteredStats.length > 0 ? { stats: filteredStats } : {}),
+        }
+      } else if (formType === 'noir_donate') {
+        const filteredChips = noirDonateChips.map((c) => c.value.trim()).filter(Boolean)
+        const raisedNum = parseInt(noirDonateRaised, 10)
+        const targetNum = parseInt(noirDonateTarget, 10)
+        parsedContent = {
+          ...(noirDonateLabel.trim() ? { label: noirDonateLabel.trim() } : {}),
+          ...(noirDonateHeading.trim() ? { heading: noirDonateHeading.trim() } : {}),
+          ...(noirDonateText.trim() ? { text: noirDonateText.trim() } : {}),
+          ...(filteredChips.length > 0 ? { chips: filteredChips } : {}),
+          ...(noirDonateCtaLabel.trim() ? { ctaLabel: noirDonateCtaLabel.trim() } : {}),
+          ...(noirDonateCtaHref.trim() ? { ctaHref: noirDonateCtaHref.trim() } : {}),
+          ...(noirDonateCardHeading.trim() ? { cardHeading: noirDonateCardHeading.trim() } : {}),
+          ...(noirDonateCardSubtext.trim() ? { cardSubtext: noirDonateCardSubtext.trim() } : {}),
+          ...(Number.isFinite(raisedNum) ? { raised: raisedNum } : {}),
+          ...(Number.isFinite(targetNum) ? { target: targetNum } : {}),
+        }
+      } else if (formType === 'noir_marquee' || formType === 'noir_lineup' || formType === 'noir_timetable') {
+        // Live data from events/artists; heading/intro carried by title/subtitle.
+        parsedContent = null
       } else if (formContent.trim()) {
         // JSON fallback for unknown types
         try {
@@ -841,6 +980,29 @@ export default function AdminSectionsPage() {
     }
   }
 
+  async function importHomepage() {
+    if (
+      !confirm(
+        'Aktuelle Startseite als bearbeitbare Elemente anlegen?\n(Hero, Band-Laufschrift, Line-up, Timetable, Manifest, Spenden)'
+      )
+    )
+      return
+    setImporting(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/admin/sections/import-homepage', { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Import fehlgeschlagen')
+      }
+      await fetchSections()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Import fehlgeschlagen')
+    } finally {
+      setImporting(false)
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Section list detail helpers
   // ---------------------------------------------------------------------------
@@ -911,6 +1073,28 @@ export default function AdminSectionsPage() {
       return content.bannerType ? `Typ: ${content.bannerType}` : null
     }
 
+    if (section.type === 'noir_hero') {
+      const buttons = (content.buttons as unknown[]) || []
+      const tiles = (content.tiles as unknown[]) || []
+      const parts: string[] = []
+      if (content.subtitle) parts.push('eigene Tagline')
+      if (buttons.length > 0) parts.push(`${buttons.length} Buttons`)
+      if (tiles.length > 0) parts.push(`${tiles.length} Kacheln`)
+      return parts.length > 0 ? parts.join(', ') : null
+    }
+
+    if (section.type === 'noir_manifest') {
+      const stats = (content.stats as unknown[]) || []
+      return stats.length > 0 ? `${stats.length} Stats` : null
+    }
+
+    if (section.type === 'noir_donate') {
+      if (content.raised !== undefined && content.target !== undefined) {
+        return `Ziel: ${content.raised} / ${content.target} €`
+      }
+      return null
+    }
+
     return null
   }
 
@@ -962,16 +1146,29 @@ export default function AdminSectionsPage() {
           </p>
         </div>
         {!isEditing && (
-          <button
-            onClick={() => {
-              resetForm()
-              setShowAddForm(true)
-            }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-accent text-white rounded-xl text-sm font-medium hover:bg-brand-accent/90 shadow-lg shadow-brand-accent/20 transition-all"
-          >
-            <PlusIcon className="w-4 h-4" />
-            Sektion hinzufuegen
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {sections.length === 0 && (
+              <button
+                onClick={importHomepage}
+                disabled={importing}
+                className="inline-flex items-center gap-1.5 px-4 py-2 glass text-brand-text rounded-xl text-sm font-medium hover:bg-brand-bg-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Aktuelle Startseite als bearbeitbare Elemente übernehmen"
+              >
+                <ArrowPathIcon className={`w-4 h-4 ${importing ? 'animate-spin' : ''}`} />
+                Aktuelle Startseite übernehmen
+              </button>
+            )}
+            <button
+              onClick={() => {
+                resetForm()
+                setShowAddForm(true)
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-accent text-white rounded-xl text-sm font-medium hover:bg-brand-accent/90 shadow-lg shadow-brand-accent/20 transition-all"
+            >
+              <PlusIcon className="w-4 h-4" />
+              Sektion hinzufuegen
+            </button>
+          </div>
         )}
       </div>
 
@@ -1030,7 +1227,8 @@ export default function AdminSectionsPage() {
               </div>
             )}
 
-            {/* Title & subtitle */}
+            {/* Title & subtitle (hidden for Noir elements using custom forms / auto data) */}
+            {!['noir_marquee', 'noir_hero', 'noir_manifest', 'noir_donate'].includes(formType) && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Titel</label>
@@ -1053,9 +1251,10 @@ export default function AdminSectionsPage() {
                 />
               </div>
             </div>
+            )}
 
-            {/* Animation picker (not shown for hero/hero_slider — above the fold) */}
-            {formType !== 'hero' && formType !== 'hero_slider' && (
+            {/* Animation picker (not for hero/hero_slider/Noir elements) */}
+            {formType !== 'hero' && formType !== 'hero_slider' && !formType.startsWith('noir_') && (
               <div>
                 <label className={labelClass}>Scroll-Animation</label>
                 <select
@@ -1075,7 +1274,8 @@ export default function AdminSectionsPage() {
               </div>
             )}
 
-            {/* Background color picker (all section types) */}
+            {/* Background color picker (not for Noir elements — they bring their own bg) */}
+            {!formType.startsWith('noir_') && (
             <div>
               <label className={labelClass}>Hintergrundfarbe</label>
               <div className="flex items-center gap-2">
@@ -1107,6 +1307,7 @@ export default function AdminSectionsPage() {
                 Leer = Standard-Hintergrund des Themes
               </p>
             </div>
+            )}
 
             {/* =========================================================== */}
             {/* Hero-specific fields                                         */}
@@ -1695,6 +1896,283 @@ export default function AdminSectionsPage() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* =========================================================== */}
+            {/* Noir element fields                                          */}
+            {/* =========================================================== */}
+            {(formType === 'noir_lineup' || formType === 'noir_timetable') && (
+              <InfoBox>
+                Die Inhalte (Künstler bzw. Programm) kommen automatisch aus{' '}
+                <a href="/admin/events" className="underline">Events</a> &amp;{' '}
+                <a href="/admin/artists" className="underline">Künstlern</a>. Oben passt du die kleine
+                Überschrift (<strong>Titel</strong>) und den Intro-Text (<strong>Untertitel</strong>) an.
+              </InfoBox>
+            )}
+
+            {formType === 'noir_marquee' && (
+              <InfoBox>
+                Laufende Band-Namen aus dem Line-up des Hauptevents. Keine weiteren Einstellungen nötig.
+              </InfoBox>
+            )}
+
+            {formType === 'noir_hero' && (
+              <div className="space-y-4">
+                <InfoBox>
+                  Datum, Ort und der „Acts"-Zähler kommen automatisch aus dem Hauptevent. Überschrift
+                  „e-Ventschau" und Logo sind fest.
+                </InfoBox>
+                <div>
+                  <label className={labelClass}>Untertitel / Tagline</label>
+                  <input
+                    type="text"
+                    value={noirHeroSubtitle}
+                    onChange={(e) => setNoirHeroSubtitle(e.target.value)}
+                    className={inputClass}
+                    placeholder="Benefiz · Kultur · Gemeinschaft — zwei Nächte auf dem Hof"
+                  />
+                  <p className="text-xs text-brand-text-muted mt-1">Leer = gestaltete Standard-Tagline.</p>
+                </div>
+                <div>
+                  <label className={labelClass}>Buttons</label>
+                  <DynamicList
+                    items={noirHeroButtons}
+                    onChange={setNoirHeroButtons}
+                    newItem={(): NoirButtonForm => ({ label: '', href: '', variant: 'primary' })}
+                    addLabel="Button hinzufügen"
+                    renderItem={(item, _i, update) => (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input
+                          type="text"
+                          value={item.label}
+                          onChange={(e) => update({ ...item, label: e.target.value })}
+                          className={inputClass}
+                          placeholder="Label"
+                        />
+                        <input
+                          type="text"
+                          value={item.href}
+                          onChange={(e) => update({ ...item, href: e.target.value })}
+                          className={inputClass}
+                          placeholder="#programm oder /unterstuetzung"
+                        />
+                        <select
+                          value={item.variant}
+                          onChange={(e) => update({ ...item, variant: e.target.value as 'primary' | 'secondary' })}
+                          className={inputClass}
+                        >
+                          <option value="primary">Primär</option>
+                          <option value="secondary">Sekundär</option>
+                        </select>
+                      </div>
+                    )}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Info-Kacheln (nach Acts &amp; Datum)</label>
+                  <DynamicList
+                    items={noirHeroTiles}
+                    onChange={setNoirHeroTiles}
+                    newItem={() => ({ label: '', value: '' })}
+                    addLabel="Kachel hinzufügen"
+                    renderItem={(item, _i, update) => (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={item.label}
+                          onChange={(e) => update({ ...item, label: e.target.value })}
+                          className={inputClass}
+                          placeholder="Label (z.B. Camping)"
+                        />
+                        <input
+                          type="text"
+                          value={item.value}
+                          onChange={(e) => update({ ...item, value: e.target.value })}
+                          className={inputClass}
+                          placeholder="Wert (z.B. Frei auf der Wiese)"
+                        />
+                      </div>
+                    )}
+                  />
+                </div>
+              </div>
+            )}
+
+            {formType === 'noir_manifest' && (
+              <div className="space-y-4">
+                <div>
+                  <label className={labelClass}>Überschrift</label>
+                  <input
+                    type="text"
+                    value={noirManifestHeading}
+                    onChange={(e) => setNoirManifestHeading(e.target.value)}
+                    className={inputClass}
+                    placeholder="Wir machen Lärm gegen das Vergessen."
+                  />
+                  <p className="text-xs text-brand-text-muted mt-1">Leer = gestaltete Standard-Überschrift.</p>
+                </div>
+                <div>
+                  <label className={labelClass}>Text</label>
+                  <textarea
+                    value={noirManifestText}
+                    onChange={(e) => setNoirManifestText(e.target.value)}
+                    rows={4}
+                    className={inputClass}
+                    placeholder="Seit 2013 erinnert e-Ventschau …"
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Statistiken</label>
+                  <DynamicList
+                    items={noirManifestStats}
+                    onChange={setNoirManifestStats}
+                    newItem={() => ({ value: '', label: '' })}
+                    addLabel="Statistik hinzufügen"
+                    renderItem={(item, _i, update) => (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={item.value}
+                          onChange={(e) => update({ ...item, value: e.target.value })}
+                          className={inputClass}
+                          placeholder="Wert (z.B. 11.)"
+                        />
+                        <input
+                          type="text"
+                          value={item.label}
+                          onChange={(e) => update({ ...item, label: e.target.value })}
+                          className={inputClass}
+                          placeholder="Label (z.B. Ausgabe)"
+                        />
+                      </div>
+                    )}
+                  />
+                </div>
+              </div>
+            )}
+
+            {formType === 'noir_donate' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Label (klein)</label>
+                    <input
+                      type="text"
+                      value={noirDonateLabel}
+                      onChange={(e) => setNoirDonateLabel(e.target.value)}
+                      className={inputClass}
+                      placeholder="Tickets & Spenden"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Überschrift</label>
+                    <input
+                      type="text"
+                      value={noirDonateHeading}
+                      onChange={(e) => setNoirDonateHeading(e.target.value)}
+                      className={inputClass}
+                      placeholder="Zahl, was du kannst."
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClass}>Text</label>
+                  <textarea
+                    value={noirDonateText}
+                    onChange={(e) => setNoirDonateText(e.target.value)}
+                    rows={3}
+                    className={inputClass}
+                    placeholder="Der Eintritt bleibt sozial verträglich …"
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Beträge-Chips</label>
+                  <DynamicList
+                    items={noirDonateChips}
+                    onChange={setNoirDonateChips}
+                    newItem={() => ({ value: '' })}
+                    addLabel="Chip hinzufügen"
+                    renderItem={(item, _i, update) => (
+                      <input
+                        type="text"
+                        value={item.value}
+                        onChange={(e) => update({ value: e.target.value })}
+                        className={inputClass}
+                        placeholder="z.B. 25 €"
+                      />
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Button-Text</label>
+                    <input
+                      type="text"
+                      value={noirDonateCtaLabel}
+                      onChange={(e) => setNoirDonateCtaLabel(e.target.value)}
+                      className={inputClass}
+                      placeholder="Jetzt spenden"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Button-Link</label>
+                    <input
+                      type="text"
+                      value={noirDonateCtaHref}
+                      onChange={(e) => setNoirDonateCtaHref(e.target.value)}
+                      className={inputClass}
+                      placeholder="/unterstuetzung"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Karten-Überschrift</label>
+                    <input
+                      type="text"
+                      value={noirDonateCardHeading}
+                      onChange={(e) => setNoirDonateCardHeading(e.target.value)}
+                      className={inputClass}
+                      placeholder="Spendenziel 2026"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Karten-Untertext</label>
+                    <input
+                      type="text"
+                      value={noirDonateCardSubtext}
+                      onChange={(e) => setNoirDonateCardSubtext(e.target.value)}
+                      className={inputClass}
+                      placeholder="Für Technik, Bühne & Künstler:innen."
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Gesammelt (€)</label>
+                    <input
+                      type="number"
+                      value={noirDonateRaised}
+                      onChange={(e) => setNoirDonateRaised(e.target.value)}
+                      className={inputClass}
+                      placeholder="8420"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Ziel (€)</label>
+                    <input
+                      type="number"
+                      value={noirDonateTarget}
+                      onChange={(e) => setNoirDonateTarget(e.target.value)}
+                      className={inputClass}
+                      placeholder="12000"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-brand-text-muted">
+                  Fortschritt (%) wird automatisch aus Gesammelt / Ziel berechnet.
+                </p>
               </div>
             )}
 

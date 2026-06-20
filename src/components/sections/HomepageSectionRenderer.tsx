@@ -16,6 +16,7 @@ import HeroSliderSection from '@/components/sections/HeroSliderSection'
 import HeroSliderFromManager from '@/components/sections/HeroSliderFromManager'
 import type { HeroSlide, SliderVariant, SliderGradient } from '@/components/markdown/HeroSliderImages'
 import SectionStructuredData from './SectionStructuredData'
+import NoirElement from '@/components/noir/sections/NoirElement'
 import MarkdownContent from '@/components/MarkdownContent'
 import ScrollAnimation from '@/components/ui/ScrollAnimation'
 import type { AnimationType } from '@/components/ui/ScrollAnimation'
@@ -34,6 +35,21 @@ export default function HomepageSectionRenderer({ sections, dbVendors, dbProduct
         .filter((s) => s.isVisible)
         .sort((a, b) => a.sortOrder - b.sortOrder)
         .map((section) => {
+          // Noir homepage elements render their own full-bleed `.nh-*` markup and
+          // pull live event data themselves; dispatch them before the generic types.
+          if (section.type.startsWith('noir_')) {
+            return (
+              <div key={section.id}>
+                <NoirElement
+                  type={section.type}
+                  title={section.title}
+                  subtitle={section.subtitle}
+                  content={section.content}
+                />
+              </div>
+            )
+          }
+
           const content = section.content as Record<string, unknown> | null
           const sectionConfig = section.config as Record<string, unknown> | null
           const animation = (sectionConfig?.animation as AnimationType) || 'none'
