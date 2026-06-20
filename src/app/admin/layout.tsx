@@ -40,7 +40,7 @@ export default async function AdminLayout({
 
   return (
     <AdminProviders>
-    <div className="min-h-screen flex">
+    <div className="admin-shell min-h-screen flex">
       <aside className="hidden lg:flex w-64 flex-col glass-strong border-r border-brand-border fixed inset-y-0 left-0 z-40">
         <div className="p-6 border-b border-brand-border">
           <Link href="/" className="flex items-center gap-2">

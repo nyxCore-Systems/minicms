@@ -181,6 +181,20 @@
     box-shadow: 0 0 0 3px var(--brand-selection);
   }
 
+  /* Admin: bare form controls (no .input-glass) must stay readable under any
+     theme. Under dark themes (e.g. Noir) they would otherwise inherit a
+     near-white text color on a white input background → invisible text. */
+  .admin-shell input:not([type='checkbox']):not([type='radio']):not([type='color']):not(.input-glass),
+  .admin-shell textarea:not(.input-glass),
+  .admin-shell select:not(.input-glass) {
+    color: #0d2230;
+    background-color: #ffffff;
+  }
+  .admin-shell input:not([type='checkbox']):not([type='radio']):not([type='color']):not(.input-glass)::placeholder,
+  .admin-shell textarea:not(.input-glass)::placeholder {
+    color: #6b7a88;
+  }
+
   /* Prose — clean professional typography */
   .prose-glass h1,
   .prose-glass h2,
