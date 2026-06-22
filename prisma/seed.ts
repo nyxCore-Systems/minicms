@@ -220,7 +220,7 @@ async function main() {
     update: {
       title: 'e-Ventschau 2026', subtitle: '11. Benefiz-Festival',
       startDate: new Date('2026-08-07T17:00:00+02:00'), endDate: new Date('2026-08-08T23:59:00+02:00'),
-      locationName: 'Resthof Thiele, Ventschau', locationAddress: '21368 Ventschau, Landkreis Lüneburg',
+      locationName: 'Hof Thiele, Ventschau', locationAddress: '21368 Ventschau, Landkreis Lüneburg',
       excerpt: 'Zwei Tage internationale Live-Musik für den guten Zweck.',
       eventType: 'festival', isPublished: true, isFeatured: true,
     },
@@ -228,7 +228,7 @@ async function main() {
       tenantId: tenant.id, slug: 'e-ventschau-2026',
       title: 'e-Ventschau 2026', subtitle: '11. Benefiz-Festival', eventType: 'festival',
       startDate: new Date('2026-08-07T17:00:00+02:00'), endDate: new Date('2026-08-08T23:59:00+02:00'),
-      locationName: 'Resthof Thiele, Ventschau', locationAddress: '21368 Ventschau, Landkreis Lüneburg',
+      locationName: 'Hof Thiele, Ventschau', locationAddress: '21368 Ventschau, Landkreis Lüneburg',
       excerpt: 'Zwei Tage internationale Live-Musik für den guten Zweck.',
       isPublished: true, isFeatured: true, isActive: true, sortOrder: 0,
     },

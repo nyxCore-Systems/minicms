@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { NOIR_DONATE_DEFAULTS, formatEuro, type NoirDonateContent } from '@/lib/noir-home-defaults'
+import PayPalDonateButton from './PayPalDonateButton'
 
 export default function NoirDonateSection({ content }: { content?: NoirDonateContent | null }) {
   const d = NOIR_DONATE_DEFAULTS
@@ -36,6 +37,7 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
             <Link className="btn-primary" href={ctaHref}>
               {ctaLabel}
             </Link>
+            <PayPalDonateButton />
           </div>
           <div className="nh-dcard">
             <h3>{cardHeading}</h3>
