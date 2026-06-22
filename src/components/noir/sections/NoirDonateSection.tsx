@@ -28,7 +28,7 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
 
         <div className="nh-don">
           {/* LEFT — Tickets (via PayPal) */}
-          <div className="nh-tcard">
+          <div className="nh-tcard nh-dcard-accent">
             <div className="nh-lab">Tickets</div>
             <h3>KombiTicket – beide Nächte</h3>
             <p className="nh-card-sub">
