@@ -7,13 +7,13 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
   const label = content?.label || d.label
   const heading = content?.heading || d.heading
   const text = content?.text || d.text
-  const chips = content?.chips?.length ? content.chips : d.chips
   const ctaLabel = content?.ctaLabel || d.ctaLabel
   const ctaHref = content?.ctaHref || d.ctaHref
   const cardHeading = content?.cardHeading || d.cardHeading
   const cardSubtext = content?.cardSubtext || d.cardSubtext
   const raised = content?.raised ?? d.raised
   const target = content?.target ?? d.target
+  const bank = { ...d.bank, ...(content?.bank ?? {}) }
   const pct = target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0
   const remaining = Math.max(0, target - raised)
 
@@ -27,26 +27,20 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
         </div>
 
         <div className="nh-don">
-          {/* LEFT — Tickets */}
+          {/* LEFT — Tickets (via PayPal) */}
           <div className="nh-tcard">
             <div className="nh-lab">Tickets</div>
-            <h3>Solidarischer Eintritt</h3>
+            <h3>KombiTicket – beide Nächte</h3>
             <p className="nh-card-sub">
-              Zahl, was du kannst – wähle deinen Beitrag an der Abendkasse. Kein Mindestpreis.
+              Online buchen per PayPal. An der Abendkasse gilt: zahl, was du kannst – kein Mindestpreis.
             </p>
-            <div className="nh-chips">
-              {chips.map((c) => (
-                <Link key={c} className="nh-chip" href={ctaHref}>
-                  {c}
-                </Link>
-              ))}
+            <p className="nh-paypal-cap">Ticket buchen via PayPal</p>
+            <div className="nh-paypal-box">
+              <PayPalDonateButton />
             </div>
-            <Link className="btn-primary nh-don-cta" href={ctaHref}>
-              {ctaLabel}
-            </Link>
           </div>
 
-          {/* RIGHT — Spenden */}
+          {/* RIGHT — Spenden (via Banküberweisung) */}
           <div className="nh-dcard nh-dcard-accent">
             <div className="nh-lab">Spenden</div>
             <h3>{cardHeading}</h3>
@@ -74,10 +68,43 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
               <span>{pct}% erreicht</span>
               <span>noch {formatEuro(remaining)}</span>
             </div>
-            <p className="nh-paypal-cap">Direkt spenden via PayPal</p>
-            <div className="nh-paypal-box">
-              <PayPalDonateButton />
+
+            <div className="nh-bank">
+              <div className="nh-bank-title">Spendenkonto</div>
+              <dl className="nh-bank-list">
+                {bank.accountHolder && (
+                  <div className="nh-bank-row">
+                    <dt>Kontoinhaber</dt>
+                    <dd>{bank.accountHolder}</dd>
+                  </div>
+                )}
+                {bank.bankName && (
+                  <div className="nh-bank-row">
+                    <dt>Bank</dt>
+                    <dd>{bank.bankName}</dd>
+                  </div>
+                )}
+                {bank.iban && (
+                  <div className="nh-bank-row">
+                    <dt>IBAN</dt>
+                    <dd className="nh-mono">{bank.iban}</dd>
+                  </div>
+                )}
+                {bank.purpose && (
+                  <div className="nh-bank-row">
+                    <dt>Verwendungszweck</dt>
+                    <dd>{bank.purpose}</dd>
+                  </div>
+                )}
+              </dl>
+              <p className="nh-bank-note">
+                Spenden derzeit per Überweisung – die PayPal-Spende folgt in Kürze.
+              </p>
             </div>
+
+            <Link className="nh-don-link" href={ctaHref}>
+              {ctaLabel} &rarr;
+            </Link>
           </div>
         </div>
       </div>

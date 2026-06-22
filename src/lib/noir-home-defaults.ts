@@ -34,6 +34,13 @@ export interface NoirManifestContent {
   stats?: NoirStat[]
 }
 
+export interface NoirBankDetails {
+  accountHolder?: string
+  bankName?: string
+  iban?: string
+  purpose?: string
+}
+
 export interface NoirDonateContent {
   label?: string
   heading?: string
@@ -45,6 +52,7 @@ export interface NoirDonateContent {
   cardSubtext?: string
   raised?: number
   target?: number
+  bank?: NoirBankDetails
 }
 
 export const NOIR_HERO_DEFAULTS = {
@@ -93,6 +101,12 @@ export const NOIR_DONATE_DEFAULTS = {
   cardSubtext: 'Für Technik, Bühne & Künstler:innen.',
   raised: 8420,
   target: 12000,
+  bank: {
+    accountHolder: 'e-Ventschau e.V.',
+    bankName: 'Sparkasse Uelzen Lüchow-Dannenberg',
+    iban: 'DE98 2585 0110 0230 3010 38',
+    purpose: 'Spende e-Ventschau',
+  },
 } satisfies Required<NoirDonateContent>
 
 /** Format an integer euro amount the German way, e.g. 8420 → "8.420 €". */
