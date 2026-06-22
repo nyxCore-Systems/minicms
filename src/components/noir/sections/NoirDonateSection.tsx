@@ -20,13 +20,20 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
   return (
     <section className="nh-sec nh-sec-coal" id="spenden">
       <div className="nh-wrap">
+        <div className="nh-sec-head">
+          <div className="nh-lab">{label}</div>
+          <h2>{heading}</h2>
+          <p className="nh-sub">{text}</p>
+        </div>
+
         <div className="nh-don">
-          <div>
-            <div className="nh-sec-head" style={{ marginBottom: 0 }}>
-              <div className="nh-lab">{label}</div>
-              <h2>{heading}</h2>
-              <p className="nh-sub">{text}</p>
-            </div>
+          {/* LEFT — Tickets */}
+          <div className="nh-tcard">
+            <div className="nh-lab">Tickets</div>
+            <h3>Solidarischer Eintritt</h3>
+            <p className="nh-card-sub">
+              Zahl, was du kannst – wähle deinen Beitrag an der Abendkasse. Kein Mindestpreis.
+            </p>
             <div className="nh-chips">
               {chips.map((c) => (
                 <Link key={c} className="nh-chip" href={ctaHref}>
@@ -34,14 +41,16 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
                 </Link>
               ))}
             </div>
-            <Link className="btn-primary" href={ctaHref}>
+            <Link className="btn-primary nh-don-cta" href={ctaHref}>
               {ctaLabel}
             </Link>
-            <PayPalDonateButton />
           </div>
-          <div className="nh-dcard">
+
+          {/* RIGHT — Spenden */}
+          <div className="nh-dcard nh-dcard-accent">
+            <div className="nh-lab">Spenden</div>
             <h3>{cardHeading}</h3>
-            <p style={{ color: 'var(--muted, #8AA0B4)', fontSize: 14 }}>{cardSubtext}</p>
+            <p className="nh-card-sub">{cardSubtext}</p>
             <div
               className="nh-pbar"
               role="progressbar"
@@ -60,10 +69,14 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
             </div>
             <div
               className="nh-drow"
-              style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid var(--b2, #123E63)' }}
+              style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--b2, #123E63)' }}
             >
               <span>{pct}% erreicht</span>
               <span>noch {formatEuro(remaining)}</span>
+            </div>
+            <p className="nh-paypal-cap">Direkt spenden via PayPal</p>
+            <div className="nh-paypal-box">
+              <PayPalDonateButton />
             </div>
           </div>
         </div>

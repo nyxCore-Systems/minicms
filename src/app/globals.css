@@ -601,7 +601,11 @@
 
 /* manifest */
 .nh-manifest { background: var(--navy, #051A2E); position: relative; overflow: hidden; }
-.nh-paypal { margin-top: 18px; max-width: 380px; }
+.nh-paypal { max-width: 100%; }
+.nh-paypal-cap { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted, #8AA0B4); margin: 26px 0 10px; }
+.nh-paypal-box { background: #ffffff; padding: 16px; border: 1px solid var(--b2, #123E63); }
+.nh-card-sub { color: var(--muted, #8AA0B4); font-size: 14px; line-height: 1.5; }
+.nh-don-cta { margin-top: auto; }
 .nh-manifest::before { content: 'Gemeinschaft'; position: absolute; top: -20px; left: -10px; font-family: var(--font-space-grotesk), 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(120px, 22vw, 320px); color: #06243d; letter-spacing: -0.04em; z-index: 0; white-space: nowrap; user-select: none; }
 .nh-manifest .nh-wrap { padding: 110px 36px; position: relative; z-index: 2; }
 .nh-manifest h2 { font-size: clamp(34px, 5.4vw, 72px); max-width: 18ch; color: var(--sand, #FBF7EF); }
@@ -614,14 +618,15 @@
 .nh-ms .k { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted, #8AA0B4); margin-top: 8px; }
 
 /* donate */
-.nh-don { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 60px; align-items: center; }
+.nh-don { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: stretch; }
 .nh-don h2 { font-size: clamp(34px, 4.8vw, 62px); color: var(--sand, #FBF7EF); }
 .nh-chips { display: flex; gap: 10px; flex-wrap: wrap; margin: 28px 0; }
 .nh-chip { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-weight: 600; font-size: 15px; padding: 12px 22px; border: 1px solid var(--b3, #1C5489); cursor: pointer; transition: 0.15s; color: var(--sand, #FBF7EF); background: none; min-height: 44px; }
 .nh-chip:hover { border-color: var(--gold, #FAB90C); color: var(--gold, #FAB90C); }
 .nh-chip[aria-pressed="true"] { background: var(--gold, #FAB90C); border-color: var(--gold, #FAB90C); color: var(--on-gold, #051A2E); }
-.nh-dcard { border: 1px solid var(--b2, #123E63); background: var(--navy-7, #082843); padding: 36px; }
-.nh-dcard h3 { font-size: 22px; margin-bottom: 8px; color: var(--sand, #FBF7EF); }
+.nh-tcard, .nh-dcard { border: 1px solid var(--b2, #123E63); background: var(--navy-7, #082843); padding: 36px; display: flex; flex-direction: column; }
+.nh-dcard-accent { border-top: 2px solid var(--gold, #FAB90C); }
+.nh-tcard h3, .nh-dcard h3 { font-size: 22px; margin: 10px 0 8px; color: var(--sand, #FBF7EF); }
 .nh-pbar { height: 8px; background: var(--navy-6, #0B3457); margin: 24px 0 12px; overflow: hidden; }
 .nh-pbar i { display: block; height: 100%; background: var(--gold, #FAB90C); }
 .nh-drow { display: flex; justify-content: space-between; font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 13px; color: var(--muted, #8AA0B4); }
