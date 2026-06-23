@@ -36,7 +36,7 @@ Next.js 15 App Router with TypeScript, React 19, Tailwind 3.4, Prisma 6 (Neon Po
 
 ### Multi-Tenant System
 
-All data is scoped to a `Tenant`. Resolution order in `getTenant()` (`src/lib/tenant.ts`): `x-tenant-slug` header (set by middleware from subdomain) → `TENANT_SLUG` env → fallback `'e-ventschau'`. The production tenant slug is `rd-e-ventschau` (see CI env). Always scope queries by `tenant.id`; most lib helpers already call `getTenant()` internally.
+All data is scoped to a `Tenant`. Resolution order in `getTenant()` (`src/lib/tenant.ts`): `x-tenant-slug` header (set by middleware from subdomain) → `TENANT_SLUG` env → fallback `'e-ventschau'`. The production tenant slug is `e-ventschau` (the only `Tenant` row; matches the `TENANT_SLUG` env). On the self-hosted deploy `NEXT_PUBLIC_ROOT_DOMAIN` equals the full host, so the middleware extracts no subdomain and `getTenant()` relies on `TENANT_SLUG`. Always scope queries by `tenant.id`; most lib helpers already call `getTenant()` internally.
 
 DB access goes through `src/lib/prisma.ts`, which exports a singleton `prisma` client and a `withRetry()` wrapper that retries on Neon serverless cold-start/connection errors — wrap user-facing reads in `withRetry()`.
 

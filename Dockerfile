@@ -29,7 +29,7 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     DATABASE_URL_UNPOOLED=postgresql://placeholder:placeholder@localhost:5432/placeholder \
     NEXTAUTH_SECRET=placeholder-build-secret \
     NEXTAUTH_URL=https://e-ventschau.nyxcore.cloud \
-    TENANT_SLUG=rd-e-ventschau
+    TENANT_SLUG=e-ventschau
 
 RUN npm run build
 

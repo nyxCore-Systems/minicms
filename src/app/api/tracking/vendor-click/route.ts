@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return new NextResponse(null, { status: 204 })
     }
 
-    const tenantSlug = process.env.TENANT_SLUG || 'rd-e-ventschau'
+    const tenantSlug = process.env.TENANT_SLUG || 'e-ventschau'
     const tenant = await prisma.tenant.findUnique({
       where: { slug: tenantSlug },
     })

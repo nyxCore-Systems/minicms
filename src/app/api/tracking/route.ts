@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid path' }, { status: 400 })
     }
 
-    const tenantSlug = process.env.TENANT_SLUG || 'rd-e-ventschau'
+    const tenantSlug = process.env.TENANT_SLUG || 'e-ventschau'
     const tenant = await prisma.tenant.findUnique({
       where: { slug: tenantSlug },
     })

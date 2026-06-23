@@ -53,7 +53,7 @@
 | `DATABASE_URL_UNPOOLED` | Yes | Neon PostgreSQL direct connection string. Used by Prisma for migrations. |
 | `NEXTAUTH_SECRET` | Yes | Secret key for NextAuth JWT signing. Generate with `openssl rand -base64 32`. |
 | `NEXTAUTH_URL` | Yes | Canonical URL of the app. `http://localhost:3000` for local dev. |
-| `TENANT_SLUG` | Yes | Multi-tenant identifier. Default: `rd-e-ventschau`. |
+| `TENANT_SLUG` | Yes | Multi-tenant identifier. Default: `e-ventschau`. |
 | `NEXT_PUBLIC_SITE_URL` | No | Public site URL for SEO/sitemap. Defaults to `https://e-ventschau.de`. |
 | `NEXT_PUBLIC_ROOT_DOMAIN` | No | Root domain for middleware tenant routing. Defaults to `localhost:3000`. |
 | `CLOUDINARY_CLOUD_NAME` | No | Cloudinary cloud name for media uploads. |

@@ -46,7 +46,7 @@ jobs:
           DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           NEXTAUTH_URL: https://e-ventschau.nyxcore.cloud
-          TENANT_SLUG: rd-e-ventschau
+          TENANT_SLUG: e-ventschau
 
   deploy:
     name: Deploy (rsync + compose)
