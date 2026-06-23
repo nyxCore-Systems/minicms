@@ -1,0 +1,71 @@
+# e-Ventschau — standalone service on the shared nyxcore_nyxcore-net network so
+# Traefik auto-discovers it. Data lives in the dedicated `eventschau` Postgres DB
+# (shared instance); media stays on Cloudinary. No local volume needed.
+#
+# Deploy path: /opt/e-ventschau on root@46.224.105.254
+# Secrets come from /opt/e-ventschau/.env (NOT in the repo).
+
+services:
+  eventschau:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    image: e-ventschau:latest
+    container_name: e-ventschau
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    networks:
+      - nyxcore-net
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.eventschau.rule: "Host(`e-ventschau.nyxcore.cloud`)"
+      traefik.http.routers.eventschau.entrypoints: "websecure"
+      traefik.http.routers.eventschau.tls.certresolver: "letsencrypt"
+      traefik.http.routers.eventschau.middlewares: "security-headers@file,gzip-compress@file"
+      traefik.http.routers.eventschau.service: "eventschau-service"
+      traefik.http.services.eventschau-service.loadbalancer.server.port: "3000"
+      traefik.http.services.eventschau-service.loadbalancer.server.scheme: "http"
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+
+  # One-shot Prisma migrations (full deps). Not started by `up`; the deploy
+  # pipeline runs it explicitly: `docker compose run --rm eventschau-migrate`.
+  eventschau-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    image: e-ventschau-migrate:latest
+    env_file:
+      - .env
+    networks:
+      - nyxcore-net
+    profiles:
+      - migrate
+    restart: "no"
+
+networks:
+  # Join the existing compose-managed network from /opt/nyxcore.
+  # docker prefixes project names: "nyxcore" -> "nyxcore_nyxcore-net".
+  nyxcore-net:
+    external: true
+    name: nyxcore_nyxcore-net

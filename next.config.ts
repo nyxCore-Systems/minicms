@@ -1,6 +1,12 @@
 import type { NextConfig } from 'next'
+import path from 'node:path'
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
+  // Pin the file-tracing root to this project so `.next/standalone/server.js`
+  // lands at the package root (a stray parent lockfile would otherwise nest the
+  // output under standalone/<path>/, breaking the Dockerfile COPY).
+  outputFileTracingRoot: path.join(__dirname),
   images: {
     remotePatterns: [
       {

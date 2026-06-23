@@ -1,0 +1,112 @@
+name: Deploy to production
+
+# Push to main -> verify (test + build) -> rsync the checkout to the server and
+# `docker compose up -d --build`. The server dir is a plain source tree (rsync
+# target), NOT a git checkout, so we push code from the runner.
+#
+# Required repository secrets:
+#   DEPLOY_SSH_KEY  — private key whose public half is in root@nyxcore.cloud authorized_keys
+#   DEPLOY_HOST     — nyxcore.cloud   (optional; default nyxcore.cloud)
+#   DEPLOY_USER     — root            (optional; default root)
+#   DEPLOY_PORT     — 22              (optional; default 22)
+#   DATABASE_URL / DATABASE_URL_UNPOOLED / NEXTAUTH_SECRET — for the verify build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-eventschau-production
+  cancel-in-progress: false
+
+env:
+  APP_DIR: /opt/e-ventschau
+  COMPOSE_SERVICE: eventschau
+  MIGRATE_SERVICE: eventschau-migrate
+  CONTAINER: e-ventschau
+
+jobs:
+  verify:
+    name: Verify (test + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm test
+      - run: npx next build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: https://e-ventschau.nyxcore.cloud
+          TENANT_SLUG: rd-e-ventschau
+
+  deploy:
+    name: Deploy (rsync + compose)
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "${DEPLOY_PORT:-22}" -H "${DEPLOY_HOST:-nyxcore.cloud}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Rsync source to server
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -euo pipefail
+          # Additive (no --delete): preserves server-only files like .env.
+          rsync -az \
+            -e "ssh -i ~/.ssh/id_deploy -p ${DEPLOY_PORT:-22}" \
+            --exclude=.git --exclude=node_modules --exclude=.next \
+            --exclude=.env --exclude=.vercel --exclude=.DS_Store \
+            --exclude=tsconfig.tsbuildinfo \
+            ./ "${DEPLOY_USER:-root}@${DEPLOY_HOST:-nyxcore.cloud}:${APP_DIR}/"
+
+      - name: Build, migrate, health-check
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_deploy -p "${DEPLOY_PORT:-22}" \
+            "${DEPLOY_USER:-root}@${DEPLOY_HOST:-nyxcore.cloud}" \
+            APP_DIR="$APP_DIR" SVC="$COMPOSE_SERVICE" MIGRATE_SVC="$MIGRATE_SERVICE" CONTAINER="$CONTAINER" \
+            'bash -seuo pipefail' <<'REMOTE'
+          cd "$APP_DIR"
+          docker compose up -d --build --remove-orphans
+          # Apply Prisma migrations from the one-shot migrator (full deps).
+          docker compose --profile migrate run --rm --build "$MIGRATE_SVC" \
+            || echo "migrate skipped/failed — ensure the eventschau DB is provisioned & baselined"
+          docker image prune -f >/dev/null 2>&1 || true
+          for i in $(seq 1 20); do
+            s="$(docker inspect -f '{{.State.Health.Status}}' "$CONTAINER" 2>/dev/null || echo missing)"
+            echo "health attempt $i: $s"
+            [ "$s" = "healthy" ] && exit 0
+            sleep 6
+          done
+          echo "container did not become healthy in time" >&2
+          docker logs --tail 50 "$CONTAINER" || true
+          exit 1
+          REMOTE
