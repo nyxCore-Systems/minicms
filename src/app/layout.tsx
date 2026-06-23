@@ -4,8 +4,6 @@ import JsonLd from '@/components/JsonLd'
 import { organizationJsonLd } from '@/lib/seo'
 import { getSiteSettings } from '@/lib/menu'
 import { getTheme, themeToStyleString } from '@/lib/themes'
-import { Analytics } from '@vercel/analytics/react'
-import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 
 const inter = Inter({
@@ -107,8 +105,6 @@ export default async function RootLayout({
       </head>
       <body className="font-sans min-h-screen">
         {children}
-        <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   )
