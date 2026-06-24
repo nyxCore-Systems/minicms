@@ -199,9 +199,24 @@ export default function HeaderClient({ navigation, settings }: HeaderClientProps
               </Link>
             </div>
 
-            {/* Mobile: only dark mode toggle in top header */}
-            <div className="flex items-center lg:hidden">
+            {/* Mobile/tablet: dark mode toggle + menu button in top header.
+                Below `lg` the desktop nav is hidden; this keeps a menu always
+                reachable from the top, regardless of viewport width or scroll. */}
+            <div className="flex items-center gap-1 lg:hidden">
               <DarkModeToggle />
+              <button
+                onClick={toggleOverlay}
+                className="p-2 rounded-lg text-brand-text hover:bg-brand-bg-dark transition-colors"
+                aria-label={mobileOverlayOpen ? 'Menü schließen' : 'Menü öffnen'}
+                aria-expanded={mobileOverlayOpen}
+                aria-controls="mobile-nav-dialog"
+              >
+                {mobileOverlayOpen ? (
+                  <XMarkIcon className="w-6 h-6" />
+                ) : (
+                  <Bars3Icon className="w-6 h-6" />
+                )}
+              </button>
             </div>
           </div>
         </nav>
