@@ -35,7 +35,6 @@ export default async function NoirLineupSection({
               meta={apMetaBySlug.get(a.slug)}
               index={i + 1}
               size="xl"
-              headliner={i === 0 ? 'gold' : 'clay'}
             />
           ))}
           {regulars.map((a, i) => (
@@ -52,13 +51,11 @@ function LineupCard({
   meta,
   index,
   size,
-  headliner,
 }: {
   artist: NoirLineupItem
   meta?: string
   index: number
   size: 'xl' | 'md'
-  headliner?: 'gold' | 'clay'
 }) {
   const genreLine = [artist.genres?.join(' / '), artist.origin].filter(Boolean).join(' · ')
   return (
@@ -77,7 +74,9 @@ function LineupCard({
             style={{ objectFit: 'cover' }}
           />
         )}
-        {headliner && <span className={`nh-tagline${headliner === 'gold' ? ' l' : ''}`}>Headliner</span>}
+        {artist.isFeatured && (
+          <span className={`nh-tagline${size === 'xl' ? ' l' : ''}`}>Headliner</span>
+        )}
         <span className="nh-idx">{String(index).padStart(2, '0')}</span>
         {!artist.heroImage && <span className="nh-ph-tag">Foto folgt</span>}
       </div>
