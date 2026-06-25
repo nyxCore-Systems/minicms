@@ -1,6 +1,11 @@
 import Link from 'next/link'
 import { NOIR_DONATE_DEFAULTS, formatEuro, type NoirDonateContent } from '@/lib/noir-home-defaults'
-import PayPalDonateButton from './PayPalDonateButton'
+
+// PayPal "No-Code Payments" hosted checkout for the KombiTicket. We link to
+// PayPal's own hosted page instead of embedding the SDK: the embed loaded a
+// heavy script on every visit and logged eligibility errors, with no upside
+// over a plain link for a single hosted button.
+const PAYPAL_TICKET_URL = 'https://www.paypal.com/ncp/payment/MGNNL73RQ88DG'
 
 export default function NoirDonateSection({ content }: { content?: NoirDonateContent | null }) {
   const d = NOIR_DONATE_DEFAULTS
@@ -34,10 +39,15 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
             <p className="nh-card-sub">
               Online buchen per PayPal. An der Abendkasse gilt: zahl, was du kannst – kein Mindestpreis.
             </p>
-            <p className="nh-paypal-cap">Ticket buchen via PayPal</p>
-            <div className="nh-paypal-box">
-              <PayPalDonateButton />
-            </div>
+            <a
+              className="nh-ticket-btn"
+              href={PAYPAL_TICKET_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Ticket buchen via PayPal &rarr;
+            </a>
+            <p className="nh-ticket-note">Sichere Bezahlung über PayPal (öffnet in neuem Tab).</p>
           </div>
 
           {/* RIGHT — Spenden (via Banküberweisung) */}

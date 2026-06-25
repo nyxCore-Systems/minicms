@@ -601,10 +601,10 @@
 
 /* manifest */
 .nh-manifest { background: var(--navy, #051A2E); position: relative; overflow: hidden; }
-.nh-paypal { max-width: 100%; }
-.nh-paypal-cap { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted, #8AA0B4); margin: 26px 0 10px; }
-/* PayPal widget brings its own background; keep dark text for any inherited-color bits */
-.nh-paypal-box { color: #14233a; padding: 16px; border: 1px solid var(--b2, #123E63); }
+/* Ticket CTA → PayPal hosted checkout (no embedded SDK) */
+.nh-ticket-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 26px; padding: 16px 28px; background: var(--gold, #FAB90C); color: var(--on-gold, #051A2E); font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-weight: 600; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; transition: filter 0.2s; }
+.nh-ticket-btn:hover { filter: brightness(1.08); }
+.nh-ticket-note { margin-top: 10px; font-size: 12px; color: var(--muted, #8AA0B4); }
 .nh-card-sub { color: var(--muted, #8AA0B4); font-size: 14px; line-height: 1.5; }
 .nh-bank { margin-top: 26px; border: 1px solid var(--b2, #123E63); background: var(--navy-6, #0B3457); padding: 20px; }
 .nh-bank-title { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold, #FAB90C); margin-bottom: 14px; }
