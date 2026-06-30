@@ -31,21 +31,14 @@ const nextConfig: NextConfig = {
     return []
   },
   async headers() {
-    const common = [
-      { key: 'X-Content-Type-Options', value: 'nosniff' },
-      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-    ]
     return [
       {
-        // Everything except the PayPal button frame keeps X-Frame-Options: DENY.
-        source: '/((?!paypal-hosted-button\\.html).*)',
-        headers: [{ key: 'X-Frame-Options', value: 'DENY' }, ...common],
-      },
-      {
-        // The isolated PayPal hosted-button host is embedded same-origin in an
-        // iframe on the donate section, so it must allow same-origin framing.
-        source: '/paypal-hosted-button.html',
-        headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }, ...common],
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
       },
     ]
   },
