@@ -24,7 +24,7 @@ services:
       - nyxcore-net
     labels:
       traefik.enable: "true"
-      traefik.http.routers.eventschau.rule: "Host(`e-ventschau.nyxcore.cloud`)"
+      traefik.http.routers.eventschau.rule: "Host(`e-ventschau.nyxcore.cloud`) || Host(`e-ventschau.de`)"
       traefik.http.routers.eventschau.entrypoints: "websecure"
       traefik.http.routers.eventschau.tls.certresolver: "letsencrypt"
       traefik.http.routers.eventschau.middlewares: "security-headers@file,gzip-compress@file"
