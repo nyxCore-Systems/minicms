@@ -606,7 +606,7 @@
 .nh-ticket-btn:hover { filter: brightness(1.08); }
 .nh-ticket-note { margin-top: 10px; font-size: 12px; color: var(--muted, #8AA0B4); }
 .nh-pp { margin-top: 22px; }
-.nh-pp-box { min-height: 45px; }
+.nh-pp-frame { width: 100%; border: 0; overflow: hidden; display: block; background: transparent; }
 
 /* Cookie-consent banner */
 .nh-cc { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000; background: var(--navy-7, #082843); border-top: 1px solid var(--b2, #123E63); box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.35); }
