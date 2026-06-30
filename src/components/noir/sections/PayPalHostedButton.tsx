@@ -19,22 +19,26 @@ const SDK_SRC =
 type PayPalNS = {
   HostedButtons?: (opts: { hostedButtonId: string }) => { render: (selector: string) => unknown }
 }
-declare global {
-  interface Window {
-    paypal?: PayPalNS
-  }
+
+// Local accessor instead of augmenting the global Window type — avoids clashing
+// with other PayPal type declarations that may exist in the build tree.
+function getPayPal(): PayPalNS | undefined {
+  if (typeof window === 'undefined') return undefined
+  return (window as unknown as { paypal?: PayPalNS }).paypal
 }
 
 let sdkPromise: Promise<PayPalNS> | null = null
 
 function loadPayPalSdk(): Promise<PayPalNS> {
   if (typeof window === 'undefined') return Promise.reject(new Error('no window'))
-  if (window.paypal?.HostedButtons) return Promise.resolve(window.paypal)
+  const existingNs = getPayPal()
+  if (existingNs?.HostedButtons) return Promise.resolve(existingNs)
   if (sdkPromise) return sdkPromise
 
   sdkPromise = new Promise<PayPalNS>((resolve, reject) => {
     const finish = () => {
-      if (window.paypal?.HostedButtons) resolve(window.paypal)
+      const ns = getPayPal()
+      if (ns?.HostedButtons) resolve(ns)
       else reject(new Error('PayPal SDK loaded without HostedButtons'))
     }
     const existing = document.querySelector<HTMLScriptElement>('script[data-paypal-sdk]')
