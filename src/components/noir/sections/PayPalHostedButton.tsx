@@ -17,7 +17,18 @@ const CLIENT_ID =
 
 function buildSrcDoc(id: string): string {
   const sdk = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&components=hosted-buttons&disable-funding=venmo,paylater&currency=EUR`
-  return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;padding:0;background:transparent}#c{min-height:40px}</style></head><body><div id="c"></div><script>
+  // Noir overrides: PayPal injects its form markup (white panel, light selects)
+  // into THIS srcdoc document, so we can recolor it to the navy/gold theme. The
+  // actual pay button lives in a nested cross-origin iframe and is left as-is.
+  const css = `
+html,body{margin:0;padding:0;background:transparent}
+#c{min-height:40px;color:#FBF7EF;font-family:'IBM Plex Mono',ui-monospace,monospace}
+#c,#c > div,#c [id^="form-container-"],#c [id^="paypal-form-fields-container-"]{background:transparent!important}
+#c h3,#c p,#c label,#c span,#c .item-header,#c .item-description{color:#FBF7EF!important}
+#c select,#c input{background:#0B3457!important;color:#FBF7EF!important;border:1px solid #1C5489!important;border-radius:0!important}
+#c select option{color:#051A2E}
+#c input::placeholder{color:#8AA0B4!important}`
+  return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style></head><body><div id="c"></div><script>
 (function(){
   var id=${JSON.stringify(id)};
   function send(m){try{parent.postMessage(Object.assign({source:'pp-btn',id:id},m),'*')}catch(e){}}

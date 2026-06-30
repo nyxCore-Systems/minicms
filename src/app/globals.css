@@ -601,6 +601,7 @@
 
 /* manifest */
 .nh-manifest { background: var(--navy, #051A2E); position: relative; overflow: hidden; }
+.nh-manifest::before { content: "WIDERSTAND"; position: absolute; top: -20px; left: -10px; font-family: var(--font-space-grotesk), 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(120px, 22vw, 320px); color: #06243d; letter-spacing: -0.04em; line-height: 1; z-index: 0; white-space: nowrap; pointer-events: none; }
 /* Ticket CTA → PayPal hosted checkout (no embedded SDK) */
 .nh-ticket-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 26px; padding: 16px 28px; background: var(--gold, #FAB90C); color: var(--on-gold, #051A2E); font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-weight: 600; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; transition: filter 0.2s; }
 .nh-ticket-btn:hover { filter: brightness(1.08); }
