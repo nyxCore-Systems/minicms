@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { NOIR_DONATE_DEFAULTS, formatEuro, type NoirDonateContent } from '@/lib/noir-home-defaults'
+import PayPalHostedButton from './PayPalHostedButton'
 
-// PayPal "No-Code Payments" hosted checkout for the KombiTicket. We link to
-// PayPal's own hosted page instead of embedding the SDK: the embed loaded a
-// heavy script on every visit and logged eligibility errors, with no upside
-// over a plain link for a single hosted button.
-const PAYPAL_TICKET_URL = 'https://www.paypal.com/ncp/payment/MGNNL73RQ88DG'
+// PayPal "No-Code Payments" hosted buttons, embedded inline (lazy-loaded + try/catch
+// with a graceful link fallback — see PayPalHostedButton). Ticket + donation IDs:
+const PAYPAL_TICKET_BUTTON = 'MGNNL73RQ88DG'
+const PAYPAL_DONATE_BUTTON = 'QT6LRLS3DQTW4'
+const ncpUrl = (id: string) => `https://www.paypal.com/ncp/payment/${id}`
 
 export default function NoirDonateSection({ content }: { content?: NoirDonateContent | null }) {
   const d = NOIR_DONATE_DEFAULTS
@@ -39,15 +40,12 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
             <p className="nh-card-sub">
               Online buchen per PayPal. An der Abendkasse gilt: zahl, was du kannst – kein Mindestpreis.
             </p>
-            <a
-              className="nh-ticket-btn"
-              href={PAYPAL_TICKET_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Ticket buchen via PayPal &rarr;
-            </a>
-            <p className="nh-ticket-note">Sichere Bezahlung über PayPal (öffnet in neuem Tab).</p>
+            <PayPalHostedButton
+              hostedButtonId={PAYPAL_TICKET_BUTTON}
+              fallbackUrl={ncpUrl(PAYPAL_TICKET_BUTTON)}
+              fallbackLabel="Ticket buchen via PayPal"
+            />
+            <p className="nh-ticket-note">Sichere Bezahlung über PayPal.</p>
           </div>
 
           {/* RIGHT — Spenden (via Banküberweisung) */}
@@ -55,6 +53,11 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
             <div className="nh-lab">Spenden</div>
             <h3>{cardHeading}</h3>
             <p className="nh-card-sub">{cardSubtext}</p>
+            <PayPalHostedButton
+              hostedButtonId={PAYPAL_DONATE_BUTTON}
+              fallbackUrl={ncpUrl(PAYPAL_DONATE_BUTTON)}
+              fallbackLabel="Jetzt spenden via PayPal"
+            />
             <div
               className="nh-pbar"
               role="progressbar"
@@ -108,7 +111,7 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
                 )}
               </dl>
               <p className="nh-bank-note">
-                Spenden derzeit per Überweisung – die PayPal-Spende folgt in Kürze.
+                Lieber per Überweisung? Nutze gern das Spendenkonto oben.
               </p>
             </div>
 
