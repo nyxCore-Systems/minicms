@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals'
+import { isTrackingAllowed, CHANGE_EVENT } from '@/lib/consent'
 
 function getSessionId(): string {
   const key = '_dm_sid'
@@ -20,6 +21,9 @@ function sendEvent(
   eventData: Record<string, unknown>,
   beacon = false,
 ) {
+  // Opt-in gate: no analytics (and no _dm_sid written) without consent.
+  if (!isTrackingAllowed()) return
+
   const payload = JSON.stringify({
     eventType,
     path,
@@ -61,7 +65,7 @@ export default function TrackPageView() {
     [pathname],
   )
 
-  // Pageview tracking
+  // Pageview tracking (no-op until consent; sendEvent gates internally)
   useEffect(() => {
     if (pathname.startsWith('/admin')) return
 
@@ -69,6 +73,19 @@ export default function TrackPageView() {
       referrer: document.referrer || null,
       userAgent: navigator.userAgent,
     })
+  }, [pathname])
+
+  // If consent is granted after load, log the pageview for the current path.
+  useEffect(() => {
+    if (pathname.startsWith('/admin')) return
+    const onConsentChange = () => {
+      sendEvent('pageview', pathname, {
+        referrer: document.referrer || null,
+        userAgent: navigator.userAgent,
+      })
+    }
+    window.addEventListener(CHANGE_EVENT, onConsentChange)
+    return () => window.removeEventListener(CHANGE_EVENT, onConsentChange)
   }, [pathname])
 
   // Scroll depth tracking

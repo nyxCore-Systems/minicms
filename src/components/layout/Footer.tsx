@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { getSiteSettings, getMenuItems } from '@/lib/menu'
+import CookieSettingsLink from '@/components/CookieSettingsLink'
 
 // Labels that go into the bottom legal bar instead of the main grid
 const LEGAL_LABELS = ['rechtshinweise', 'legal', 'rechtliches']
@@ -156,6 +157,7 @@ export default async function Footer() {
                     </Link>
                   </>
                 )}
+              <CookieSettingsLink className="text-xs text-brand-text-light hover:text-brand-text transition-colors cursor-pointer" />
             </div>
           </div>
         </nav>

@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react'
 import { usePathname } from 'next/navigation'
+import { isTrackingAllowed } from '@/lib/consent'
 
 function getSessionId(): string {
   const key = '_dm_sid'
@@ -33,6 +34,8 @@ export default function VendorClickTracker({
   const pathname = usePathname()
 
   const trackClick = useCallback(() => {
+    if (!isTrackingAllowed()) return
+
     const payload = JSON.stringify({
       vendorId,
       clickType,

@@ -605,6 +605,21 @@
 .nh-ticket-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 26px; padding: 16px 28px; background: var(--gold, #FAB90C); color: var(--on-gold, #051A2E); font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-weight: 600; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; transition: filter 0.2s; }
 .nh-ticket-btn:hover { filter: brightness(1.08); }
 .nh-ticket-note { margin-top: 10px; font-size: 12px; color: var(--muted, #8AA0B4); }
+
+/* Cookie-consent banner */
+.nh-cc { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000; background: var(--navy-7, #082843); border-top: 1px solid var(--b2, #123E63); box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.35); }
+.nh-cc-inner { max-width: 1100px; margin: 0 auto; padding: 18px 20px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.nh-cc-text { flex: 1 1 320px; font-size: 13.5px; line-height: 1.55; color: var(--sand, #FBF7EF); }
+.nh-cc-text strong { color: var(--sand, #FBF7EF); }
+.nh-cc-link { color: var(--gold, #FAB90C); text-decoration: underline; }
+.nh-cc-actions { display: flex; gap: 12px; flex: 0 0 auto; }
+.nh-cc-btn { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-weight: 600; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; padding: 12px 22px; min-height: 44px; cursor: pointer; transition: filter 0.2s, background 0.2s, color 0.2s; }
+.nh-cc-accept { background: var(--gold, #FAB90C); color: var(--on-gold, #051A2E); border: 1px solid var(--gold, #FAB90C); }
+.nh-cc-accept:hover { filter: brightness(1.08); }
+.nh-cc-decline { background: transparent; color: var(--sand, #FBF7EF); border: 1px solid var(--b2, #123E63); }
+.nh-cc-decline:hover { background: var(--b2, #123E63); }
+@media (max-width: 560px) { .nh-cc-actions { width: 100%; } .nh-cc-btn { flex: 1; } }
+
 .nh-card-sub { color: var(--muted, #8AA0B4); font-size: 14px; line-height: 1.5; }
 .nh-bank { margin-top: 26px; border: 1px solid var(--b2, #123E63); background: var(--navy-6, #0B3457); padding: 20px; }
 .nh-bank-title { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold, #FAB90C); margin-bottom: 14px; }

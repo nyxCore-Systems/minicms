@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import type { SliderItem, SliderConfig } from '@/components/SwiperSlider'
+import { isTrackingAllowed } from '@/lib/consent'
 
 const SwiperSlider = dynamic(() => import('@/components/SwiperSlider'), { ssr: false })
 
@@ -65,6 +66,10 @@ export default function SliderBlock({ sliderRef }: SliderBlockProps) {
       (entries) => {
         if (entries[0]?.isIntersecting && !viewTracked.current) {
           viewTracked.current = true
+          if (!isTrackingAllowed()) {
+            observer.disconnect()
+            return
+          }
           navigator.sendBeacon(
             '/api/tracking/slider',
             JSON.stringify({
@@ -87,7 +92,7 @@ export default function SliderBlock({ sliderRef }: SliderBlockProps) {
   // Click tracking callback
   const handleItemClick = useCallback(
     (itemId: string) => {
-      if (!sliderId) return
+      if (!sliderId || !isTrackingAllowed()) return
       navigator.sendBeacon(
         '/api/tracking/slider',
         JSON.stringify({

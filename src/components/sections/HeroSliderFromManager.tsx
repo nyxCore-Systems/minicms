@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import type { HeroSlide, SliderVariant, SliderGradient } from '@/components/markdown/HeroSliderImages'
+import { isTrackingAllowed } from '@/lib/consent'
 
 const variantHeightClass: Record<SliderVariant, string> = {
   viewport: 'h-screen',
@@ -91,6 +92,10 @@ export default function HeroSliderFromManager({
       (entries) => {
         if (entries[0]?.isIntersecting && !viewTracked.current) {
           viewTracked.current = true
+          if (!isTrackingAllowed()) {
+            observer.disconnect()
+            return
+          }
           navigator.sendBeacon(
             '/api/tracking/slider',
             JSON.stringify({
@@ -112,7 +117,7 @@ export default function HeroSliderFromManager({
   // Click tracking (fired when user clicks a slide's button)
   const handleSlideClick = useCallback(
     (itemId?: string) => {
-      if (!sliderId) return
+      if (!sliderId || !isTrackingAllowed()) return
       navigator.sendBeacon(
         '/api/tracking/slider',
         JSON.stringify({

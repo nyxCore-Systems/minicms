@@ -3,6 +3,7 @@ import Footer from '@/components/layout/Footer'
 import TrackPageView from '@/components/TrackPageView'
 import LenisProvider from '@/components/providers/LenisProvider'
 import MiniRagWidget from '@/components/MiniRagWidget'
+import CookieConsent from '@/components/CookieConsent'
 
 export default function PublicLayout({
   children,
@@ -20,6 +21,7 @@ export default function PublicLayout({
         <Footer />
         <TrackPageView />
         <MiniRagWidget />
+        <CookieConsent />
       </div>
     </LenisProvider>
   )
