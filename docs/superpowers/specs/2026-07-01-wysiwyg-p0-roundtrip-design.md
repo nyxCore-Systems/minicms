@@ -90,10 +90,13 @@ Auch die zeilenweisen Helfer `parseImageLine` prüfen (nutzt `([^)]+)`), damit e
 verbatim aus (bereits vorhanden, Zeile 242). Sicherstellen, dass `rawMarkdown` den vollen Fence
 enthält (siehe oben).
 
-**`src/components/MarkdownContent.tsx`:** neuer Render-Zweig für `type:'directive-raw'`. Verhalten:
-den **inneren** Inhalt als normales Markdown rendern (rekursiv über denselben Block-Renderer),
-den `:::name`/`:::`-Rahmen verwerfen → sanfte Degradation statt Roh-Text-Leak. (Exakte Stelle
-im Switch/Renderer beim Implementieren; „drei Dateien synchron"-Regel beachten.)
+**`src/components/MarkdownContent.tsx`:** **kein neuer Zweig zwingend nötig.** Verifiziert: der
+`default`-Zweig in `RenderBlocks` (Zeile 190–191) rendert `block.content` bereits als
+`MarkdownSegment`. Da der `directive-raw`-Block den **inneren** Inhalt in `block.content` trägt
+(Fence in `directiveId`), degradiert die öffentliche Seite automatisch sanft (innerer Inhalt als
+Markdown, `:::name`/`:::`-Rahmen verworfen) statt Roh-Text zu leaken. Optional ein expliziter
+`case 'directive-raw'` (identisch zum default) nur zur Lesbarkeit. „Drei Dateien synchron"-Regel
+gilt weiterhin für die `Block`-Union.
 
 ### Teil 3 — Golden-Roundtrip-Tests
 
@@ -124,7 +127,8 @@ verschachtelt in einem Block-Kontext abdeckt.
 
 - `src/components/admin/editor/serialization/markdownToPlate.ts` — Inline-Scanner + directive-raw-Case.
 - `src/lib/directiveParser.ts` — generischer Fence-Detektor, `directive-raw`-Block, Tiefenlogik.
-- `src/components/MarkdownContent.tsx` — Render-Case für directive-raw.
+- `src/components/MarkdownContent.tsx` — optionaler expliziter `directive-raw`-Case (default deckt es
+  bereits ab; verifiziert Zeile 190–191).
 - `src/components/admin/editor/serialization/__tests__/roundtrip.test.ts` — **neu**.
 - (`plateToMarkdown.ts` — nur wenn nötig; erwartet unverändert.)
 
