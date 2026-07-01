@@ -50,4 +50,31 @@ function firstOfType(nodes: any[], type: string): any {
   assert.equal(rt(md), md)
 }
 
+// --- Task 2: unknown directives are preserved verbatim (directive-raw) ---
+import { parseBlocks } from '@/lib/directiveParser'
+{
+  const md = ':::futuristic\nhello **world**\n:::'
+  const blocks = parseBlocks(md)
+  assert.equal(blocks.length, 1)
+  assert.equal(blocks[0].type, 'directive-raw')
+  assert.equal(blocks[0].directiveId, 'futuristic')
+  const raw = firstOfType(markdownToPlate(md), 'directive-raw')
+  assert.ok(raw, 'directive-raw node emitted')
+  assert.equal(raw.rawMarkdown, ':::futuristic\nhello **world**\n:::')
+  assert.equal(rt(md), md)
+}
+// Empty unknown directive
+{
+  const md = ':::foo\n:::'
+  assert.equal(rt(md), md)
+}
+// Unknown directive nested inside a known callout round-trips (depth handling)
+{
+  const md = ':::info\n:::futuristic\nx\n:::\n:::'
+  assert.equal(rt(md), md)
+  const outer = parseBlocks(md)
+  assert.equal(outer.length, 1)
+  assert.equal(outer[0].type, 'callout')
+}
+
 console.log('✓ editor-roundtrip.test.ts — all assertions passed')

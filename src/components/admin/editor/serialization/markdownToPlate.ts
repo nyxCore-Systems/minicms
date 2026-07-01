@@ -15,6 +15,7 @@ import {
   ELEMENT_BANNER,
   ELEMENT_SLIDER,
   ELEMENT_PRODUCTS,
+  ELEMENT_DIRECTIVE_RAW,
   type HeroSliderSlide,
   type ShowcaseItem,
   type GridItem,
@@ -419,6 +420,17 @@ function blockToPlateNodes(block: Block): TElement[] {
         slug: block.directiveId || '',
         children: [{ text: '' }],
       } as TElement]
+
+    case 'directive-raw': {
+      const name = block.directiveId || ''
+      const inner = block.content
+      const rawMarkdown = inner ? `:::${name}\n${inner}\n:::` : `:::${name}\n:::`
+      return [{
+        type: ELEMENT_DIRECTIVE_RAW,
+        rawMarkdown,
+        children: [{ text: '' }],
+      } as TElement]
+    }
 
     default:
       return [p(block.content)]
