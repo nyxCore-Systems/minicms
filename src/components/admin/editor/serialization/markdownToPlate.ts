@@ -15,6 +15,7 @@ import {
   ELEMENT_BANNER,
   ELEMENT_SLIDER,
   ELEMENT_PRODUCTS,
+  ELEMENT_DIRECTIVE_RAW,
   type HeroSliderSlide,
   type ShowcaseItem,
   type GridItem,
@@ -34,9 +35,10 @@ interface InlineToken {
 function parseInlineMarkdown(text: string): Descendant[] {
   const nodes: Descendant[] = []
 
-  // Regex to find images, links, and formatted text
-  // Order matters: images before links (both start with [)
-  const inlineRe = /!\[([^\]]*)\]\(([^)]+)\)|\[([^\]]+)\]\(([^)]+)\)|\*\*(.+?)\*\*|\*(.+?)\*|~~(.+?)~~|`([^`]+)`/g
+  // Order matters: images before links (both start with [).
+  // URL part tolerates one nested (...) group (e.g. Wikipedia_(Foo), shop/e(1)).
+  // Link text tolerates one nested [...] group.
+  const inlineRe = /!\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\(((?:[^()]|\([^()]*\))+)\)|\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\(((?:[^()]|\([^()]*\))+)\)|\*\*(.+?)\*\*|\*(.+?)\*|~~(.+?)~~|`([^`]+)`/g
 
   let lastIndex = 0
   let match: RegExpExecArray | null
@@ -128,7 +130,7 @@ function parseListItem(line: string): { type: 'ul' | 'ol'; text: string } | null
 
 /** Parse an image-only line */
 function parseImageLine(line: string): TElement | null {
-  const m = line.match(/^!\[([^\]]*)\]\(([^)]+)\)\s*$/)
+  const m = line.match(/^!\[([^\]]*)\]\(((?:[^()]|\([^()]*\))+)\)\s*$/)
   if (!m) return null
   return {
     type: 'img',
@@ -418,6 +420,17 @@ function blockToPlateNodes(block: Block): TElement[] {
         slug: block.directiveId || '',
         children: [{ text: '' }],
       } as TElement]
+
+    case 'directive-raw': {
+      const name = block.directiveId || ''
+      const inner = block.content
+      const rawMarkdown = inner ? `:::${name}\n${inner}\n:::` : `:::${name}\n:::`
+      return [{
+        type: ELEMENT_DIRECTIVE_RAW,
+        rawMarkdown,
+        children: [{ text: '' }],
+      } as TElement]
+    }
 
     default:
       return [p(block.content)]

@@ -5,10 +5,13 @@
 
 export const DIRECTIVE_RE = /^:::(hero-slider-viewport|hero-slider-full|hero-slider-fitted|hero|hero-section|cv-timeline|project-bento|showcase|grid|info|warning|tip|danger|columns-2|columns-3|box|banner|banner-[a-zA-Z0-9]+|slider-[a-zA-Z0-9-]+|products-[a-zA-Z0-9-]+)\s*$/
 export const CLOSE_RE = /^:::\s*$/
+/** Matches ANY opening fence `:::name` (known or not). Used for the
+ * directive-raw safety net and for nesting-depth tracking. */
+export const GENERIC_DIRECTIVE_RE = /^:::([a-zA-Z0-9][a-zA-Z0-9-]*)\s*$/
 export const CALLOUT_TYPES = new Set(['info', 'warning', 'tip', 'danger'])
 
 export interface Block {
-  type: 'markdown' | 'hero' | 'hero-section' | 'hero-slider' | 'cv-timeline' | 'project-bento' | 'showcase' | 'grid' | 'callout' | 'columns' | 'box' | 'banner' | 'slider' | 'products'
+  type: 'markdown' | 'hero' | 'hero-section' | 'hero-slider' | 'cv-timeline' | 'project-bento' | 'showcase' | 'grid' | 'callout' | 'columns' | 'box' | 'banner' | 'slider' | 'products' | 'directive-raw'
   content: string
   variant?: string
   columnCount?: 2 | 3
@@ -22,17 +25,19 @@ export function parseBlocks(raw: string): Block[] {
 
   while (i < lines.length) {
     const line = lines[i]
-    const match = line.match(DIRECTIVE_RE)
+    const knownMatch = line.match(DIRECTIVE_RE)
+    const openMatch = line.match(GENERIC_DIRECTIVE_RE)
 
-    if (match) {
-      const directive = match[1]
+    if (knownMatch || openMatch) {
+      const directive = knownMatch ? knownMatch[1] : openMatch![1]
+      const isKnown = !!knownMatch
       i++
 
-      // Collect inner lines respecting nested ::: depth
+      // Collect inner lines respecting nested ::: depth (any opening fence)
       const innerLines: string[] = []
       let depth = 1
       while (i < lines.length && depth > 0) {
-        if (lines[i].match(DIRECTIVE_RE)) {
+        if (lines[i].match(GENERIC_DIRECTIVE_RE)) {
           depth++
           innerLines.push(lines[i])
         } else if (lines[i].match(CLOSE_RE)) {
@@ -45,6 +50,11 @@ export function parseBlocks(raw: string): Block[] {
       }
 
       const innerContent = innerLines.join('\n')
+
+      if (!isKnown) {
+        blocks.push({ type: 'directive-raw', content: innerContent, directiveId: directive })
+        continue
+      }
 
       if (directive === 'hero') {
         blocks.push({ type: 'hero', content: innerContent })
@@ -80,7 +90,7 @@ export function parseBlocks(raw: string): Block[] {
     } else {
       const mdLines: string[] = [line]
       i++
-      while (i < lines.length && !lines[i].match(DIRECTIVE_RE)) {
+      while (i < lines.length && !lines[i].match(GENERIC_DIRECTIVE_RE)) {
         mdLines.push(lines[i])
         i++
       }
@@ -101,7 +111,7 @@ export function splitColumns(raw: string): string[] {
   let depth = 0
 
   for (const line of lines) {
-    if (line.match(DIRECTIVE_RE)) {
+    if (line.match(GENERIC_DIRECTIVE_RE)) {
       depth++
       columns[columns.length - 1].push(line)
     } else if (line.match(CLOSE_RE)) {
