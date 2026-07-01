@@ -25,6 +25,7 @@ interface SiteSettings {
   themeSlug: string
   hasOpenaiApiKey: boolean
   openaiModel: string
+  maintenanceMode: boolean
 }
 
 interface MenuItem {
@@ -72,6 +73,7 @@ export default function SetupPage() {
   const [hasOpenaiApiKey, setHasOpenaiApiKey] = useState(false)
   const [openaiModel, setOpenaiModel] = useState('auto')
   const [showApiKey, setShowApiKey] = useState(false)
+  const [maintenanceMode, setMaintenanceMode] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
@@ -93,6 +95,7 @@ export default function SetupPage() {
       setLogoMode(settingsData.logoMode ?? 'auto')
       setHasOpenaiApiKey(settingsData.hasOpenaiApiKey ?? false)
       setOpenaiModel(settingsData.openaiModel ?? 'auto')
+      setMaintenanceMode(settingsData.maintenanceMode ?? false)
 
       // Separate top-level items (with children already included from API)
       const topLevel = menuData.filter((item) => !item.parentId)
@@ -117,7 +120,7 @@ export default function SetupPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          siteName, logoUrl, backgroundImage, darkMode, themeSlug, logoMode, openaiModel,
+          siteName, logoUrl, backgroundImage, darkMode, themeSlug, logoMode, openaiModel, maintenanceMode,
           ...(openaiApiKey ? { openaiApiKey } : {}),
         }),
       })
@@ -597,6 +600,34 @@ export default function SetupPage() {
             )
           })}
         </div>
+      </div>
+
+      {/* Maintenance Mode */}
+      <div className="glass rounded-2xl p-6">
+        <h2 className="text-lg font-display font-bold text-brand-text mb-1">
+          Wartungsmodus
+        </h2>
+        <p className="text-sm text-brand-text-muted mb-4">
+          Zeigt Besuchern eine Wartungsseite und blendet die gesamte öffentliche Website aus.
+          Eingeloggte Admins sehen die echte Seite weiterhin (Live-Vorschau).
+        </p>
+
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={maintenanceMode}
+            onChange={(e) => setMaintenanceMode(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-brand-text-muted/40 accent-brand-accent"
+          />
+          <span className="text-sm">
+            <span className="font-medium text-brand-text">Wartungsmodus aktivieren</span>
+            <span className="block text-xs text-brand-text-muted mt-0.5">
+              {maintenanceMode
+                ? 'Aktiv — die öffentliche Seite zeigt aktuell die Wartungsseite.'
+                : 'Inaktiv — die Seite ist normal erreichbar.'}
+            </span>
+          </span>
+        </label>
       </div>
 
       {/* AI / OpenAI Configuration */}

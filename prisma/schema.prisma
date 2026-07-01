@@ -97,6 +97,7 @@ model SiteSettings {
   logoMode        String   @default("auto")
   openaiApiKeyEncrypted String?  @db.Text
   openaiModel     String   @default("auto")
+  maintenanceMode Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

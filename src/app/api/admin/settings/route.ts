@@ -79,6 +79,7 @@ export async function PUT(request: Request) {
       themeSlug: body.themeSlug ?? undefined,
       logoMode: body.logoMode ?? undefined,
       openaiModel: body.openaiModel ?? undefined,
+      maintenanceMode: body.maintenanceMode !== undefined ? body.maintenanceMode : undefined,
       ...openaiKeyUpdate,
     },
     create: {
@@ -90,6 +91,7 @@ export async function PUT(request: Request) {
       themeSlug: body.themeSlug ?? 'messer',
       logoMode: body.logoMode ?? 'auto',
       openaiModel: body.openaiModel ?? 'auto',
+      maintenanceMode: body.maintenanceMode ?? false,
       ...openaiKeyUpdate,
     },
   })

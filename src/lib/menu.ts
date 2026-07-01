@@ -38,6 +38,7 @@ export interface SiteSettingsData {
   ctaButtonHref: string | null
   locale: string
   logoMode: string
+  maintenanceMode: boolean
 }
 
 const defaultSettings: SiteSettingsData = {
@@ -58,6 +59,7 @@ const defaultSettings: SiteSettingsData = {
   ctaButtonHref: null,
   locale: 'de',
   logoMode: 'auto',
+  maintenanceMode: false,
 }
 
 export async function getMenuItems(location: string = 'header'): Promise<MenuItemData[]> {
@@ -115,5 +117,6 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     ctaButtonHref: settings.ctaButtonHref,
     locale: settings.locale,
     logoMode: settings.logoMode,
+    maintenanceMode: settings.maintenanceMode,
   }
 }
