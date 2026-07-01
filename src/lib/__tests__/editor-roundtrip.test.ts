@@ -111,4 +111,62 @@ for (const md of CORPUS) {
   )
 }
 
+// --- Finding 2 (final review): nested paren-URL must survive at the NODE level ---
+// Mirrors Task 1's node-level assertion, but for a link nested inside a known
+// directive (callout). Idempotence alone is deceptive here: a truncated ")"
+// re-appends as trailing text so the STRING looks stable while the href is
+// corrupted — only a node-level check on `link.url` catches that.
+{
+  const md = ':::info\nSee [wiki](https://en.wikipedia.org/wiki/A_(b))\n:::'
+  const link = firstOfType(markdownToPlate(md), 'a')
+  assert.ok(link, 'link node exists (nested in callout)')
+  assert.equal(link.url, 'https://en.wikipedia.org/wiki/A_(b)')
+}
+
+// --- Finding 1 (final review): extended corpus covering all known directives ---
+// Same two invariants as CORPUS: (a) idempotence, (b) public-renderer block-type
+// fidelity. Fixtures use realistic inner content matching each directive's actual
+// serialization model (see markdownToPlate.ts / plateToMarkdown.ts):
+//  - hero, box: content is recursively parsed via parseBlocks (nested markdown)
+//  - hero-section, cv-timeline, project-bento: opaque `rawMarkdown` passthrough
+//  - hero-slider-*: per-slide `key: value` lines, slides separated by `---`
+//  - showcase, grid: per-item `key: value` lines, items separated by `---`
+//  - banner-*/slider-*/products-*: data-only, id/slug encoded in the fence name
+const DIRECTIVE_CORPUS: string[] = [
+  // hero: recursively-parsed markdown children (heading + paragraph)
+  ':::hero\n## Festival 2026\n\nDrei Tage. Zwei Bühnen. Ein Sommer.\n:::',
+  // hero-section: opaque rawMarkdown passthrough
+  ':::hero-section\ntitle: Festival 2026\nsubtitle: Drei Tage Musik\nimage: /hero.jpg\n:::',
+  // hero-slider-viewport: two slides, `key: value` lines, `---`-separated
+  ':::hero-slider-viewport\nimage: /slide1.jpg\nheading: Slide One\ndescription: First slide description\nbutton: Learn more\nhref: /learn-more\n---\nimage: /slide2.jpg\nheading: Slide Two\ndescription: Second slide description\nbutton: Buy tickets\nhref: /tickets\n:::',
+  // cv-timeline: opaque rawMarkdown passthrough
+  ':::cv-timeline\n2023: Erste e-Ventschau\n2024: Über 5000 Besucher\n2025: Neue Hauptbühne\n:::',
+  // project-bento: opaque rawMarkdown passthrough
+  ':::project-bento\n## Highlights\n\n- Bühne A\n- Bühne B\n:::',
+  // showcase: `key: value` items, `---`-separated
+  ':::showcase\nname: Foodtruck Alley\ndescription: Streetfood aus aller Welt\nhref: /vendors\nimage: /foodtrucks.jpg\ncount: 12\n---\nname: Kunsthandwerk\ndescription: Lokale Handwerkskunst\nhref: /kunsthandwerk\nimage: /kunsthandwerk.jpg\ncount: 8\n:::',
+  // grid: `key: value` items, `---`-separated
+  ':::grid\ntitle: Bühne Nord\nimage: /buehne-nord.jpg\nhref: /buehnen/nord\ndescription: Die große Hauptbühne\n---\ntitle: Bühne Süd\nimage: /buehne-sued.jpg\nhref: /buehnen/sued\ndescription: Die kleine Bühne\n:::',
+  // warning callout with inline bold
+  ':::warning\n**Achtung:** Der Zugang ist nur mit gültigem Ticket möglich.\n:::',
+  // danger callout
+  ':::danger\nDer Bereich ist gesperrt und darf nicht betreten werden.\n:::',
+  // dynamic directives nested inside a box (top level already covered in CORPUS;
+  // nesting inside columns would collide with columns' own `---` splitting, so
+  // box is used here instead)
+  ':::box\n:::banner-hero1\n:::\n:::',
+  ':::box\n:::slider-main-2026\n:::\n:::',
+  ':::box\n:::products-merch\n:::\n:::',
+]
+
+for (const md of DIRECTIVE_CORPUS) {
+  const once = rt(md)
+  assert.equal(rt(once), once, `idempotent: ${JSON.stringify(md).slice(0, 60)}`)
+  assert.deepEqual(
+    parseBlocks(md).map((b) => b.type),
+    parseBlocks(once).map((b) => b.type),
+    `block-type stable: ${JSON.stringify(md).slice(0, 60)}`,
+  )
+}
+
 console.log('✓ editor-roundtrip.test.ts — all assertions passed')
