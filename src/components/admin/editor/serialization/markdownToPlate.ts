@@ -34,9 +34,10 @@ interface InlineToken {
 function parseInlineMarkdown(text: string): Descendant[] {
   const nodes: Descendant[] = []
 
-  // Regex to find images, links, and formatted text
-  // Order matters: images before links (both start with [)
-  const inlineRe = /!\[([^\]]*)\]\(([^)]+)\)|\[([^\]]+)\]\(([^)]+)\)|\*\*(.+?)\*\*|\*(.+?)\*|~~(.+?)~~|`([^`]+)`/g
+  // Order matters: images before links (both start with [).
+  // URL part tolerates one nested (...) group (e.g. Wikipedia_(Foo), shop/e(1)).
+  // Link text tolerates one nested [...] group.
+  const inlineRe = /!\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\(((?:[^()]|\([^()]*\))+)\)|\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\(((?:[^()]|\([^()]*\))+)\)|\*\*(.+?)\*\*|\*(.+?)\*|~~(.+?)~~|`([^`]+)`/g
 
   let lastIndex = 0
   let match: RegExpExecArray | null
@@ -128,7 +129,7 @@ function parseListItem(line: string): { type: 'ul' | 'ol'; text: string } | null
 
 /** Parse an image-only line */
 function parseImageLine(line: string): TElement | null {
-  const m = line.match(/^!\[([^\]]*)\]\(([^)]+)\)\s*$/)
+  const m = line.match(/^!\[([^\]]*)\]\(((?:[^()]|\([^()]*\))+)\)\s*$/)
   if (!m) return null
   return {
     type: 'img',
