@@ -34,9 +34,11 @@ Plate-Baum nicht heraus; WYSIWYG-Edits an `/admin/sections` sind bei jedem Speic
 
 ## Ziele
 
-- **Eine** geteilte 3-Modus-Feldkomponente, die alle Plate-basierten Content-Felder nutzen.
-- markdown⇄Plate-Serialisierung an **einer** Stelle (in der Komponente / geteilten Helfern),
-  nicht 4-fach kopiert.
+- **Eine** geteilte 3-Modus-Feldkomponente für die einfachen Plate-Felder (Artists, Events,
+  Sections). Die Content-Editor-Seite behält ihre bespoke Power-Editor-UI, teilt aber dieselbe
+  Serialisierung (siehe Content-Editor-Entscheidung unten).
+- markdown⇄Plate-Serialisierung an **einer** Stelle (geteilte reine Helfer), nicht 4-fach kopiert —
+  von allen vier Flächen konsumiert.
 - `contentJson`-Drop an `/admin/sections` behoben.
 - Künstler-Bios und Event-Beschreibungen erhalten den vollen 3-Modus-Umschalter.
 
@@ -58,6 +60,14 @@ Plate-Baum nicht heraus; WYSIWYG-Edits an `/admin/sections` sind bei jedem Speic
 - **Artist/Event-UX:** voller 3-Modus überall.
 - **Ansatz:** `MarkdownEditorField` wird zur einen kontrollierten Feldkomponente mit einheitlichem
   `onChange`-Payload umgebaut (verworfen: dünne Komponente + Adapter; Headless-Hook — YAGNI).
+- **Content-Editor-Fläche (bestätigt):** Die Content-Seite (`content/[id]/page.tsx`) ist ein
+  bespoke Power-Editor — Medien-Picker in *beiden* Modi (Plate-`insertImageRef` in WYSIWYG,
+  `![alt](url)` am `<textarea>`-Cursor in Markdown), Seiten-Toolbar-Toggle, ausklappbares
+  Hilfe-Panel, AI-Improve, Versionen. Sie behält ihre UI, **routet aber Serialisierung + Modus-
+  Umschaltung über `contentEditor.ts`** (killt die Serialisierungs-Kopie). Kein voller Swap auf
+  `<MarkdownEditorField>` — das würde eine erweiterte Komponenten-API (imperativer Bild-Insert-
+  Handle, ausblendbarer Toggle) und viel Churn am wichtigsten Editor bedeuten; verworfen zugunsten
+  des risikoarmen Serialisierungs-Sharings. (Voller Swap bleibt eine mögliche spätere Vereinfachung.)
 
 ## Design
 
@@ -128,7 +138,7 @@ Markdown + `contentJson` + `editorMode` werden zusammen gespeichert.
 
 | Fläche | Route / API | Felder | Änderung |
 |--------|-------------|--------|----------|
-| Pages | `content/[id]/page.tsx` | `Page.content/contentJson/editorMode` | Inline-Duplikat → geteilte Komponente; Persistenz unverändert |
+| Pages | `content/[id]/page.tsx` | `Page.content/contentJson/editorMode` | UI bleibt (Power-Editor); Serialisierung + Modus-Umschaltung → `contentEditor.ts`-Helfer; Persistenz unverändert |
 | Artists | `artists/[id]/page.tsx` | `Artist.bio/bioJson/editorMode` | Direkter `PlateEditor` → geteilte Komponente; **neu 3-Modus** |
 | Events | `events/[id]/page.tsx` | `Event.description/descriptionJson/editorMode` | Direkter `PlateEditor` → geteilte Komponente; **neu 3-Modus** |
 | Sections | `sections/page.tsx` + `api/admin/sections/route.ts` | `HomepageSection.content` (Json-Blob) | Geteilte Komponente; Save schreibt `{markdown, contentJson, editorMode}`; **Drop behoben** |
@@ -149,7 +159,9 @@ Markdown + `contentJson` + `editorMode` werden zusammen gespeichert.
   Triple-`onChange`; konsumiert `contentEditor.ts`.
 - `src/lib/contentEditor.ts` — **neu**, reine Orchestrierungs-/Mapping-Helfer.
 - `src/lib/__tests__/contentEditor.test.ts` — **neu**, TDD für die reinen Helfer.
-- `src/app/admin/content/[id]/page.tsx` — Inline-3-Modus-UI durch `<MarkdownEditorField>` ersetzen.
+- `src/app/admin/content/[id]/page.tsx` — bespoke UI behalten; die inline `markdownToPlate`/
+  `plateToMarkdown`-Aufrufe (Modus-Umschaltung) durch `plateValueFor`/`markdownFrom` aus
+  `contentEditor.ts` ersetzen (kein Komponenten-Swap).
 - `src/app/admin/artists/[id]/page.tsx` — direkten `PlateEditor` durch `<MarkdownEditorField>` ersetzen (3-Modus).
 - `src/app/admin/events/[id]/page.tsx` — dito für `Event.description`.
 - `src/app/admin/sections/page.tsx` — Submit-Body über `valueToSectionContent`; Feld exportiert jetzt das Triple.
