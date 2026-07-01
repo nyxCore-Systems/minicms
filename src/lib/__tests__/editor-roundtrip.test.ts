@@ -77,4 +77,38 @@ import { parseBlocks } from '@/lib/directiveParser'
   assert.equal(outer[0].type, 'callout')
 }
 
+// --- Task 3: golden corpus — idempotence + renderer fidelity ---
+// Invariants per fixture:
+//  (a) rt is idempotent after one normalization pass: rt(rt(x)) === rt(x)
+//  (b) the public renderer's block interpretation is stable across a round-trip:
+//      parseBlocks(x) and parseBlocks(rt(x)) yield the same block-type sequence.
+const CORPUS: string[] = [
+  // callout containing markdown + a link with parens
+  ':::info\nCheck [wiki](https://en.wikipedia.org/wiki/A_(b))\n:::',
+  // box with a heading and list
+  ':::box\n## Title\n\n- one\n- two\n:::',
+  // two-column with a nested box in each column
+  ':::columns-2\n:::box\nLeft\n:::\n---\n:::box\nRight\n:::\n:::',
+  // three columns of plain markdown
+  ':::columns-3\nA\n---\nB\n---\nC\n:::',
+  // dynamic directives (data-only)
+  ':::banner-hero1\n:::',
+  ':::slider-main-2026\n:::',
+  ':::products-merch\n:::',
+  // callout wrapping an unknown directive
+  ':::tip\n:::futuristic\ndeep\n:::\n:::',
+  // mixed document: heading, paragraph, blockquote, list, hr, code
+  '# Heading\n\nA paragraph with **bold** and *italic*.\n\n> a quote\n\n- item 1\n- item 2\n\n---\n\n```ts\nconst x = 1\n```',
+]
+
+for (const md of CORPUS) {
+  const once = rt(md)
+  assert.equal(rt(once), once, `idempotent: ${JSON.stringify(md).slice(0, 60)}`)
+  assert.deepEqual(
+    parseBlocks(md).map((b) => b.type),
+    parseBlocks(once).map((b) => b.type),
+    `block-type stable: ${JSON.stringify(md).slice(0, 60)}`,
+  )
+}
+
 console.log('✓ editor-roundtrip.test.ts — all assertions passed')
