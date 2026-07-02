@@ -50,6 +50,7 @@ export function PlateEditor({ initialValue, onChange, onInsertImage, insertImage
       strikethrough: !!marks.strikethrough,
       code: !!marks.code,
     })
+    editor.tf.focus() // return focus to the editor (keyboard activation path)
   }, [editor])
 
   const insertNode = useCallback((node: TElement) => {
@@ -59,6 +60,7 @@ export function PlateEditor({ initialValue, onChange, onInsertImage, insertImage
       editor.tf.collapse({ edge: 'end' })
     }
     editor.tf.insertNodes(node)
+    editor.tf.focus() // return focus to the editor (keyboard activation path)
   }, [editor])
 
   // Track last known selection so image insertion works after dialog closes
