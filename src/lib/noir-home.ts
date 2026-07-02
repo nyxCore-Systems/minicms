@@ -33,10 +33,9 @@ export interface NoirHomeData {
   /** A published, active event exists (line-up / timetable have content). */
   hasEvent: boolean
   lineup: NoirLineupItem[]
-  /** First 2 acts (rendered as xl cards). */
+  /** First 2 acts (rendered as xl cards). The remaining acts render as md
+   *  cards straight from `lineup` — the line-up section shows ALL acts. */
   features: NoirLineupItem[]
-  /** Acts 3–6 (rendered as md cards). */
-  regulars: NoirLineupItem[]
   /** artist slug → "Fr · 22:00 · Hauptbühne" for the line-up cards. */
   apMetaBySlug: Map<string, string>
   /** Timetable grouped by calendar day. */
@@ -117,7 +116,6 @@ export const getNoirHomeData = cache(async (): Promise<NoirHomeData> => {
     hasEvent: !!event,
     lineup,
     features: lineup.slice(0, 2),
-    regulars: lineup.slice(2, 6),
     apMetaBySlug,
     days,
     stageCount: event?.stages.length ?? 0,

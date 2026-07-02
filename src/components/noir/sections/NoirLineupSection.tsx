@@ -10,7 +10,11 @@ export default async function NoirLineupSection({
   title?: string | null
   subtitle?: string | null
 }) {
-  const { features, regulars, apMetaBySlug, lineup } = await getNoirHomeData()
+  const { features, apMetaBySlug, lineup } = await getNoirHomeData()
+  // First two acts render as XL cards; every remaining act renders as an MD
+  // card — the section shows the full line-up (no cap), matching the
+  // "{lineup.length} Acts" heading.
+  const rest = lineup.slice(2)
   if (lineup.length === 0) return null
   const label = title || NOIR_LINEUP_DEFAULTS.label
   const intro = subtitle || NOIR_LINEUP_DEFAULTS.intro
@@ -37,7 +41,7 @@ export default async function NoirLineupSection({
               size="xl"
             />
           ))}
-          {regulars.map((a, i) => (
+          {rest.map((a, i) => (
             <LineupCard key={a.slug} artist={a} meta={apMetaBySlug.get(a.slug)} index={i + 3} size="md" />
           ))}
         </div>
