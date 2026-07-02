@@ -1,14 +1,13 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import type { TElement } from '@udecode/plate'
-import { markdownToPlate } from '@/components/admin/editor/serialization/markdownToPlate'
-import { plateToMarkdown } from '@/components/admin/editor/serialization/plateToMarkdown'
 import MarkdownContent from '@/components/MarkdownContent'
+import { plateValueFor, markdownFrom, type EditorMode, type ContentEditorValue } from '@/lib/contentEditor'
 
 const PlateEditor = dynamic(
-  () => import('@/components/admin/editor/PlateEditor').then(m => ({ default: m.PlateEditor })),
+  () => import('@/components/admin/editor/PlateEditor').then((m) => ({ default: m.PlateEditor })),
   {
     ssr: false,
     loading: () => (
@@ -16,66 +15,72 @@ const PlateEditor = dynamic(
         <div className="animate-spin h-6 w-6 border-2 border-brand-accent border-t-transparent rounded-full" />
       </div>
     ),
-  }
+  },
 )
-
-type EditorMode = 'markdown' | 'wysiwyg' | 'preview'
 
 interface MarkdownEditorFieldProps {
   value: string
-  onChange: (value: string) => void
-  placeholder?: string
-  minHeight?: string
+  contentJson?: TElement[] | null
+  editorMode?: EditorMode
+  onChange: (next: ContentEditorValue) => void
   label?: string
+  placeholder?: string
+  minHeight?: number
 }
 
 export default function MarkdownEditorField({
   value,
+  contentJson = null,
+  editorMode = 'markdown',
   onChange,
   placeholder = 'Markdown eingeben...',
-  minHeight = '200px',
+  minHeight = 200,
   label,
 }: MarkdownEditorFieldProps) {
-  const [editorMode, setEditorMode] = useState<EditorMode>('markdown')
-  const [contentJson, setContentJson] = useState<TElement[] | null>(null)
+  // Merge a partial change with the current controlled state and emit the full triple.
+  const emit = useCallback(
+    (next: Partial<ContentEditorValue>) => {
+      onChange({
+        markdown: next.markdown ?? value,
+        contentJson: next.contentJson ?? contentJson ?? [],
+        editorMode: next.editorMode ?? editorMode,
+      })
+    },
+    [onChange, value, contentJson, editorMode],
+  )
 
-  const switchEditorMode = useCallback((newMode: EditorMode) => {
-    if (newMode === editorMode) return
-
-    if (editorMode === 'markdown' && newMode === 'wysiwyg') {
-      const plateValue = markdownToPlate(value)
-      setContentJson(plateValue)
-    } else if (editorMode === 'wysiwyg' && (newMode === 'markdown' || newMode === 'preview')) {
-      if (contentJson) {
-        const md = plateToMarkdown(contentJson)
-        onChange(md)
+  const switchMode = useCallback(
+    (newMode: EditorMode) => {
+      if (newMode === editorMode) return
+      // Entering WYSIWYG: derive a fresh tree from the latest markdown (markdown is authoritative).
+      if (newMode === 'wysiwyg' && editorMode !== 'wysiwyg') {
+        emit({ contentJson: plateValueFor(value, null), editorMode: newMode })
+        return
       }
-    }
+      // Leaving WYSIWYG or toggling markdown<->preview: markdown is already current
+      // (kept in sync on every WYSIWYG edit below), so just change the mode.
+      emit({ editorMode: newMode })
+    },
+    [editorMode, value, emit],
+  )
 
-    setEditorMode(newMode)
-  }, [editorMode, value, contentJson, onChange])
-
-  const modeButton = (mode: EditorMode, label: string) => (
+  const modeButton = (mode: EditorMode, text: string) => (
     <button
       type="button"
-      onClick={() => switchEditorMode(mode)}
+      onClick={() => switchMode(mode)}
       className={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors ${
         editorMode === mode
           ? 'bg-white text-brand-text shadow-sm'
           : 'text-brand-text-muted hover:text-brand-text'
       }`}
     >
-      {label}
+      {text}
     </button>
   )
 
   return (
     <div>
-      {label && (
-        <label className="block text-sm font-medium text-brand-text mb-1">
-          {label}
-        </label>
-      )}
+      {label && <label className="block text-sm font-medium text-brand-text mb-1">{label}</label>}
 
       <div className="flex items-center justify-end mb-1.5">
         <div className="flex items-center bg-brand-bg-dark rounded-full p-0.5">
@@ -100,17 +105,15 @@ export default function MarkdownEditorField({
         </div>
       ) : editorMode === 'wysiwyg' ? (
         <div style={{ minHeight }}>
-          {contentJson && (
-            <PlateEditor
-              initialValue={contentJson}
-              onChange={(val) => setContentJson(val)}
-            />
-          )}
+          <PlateEditor
+            initialValue={plateValueFor(value, contentJson)}
+            onChange={(val) => emit({ contentJson: val, markdown: markdownFrom(val) })}
+          />
         </div>
       ) : (
         <textarea
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => emit({ markdown: e.target.value })}
           placeholder={placeholder}
           spellCheck={false}
           className="w-full border border-brand-border bg-brand-surface rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:bg-brand-bg-dark transition-colors font-mono resize-y"
