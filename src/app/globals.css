@@ -475,8 +475,7 @@
 }
 /* On gold surfaces a gold ring vanishes → navy ring instead */
 [data-theme="noir"] .btn-primary:focus-visible,
-[data-theme="noir"] .nh-marq a:focus-visible,
-[data-theme="noir"] .nh-tab[aria-selected="true"]:focus-visible {
+[data-theme="noir"] .nh-marq a:focus-visible {
   outline-color: var(--on-gold);
 }
 
@@ -583,20 +582,21 @@
 @media (max-width: 620px) { .nh-act-xl, .nh-act-md { grid-column: span 12; } }
 
 /* program / timetable */
-.nh-prog { border: 1px solid var(--b2, #123E63); }
-.nh-ptab { display: flex; border-bottom: 1px solid var(--b2, #123E63); }
-.nh-tab { flex: 1; font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; padding: 18px; background: transparent; color: var(--muted, #8AA0B4); border: none; border-right: 1px solid var(--b2, #123E63); cursor: pointer; min-height: 44px; }
-.nh-tab:last-child { border-right: none; }
-.nh-tab[aria-selected="true"] { background: var(--gold, #FAB90C); color: var(--on-gold, #051A2E); font-weight: 600; }
-.nh-prow { display: grid; grid-template-columns: 90px 1fr auto; gap: 20px; align-items: center; padding: 18px 26px; border-bottom: 1px solid var(--b1, #06223A); transition: background 0.15s; text-align: left; }
+/* Both days shown at once: two columns on desktop, stacked on mobile. */
+.nh-prog { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+.nh-pday { border: 1px solid var(--b2, #123E63); min-width: 0; }
+.nh-pday-head { margin: 0; font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--on-gold, #051A2E); background: var(--gold, #FAB90C); padding: 16px 18px; min-height: 44px; display: flex; align-items: center; }
+.nh-prow { display: grid; grid-template-columns: auto 1fr auto; gap: 8px 14px; align-items: baseline; padding: 15px 18px; border-bottom: 1px solid var(--b1, #06223A); transition: background 0.15s; text-align: left; }
 .nh-prow:last-child { border-bottom: none; }
 .nh-prow:hover { background: var(--navy-7, #082843); }
 .nh-prow .tm { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 15px; color: var(--gold, #FAB90C); }
-.nh-prow .ti { font-family: var(--font-space-grotesk), 'Space Grotesk', sans-serif; font-weight: 600; font-size: 18px; color: var(--sand, #FBF7EF); }
+.nh-prow .ti { font-family: var(--font-space-grotesk), 'Space Grotesk', sans-serif; font-weight: 600; font-size: 17px; color: var(--sand, #FBF7EF); }
 .nh-prow .su { font-size: 13px; color: var(--muted, #8AA0B4); margin-top: 2px; }
 .nh-ty { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted, #8AA0B4); border: 1px solid var(--b3, #1C5489); padding: 5px 10px; white-space: nowrap; }
 .nh-prow.hl { background: rgba(250, 185, 12, 0.08); }
 .nh-prow.hl .nh-ty { border-color: var(--gold, #FAB90C); color: var(--gold, #FAB90C); }
+/* Stack the two days below each other on narrower screens. */
+@media (max-width: 768px) { .nh-prog { grid-template-columns: 1fr; gap: 16px; } }
 @media (max-width: 600px) { .nh-prow { grid-template-columns: 64px 1fr; gap: 14px; } .nh-prow .nh-ty { grid-column: 2; justify-self: start; margin-top: 8px; } }
 
 /* manifest */
