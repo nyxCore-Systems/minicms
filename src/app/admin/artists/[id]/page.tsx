@@ -2,16 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import type { TElement } from '@udecode/plate'
 import MediaPickerDialog from '@/components/admin/MediaPickerDialog'
-import { markdownToPlate } from '@/components/admin/editor/serialization/markdownToPlate'
-import { plateToMarkdown } from '@/components/admin/editor/serialization/plateToMarkdown'
-
-const PlateEditor = dynamic(
-  () => import('@/components/admin/editor/PlateEditor').then(m => ({ default: m.PlateEditor })),
-  { ssr: false }
-)
+import MarkdownEditorField from '@/components/admin/MarkdownEditorField'
+import { type EditorMode } from '@/lib/contentEditor'
 
 type Social = { platform: string; url: string }
 type GalleryItem = { id?: string; kind: string; imageUrl?: string | null; videoId?: string | null; altText?: string | null }
@@ -37,7 +31,10 @@ export default function EditArtistPage() {
     website: '', metaTitle: '', metaDescription: '',
     isPublished: false, isFeatured: false, isActive: true,
   })
-  const [bioJson, setBioJson] = useState<TElement[] | null>(null)
+  const [bio, setBio] = useState('')
+  const [bioJson, setBioJson] = useState<TElement[]>([])
+  const [bioMode, setBioMode] = useState<EditorMode>('markdown')
+  const [loaded, setLoaded] = useState(false)
   const [socials, setSocials] = useState<Social[]>([])
   const [gallery, setGallery] = useState<GalleryItem[]>([])
   const [pick, setPick] = useState<'hero' | 'gallery' | null>(null)
@@ -56,21 +53,23 @@ export default function EditArtistPage() {
         metaTitle: a.metaTitle || '', metaDescription: a.metaDescription || '',
         isPublished: !!a.isPublished, isFeatured: !!a.isFeatured, isActive: a.isActive !== false,
       })
-      setBioJson(a.bioJson || markdownToPlate(a.bio || ''))
+      setBio(a.bio || '')
+      setBioJson(Array.isArray(a.bioJson) ? a.bioJson : [])
+      setBioMode((a.editorMode === 'markdown' || a.editorMode === 'wysiwyg') ? a.editorMode : 'markdown')
       setSocials(Array.isArray(a.socials) ? a.socials : [])
       setGallery(a.media || [])
+      setLoaded(true)
     })
   }, [id])
 
   async function save() {
     setSaveError('')
-    const bio = bioJson ? plateToMarkdown(bioJson) : ''
     const res = await fetch(`/api/admin/artists/${id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...form,
         genres: form.genres.split(',').map((g) => g.trim()).filter(Boolean),
-        bio, bioJson, editorMode: 'wysiwyg', socials, media: gallery,
+        bio, bioJson, editorMode: bioMode, socials, media: gallery,
       }),
     })
     if (!res.ok) {
@@ -140,7 +139,19 @@ export default function EditArtistPage() {
       {/* Bio (Plate) */}
       <div>
         <h2 className="mb-2 font-semibold">Bio</h2>
-        {bioJson !== null && <PlateEditor initialValue={bioJson} onChange={(v) => setBioJson(v)} />}
+        {loaded && (
+          <MarkdownEditorField
+            value={bio}
+            contentJson={bioJson}
+            editorMode={bioMode}
+            onChange={(next) => {
+              setBio(next.markdown)
+              setBioJson(next.contentJson)
+              setBioMode(next.editorMode)
+            }}
+            minHeight={300}
+          />
+        )}
       </div>
 
       {/* Socials */}

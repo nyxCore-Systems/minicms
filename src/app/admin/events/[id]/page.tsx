@@ -2,18 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import type { TElement } from '@udecode/plate'
-import { markdownToPlate } from '@/components/admin/editor/serialization/markdownToPlate'
-import { plateToMarkdown } from '@/components/admin/editor/serialization/plateToMarkdown'
+import MarkdownEditorField from '@/components/admin/MarkdownEditorField'
+import { type EditorMode } from '@/lib/contentEditor'
 import MediaPickerDialog from '@/components/admin/MediaPickerDialog'
 import StageManager from '@/components/admin/events/StageManager'
 import TimetableBuilder from '@/components/admin/events/TimetableBuilder'
-
-const PlateEditor = dynamic(
-  () => import('@/components/admin/editor/PlateEditor').then((m) => ({ default: m.PlateEditor })),
-  { ssr: false },
-)
 
 type TierRow = {
   id?: string; name: string; description?: string | null; price?: number | null
@@ -42,7 +36,9 @@ export default function EditEventPage() {
     heroImage: '', excerpt: '', metaTitle: '', metaDescription: '',
     isPublished: false, isFeatured: false, isActive: true,
   })
-  const [descJson, setDescJson] = useState<TElement[] | null>(null)
+  const [description, setDescription] = useState('')
+  const [descJson, setDescJson] = useState<TElement[]>([])
+  const [descMode, setDescMode] = useState<EditorMode>('markdown')
   const [tiers, setTiers] = useState<TierRow[]>([])
   const [pickHero, setPickHero] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -63,7 +59,9 @@ export default function EditEventPage() {
         metaTitle: e.metaTitle || '', metaDescription: e.metaDescription || '',
         isPublished: !!e.isPublished, isFeatured: !!e.isFeatured, isActive: e.isActive !== false,
       })
-      setDescJson(e.descriptionJson || markdownToPlate(e.description || ''))
+      setDescription(e.description || '')
+      setDescJson(Array.isArray(e.descriptionJson) ? e.descriptionJson : [])
+      setDescMode((e.editorMode === 'markdown' || e.editorMode === 'wysiwyg') ? e.editorMode : 'markdown')
       setTiers(Array.isArray(e.priceTiers) ? e.priceTiers.map((t: TierRow) => ({
         ...t, validFrom: toLocalInput(t.validFrom), validUntil: toLocalInput(t.validUntil),
       })) : [])
@@ -78,14 +76,13 @@ export default function EditEventPage() {
 
   async function save() {
     setSaveError('')
-    const description = descJson ? plateToMarkdown(descJson) : ''
     const res = await fetch(`/api/admin/events/${id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...form,
         startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
         endDate: form.endDate ? new Date(form.endDate).toISOString() : null,
-        description, descriptionJson: descJson, editorMode: 'wysiwyg',
+        description, descriptionJson: descJson, editorMode: descMode,
         priceTiers: tiers.map((t) => ({
           ...t,
           price: (t.price === null || t.price === undefined) ? null : Number(t.price),
@@ -143,10 +140,22 @@ export default function EditEventPage() {
         {form.heroImage && <button type="button" onClick={() => set('heroImage', '')} className="text-sm text-red-600">Entfernen</button>}
       </div>
 
-      {/* Description (Plate) */}
+      {/* Description */}
       <div>
         <span className="mb-1 block text-sm font-medium">Beschreibung</span>
-        {descJson !== null && <PlateEditor initialValue={descJson} onChange={(v: TElement[]) => setDescJson(v)} />}
+        {loaded && (
+          <MarkdownEditorField
+            value={description}
+            contentJson={descJson}
+            editorMode={descMode}
+            onChange={(next) => {
+              setDescription(next.markdown)
+              setDescJson(next.contentJson)
+              setDescMode(next.editorMode)
+            }}
+            minHeight={300}
+          />
+        )}
       </div>
 
       {/* SEO */}

@@ -9,8 +9,7 @@ import MarkdownContent from '@/components/MarkdownContent'
 import AiImproveButton from '@/components/admin/AiImproveButton'
 import MediaPickerDialog from '@/components/admin/MediaPickerDialog'
 import PageDeleteDialog from '@/components/admin/PageDeleteDialog'
-import { markdownToPlate } from '@/components/admin/editor/serialization/markdownToPlate'
-import { plateToMarkdown } from '@/components/admin/editor/serialization/plateToMarkdown'
+import { plateValueFor, markdownFrom } from '@/lib/contentEditor'
 import { ChevronDownIcon, SparklesIcon, XMarkIcon, BookOpenIcon, ClockIcon } from '@heroicons/react/24/outline'
 
 const PlateEditor = dynamic(
@@ -208,7 +207,7 @@ export default function ContentEditorPage() {
     // Sync WYSIWYG → markdown so the public page gets updated content
     let markdownContent = content
     if (editorMode === 'wysiwyg' && contentJson) {
-      markdownContent = plateToMarkdown(contentJson)
+      markdownContent = markdownFrom(contentJson)
       setContent(markdownContent)
     }
 
@@ -427,13 +426,11 @@ export default function ContentEditorPage() {
     // Sync content when switching between markdown and wysiwyg
     if (editorMode === 'markdown' && newMode === 'wysiwyg') {
       // Markdown → WYSIWYG: convert markdown to Plate JSON
-      const plateValue = markdownToPlate(content)
-      setContentJson(plateValue)
+      setContentJson(plateValueFor(content, null))
     } else if (editorMode === 'wysiwyg' && (newMode === 'markdown' || newMode === 'preview')) {
       // WYSIWYG → Markdown: convert Plate JSON to markdown
       if (contentJson) {
-        const md = plateToMarkdown(contentJson)
-        setContent(md)
+        setContent(markdownFrom(contentJson))
       }
     }
 

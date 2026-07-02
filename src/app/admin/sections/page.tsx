@@ -27,6 +27,8 @@ import {
 } from '@heroicons/react/24/outline'
 import HelpButton from '@/components/admin/HelpButton'
 import MarkdownEditorField from '@/components/admin/MarkdownEditorField'
+import type { TElement } from '@udecode/plate'
+import { sectionContentToValue, valueToSectionContent, type EditorMode } from '@/lib/contentEditor'
 
 // ---------------------------------------------------------------------------
 // Types & Constants
@@ -447,6 +449,8 @@ export default function AdminSectionsPage() {
 
   // Content (markdown)
   const [contentMarkdown, setContentMarkdown] = useState('')
+  const [contentJson, setContentJson] = useState<TElement[]>([])
+  const [contentEditorMode, setContentEditorMode] = useState<EditorMode>('markdown')
 
   // Slider-specific
   const [sliderSlug, setSliderSlug] = useState('')
@@ -558,6 +562,8 @@ export default function AdminSectionsPage() {
     setCtaSource('homepage_cta')
     // Content
     setContentMarkdown('')
+    setContentJson([])
+    setContentEditorMode('markdown')
 
     // Slider
     setSliderSlug('')
@@ -643,8 +649,11 @@ export default function AdminSectionsPage() {
       setFormContent('')
       setFormConfig(section.config ? JSON.stringify(section.config, null, 2) : '')
     } else if (section.type === 'content') {
-      setContentMarkdown((content?.markdown as string) || '')
-  
+      const cv = sectionContentToValue(content)
+      setContentMarkdown(cv.markdown)
+      setContentJson(cv.contentJson)
+      setContentEditorMode(cv.editorMode)
+
       setFormContent('')
       setFormConfig(section.config ? JSON.stringify(section.config, null, 2) : '')
     } else if (section.type === 'showcase' || section.type === 'vendors') {
@@ -777,7 +786,12 @@ export default function AdminSectionsPage() {
         parsedContent = { source: ctaSource.trim() || 'homepage_cta' }
       } else if (formType === 'content') {
         if (!contentMarkdown.trim()) throw new Error('Markdown-Inhalt darf nicht leer sein')
-        parsedContent = { markdown: contentMarkdown }
+        parsedContent = valueToSectionContent({
+          markdown: contentMarkdown,
+          contentJson,
+          // never persist 'preview' — it is a transient view
+          editorMode: contentEditorMode === 'preview' ? 'markdown' : contentEditorMode,
+        })
       } else if (formType === 'showcase' || formType === 'vendors') {
         // Content comes from DB — send null (preserve any existing content)
         parsedContent = null
@@ -1591,10 +1605,16 @@ export default function AdminSectionsPage() {
               <div>
                 <MarkdownEditorField
                   value={contentMarkdown}
-                  onChange={setContentMarkdown}
+                  contentJson={contentJson}
+                  editorMode={contentEditorMode}
+                  onChange={(next) => {
+                    setContentMarkdown(next.markdown)
+                    setContentJson(next.contentJson)
+                    setContentEditorMode(next.editorMode)
+                  }}
                   label="Markdown-Inhalt"
                   placeholder="# Ueberschrift&#10;&#10;Ihr Markdown-Inhalt hier..."
-                  minHeight="250px"
+                  minHeight={250}
                 />
               </div>
             )}
