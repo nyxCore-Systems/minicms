@@ -24,13 +24,16 @@ export function Toolbar({ label, className, children }: ToolbarProps) {
     return Array.from(ref.current.querySelectorAll<HTMLButtonElement>('[data-toolbar-item="true"]'))
   }, [])
 
-  // Roving tabindex: only the active control is tabbable.
+  // Roving tabindex: only the active control is tabbable. No dependency array
+  // (runs after every render) so item-set changes — buttons conditionally
+  // mounted/unmounted by a consumer without an `activeIndex` change — are
+  // always reconciled, not just when `activeIndex` itself changes.
   useLayoutEffect(() => {
     const items = getItems()
     if (items.length === 0) return
     const active = Math.min(activeIndex, items.length - 1)
     items.forEach((el, i) => { el.tabIndex = i === active ? 0 : -1 })
-  }, [activeIndex, getItems])
+  })
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     const items = getItems()
