@@ -20,6 +20,19 @@ export interface MenuItemData {
   children: MenuItemChild[]
 }
 
+/** Contact address block persisted as JSON on SiteSettings (wave 2). */
+export interface ContactAddress {
+  streetAddress?: string
+  addressLocality?: string
+  postalCode?: string
+  addressRegion?: string
+  addressCountry?: string
+  latitude?: number
+  longitude?: number
+  telephone?: string
+  email?: string
+}
+
 export interface SiteSettingsData {
   siteName: string
   logoUrl: string | null
@@ -38,7 +51,8 @@ export interface SiteSettingsData {
   ctaButtonHref: string | null
   locale: string
   logoMode: string
-  maintenanceMode: boolean
+  socialLinks: string[]
+  contactAddress: ContactAddress | null
 }
 
 const defaultSettings: SiteSettingsData = {
@@ -46,20 +60,69 @@ const defaultSettings: SiteSettingsData = {
   logoUrl: null,
   darkMode: false,
   footerText: null,
-  primaryColor: '#0E5A57',
-  accentColor: '#E0A11E',
-  backgroundColor: '#FAFAF6',
-  fontHeading: 'Playfair Display',
+  primaryColor: '#051A2E',
+  accentColor: '#FAB90C',
+  backgroundColor: '#faf8f0',
+  fontHeading: 'Georgia',
   fontBody: 'Inter',
   faviconUrl: null,
   backgroundImage: null,
-  themeSlug: 'eventschau',
-  defaultDarkMode: false,
+  themeSlug: 'noir',
+  defaultDarkMode: true,
   ctaButtonLabel: null,
   ctaButtonHref: null,
   locale: 'de',
   logoMode: 'auto',
-  maintenanceMode: false,
+  socialLinks: [],
+  contactAddress: null,
+}
+
+/**
+ * Best-effort validation of the socialLinks JSON column. Only https URLs
+ * survive — `sameAs` must stay clean for Knowledge Graph matching, and a
+ * single bad row must never break JSON-LD emission site-wide.
+ */
+function normalizeSocialLinks(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return []
+  const out: string[] = []
+  for (const entry of raw) {
+    if (typeof entry !== 'string') continue
+    const trimmed = entry.trim()
+    if (!trimmed) continue
+    try {
+      const url = new URL(trimmed)
+      if (url.protocol !== 'https:') continue
+      out.push(url.toString())
+    } catch {
+      // ignore malformed entries
+    }
+  }
+  return out
+}
+
+function normalizeContactAddress(raw: unknown): ContactAddress | null {
+  if (!raw || typeof raw !== 'object') return null
+  const src = raw as Record<string, unknown>
+  const pick = (k: string): string | undefined =>
+    typeof src[k] === 'string' && (src[k] as string).trim().length > 0
+      ? (src[k] as string).trim()
+      : undefined
+  const num = (k: string): number | undefined =>
+    typeof src[k] === 'number' && Number.isFinite(src[k]) ? (src[k] as number) : undefined
+
+  const addr: ContactAddress = {
+    streetAddress: pick('streetAddress'),
+    addressLocality: pick('addressLocality'),
+    postalCode: pick('postalCode'),
+    addressRegion: pick('addressRegion'),
+    addressCountry: pick('addressCountry'),
+    latitude: num('latitude'),
+    longitude: num('longitude'),
+    telephone: pick('telephone'),
+    email: pick('email'),
+  }
+  const anyValue = Object.values(addr).some((v) => v !== undefined)
+  return anyValue ? addr : null
 }
 
 export async function getMenuItems(location: string = 'header'): Promise<MenuItemData[]> {
@@ -68,17 +131,9 @@ export async function getMenuItems(location: string = 'header'): Promise<MenuIte
 
   const items = await withRetry(() =>
     prisma.menuItem.findMany({
-      where: {
-        tenantId: tenant.id,
-        isVisible: true,
-        parentId: null,
-        location,
-      },
+      where: { tenantId: tenant.id, isVisible: true, parentId: null, location },
       include: {
-        children: {
-          where: { isVisible: true },
-          orderBy: { sortOrder: 'asc' },
-        },
+        children: { where: { isVisible: true }, orderBy: { sortOrder: 'asc' } },
       },
       orderBy: { sortOrder: 'asc' },
     })
@@ -92,9 +147,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
   if (!tenant) return defaultSettings
 
   const settings = await withRetry(() =>
-    prisma.siteSettings.findUnique({
-      where: { tenantId: tenant.id },
-    })
+    prisma.siteSettings.findUnique({ where: { tenantId: tenant.id } })
   )
 
   if (!settings) return defaultSettings
@@ -117,6 +170,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     ctaButtonHref: settings.ctaButtonHref,
     locale: settings.locale,
     logoMode: settings.logoMode,
-    maintenanceMode: settings.maintenanceMode,
+    socialLinks: normalizeSocialLinks(settings.socialLinks),
+    contactAddress: normalizeContactAddress(settings.contactAddress),
   }
 }
