@@ -15,6 +15,10 @@ interface PlateToolbarProps {
 export function PlateToolbar({ onInsertNode, onToggleMark, onInsertImage, activeMarks }: PlateToolbarProps) {
   const [showBlockMenu, setShowBlockMenu] = useState(false)
   const blockBtnRef = useRef<HTMLButtonElement>(null)
+  // True while a menu selection is being committed, so the paired close does
+  // NOT steal focus back to the trigger — the insert already returned the caret
+  // to the editor (consistent with the H1/H2/H3 buttons).
+  const justInsertedRef = useRef(false)
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | undefined>()
 
   const openBlockMenu = useCallback(() => {
@@ -25,9 +29,22 @@ export function PlateToolbar({ onInsertNode, onToggleMark, onInsertImage, active
     setShowBlockMenu(true)
   }, [])
 
-  // Menu-driven close (Escape / select): close AND return focus to the trigger.
+  // Menu selection: mark it so the paired close keeps focus in the editor.
+  const insertFromMenu = useCallback((node: TElement) => {
+    justInsertedRef.current = true
+    onInsertNode(node)
+  }, [onInsertNode])
+
+  // Menu-driven close. SlashCommandMenu calls this on Escape (alone) and right
+  // after every select (following onInsert). On select → the insert already
+  // focused the editor, so leave the caret there; on Escape → return focus to
+  // the trigger.
   const closeBlockMenu = useCallback(() => {
     setShowBlockMenu(false)
+    if (justInsertedRef.current) {
+      justInsertedRef.current = false
+      return
+    }
     blockBtnRef.current?.focus()
   }, [])
 
@@ -101,7 +118,7 @@ export function PlateToolbar({ onInsertNode, onToggleMark, onInsertImage, active
       </Toolbar>
 
       {showBlockMenu && (
-        <SlashCommandMenu onInsert={onInsertNode} onClose={closeBlockMenu} position={menuPos} />
+        <SlashCommandMenu onInsert={insertFromMenu} onClose={closeBlockMenu} position={menuPos} />
       )}
     </>
   )
