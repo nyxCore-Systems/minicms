@@ -4,7 +4,7 @@ import { getNoirHomeData } from '@/lib/noir-home'
 import { NOIR_HERO_DEFAULTS, type NoirHeroContent } from '@/lib/noir-home-defaults'
 
 export default async function NoirHeroSection({ content }: { content?: NoirHeroContent | null }) {
-  const { kicker, dateMeta, lineup, stageCount } = await getNoirHomeData()
+  const { kicker } = await getNoirHomeData()
   const buttons = content?.buttons?.length ? content.buttons : NOIR_HERO_DEFAULTS.buttons
   const tiles = content?.tiles?.length ? content.tiles : NOIR_HERO_DEFAULTS.tiles
 
@@ -51,16 +51,6 @@ export default async function NoirHeroSection({ content }: { content?: NoirHeroC
           ))}
         </div>
         <div className="nh-meta">
-          <div className="nh-hm">
-            <div className="k">Acts</div>
-            <div className="v">
-              {lineup.length} Bands{stageCount > 0 ? ` · ${stageCount} Bühnen` : ''}
-            </div>
-          </div>
-          <div className="nh-hm">
-            <div className="k">Datum</div>
-            <div className="v">{dateMeta}</div>
-          </div>
           {tiles.map((t, i) => (
             <div className="nh-hm" key={i}>
               <div className="k">{t.label}</div>

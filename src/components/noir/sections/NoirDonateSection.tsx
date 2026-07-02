@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { NOIR_DONATE_DEFAULTS, formatEuro, type NoirDonateContent } from '@/lib/noir-home-defaults'
+import { NOIR_DONATE_DEFAULTS, type NoirDonateContent } from '@/lib/noir-home-defaults'
 import PayPalHostedButton from './PayPalHostedButton'
 
 // PayPal "No-Code Payments" hosted buttons, embedded inline (lazy-loaded + try/catch
@@ -17,11 +17,7 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
   const ctaHref = content?.ctaHref || d.ctaHref
   const cardHeading = content?.cardHeading || d.cardHeading
   const cardSubtext = content?.cardSubtext || d.cardSubtext
-  const raised = content?.raised ?? d.raised
-  const target = content?.target ?? d.target
   const bank = { ...d.bank, ...(content?.bank ?? {}) }
-  const pct = target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0
-  const remaining = Math.max(0, target - raised)
 
   return (
     <section className="nh-sec nh-sec-coal" id="spenden">
@@ -46,8 +42,36 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
               fallbackLabel="Ticket buchen via PayPal"
             />
             <p className="nh-ticket-note">Sichere Bezahlung über PayPal.</p>
-          </div>
 
+            <div className="nh-bank">
+              <div className="nh-bank-title">Oder direkt bei Sonic-Sound</div>
+              <dl className="nh-bank-list">
+                <div className="nh-bank-row">
+                  <dt>Adresse</dt>
+                  <dd>
+                    Sonic Sound
+                    <br />
+                    Bardowicker Str. 26
+                    <br />
+                    21335 Lüneburg
+                  </dd>
+                </div>
+                <div className="nh-bank-row">
+                  <dt>Telefon</dt>
+                  <dd>
+                    <a href="tel:+4915221940098">01522 / 1940098</a>
+                  </dd>
+                </div>
+                <div className="nh-bank-row">
+                  <dt>E-Mail</dt>
+                  <dd>
+                    <a href="mailto:sonic-sound@web.de">sonic-sound@web.de</a>
+                  </dd>
+                </div>
+              </dl>
+              <p className="nh-bank-note">Tickets vor Ort kaufen – ganz ohne PayPal.</p>
+            </div>
+          </div>
           {/* RIGHT — Spenden (via Banküberweisung) */}
           <div className="nh-dcard nh-dcard-accent">
             <div className="nh-lab">Spenden</div>
@@ -58,30 +82,6 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
               fallbackUrl={ncpUrl(PAYPAL_DONATE_BUTTON)}
               fallbackLabel="Jetzt spenden via PayPal"
             />
-            <div
-              className="nh-pbar"
-              role="progressbar"
-              aria-valuenow={pct}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={`${cardHeading}: ${pct} % erreicht`}
-            >
-              <i style={{ width: `${pct}%` }} />
-            </div>
-            <div className="nh-drow">
-              <span>
-                <b>{formatEuro(raised)}</b> gesammelt
-              </span>
-              <span>Ziel {formatEuro(target)}</span>
-            </div>
-            <div
-              className="nh-drow"
-              style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--b2, #123E63)' }}
-            >
-              <span>{pct}% erreicht</span>
-              <span>noch {formatEuro(remaining)}</span>
-            </div>
-
             <div className="nh-bank">
               <div className="nh-bank-title">Spendenkonto</div>
               <dl className="nh-bank-list">
