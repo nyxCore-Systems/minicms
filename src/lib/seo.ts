@@ -13,15 +13,19 @@ export function buildMetadata(
   const description = data?.metadata.description || fallback.description
   const keywords = data?.metadata.keywords || fallback.keywords || []
   const ogImage = data?.ogImage || fallback.ogImage
+  const canonicalUrl = `${SITE_URL}${pathname}`
 
   return {
     title,
     description,
     keywords,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title,
       description,
-      url: `${SITE_URL}${pathname}`,
+      url: canonicalUrl,
       ...(ogImage ? { images: [{ url: ogImage }] } : {}),
     },
   }
