@@ -1,201 +1,215 @@
-import type { Metadata } from 'next'
-import type { ContentData, FaqItem } from './markdown'
-import { getMenuItems } from './menu'
+// (a) Import-Zeile oben ergänzen:
+import { getFeaturedEvent, getPublishedEvents } from './events'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://e-ventschau.de'
+// ─────────────────────────────────────────────────────────────────────────
+// (b) Diese zwei Getter ERSETZEN die Wave-1-Versionen:
 
-export function buildMetadata(
-  data: ContentData | null,
-  pathname: string,
-  fallback: { title: string; description: string; keywords?: string[]; ogImage?: string },
-): Metadata {
-  const title = data?.metadata.title || fallback.title
-  const description = data?.metadata.description || fallback.description
-  const keywords = data?.metadata.keywords || fallback.keywords || []
-  const ogImage = data?.ogImage || fallback.ogImage
-
-  return {
-    title,
-    description,
-    keywords,
-    openGraph: {
-      title,
-      description,
-      url: `${SITE_URL}${pathname}`,
-      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
-    },
-  }
-}
-
-export function buildFaqJsonLd(faqItems: FaqItem[]) {
+export async function getWebsiteJsonLd() {
+  const settings = await getSiteSettings()
   return {
     '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqItems.map((item) => ({
-      '@type': 'Question',
-      name: item.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: item.answer,
-      },
-    })),
+    '@type': 'WebSite',
+    name: settings.siteName,
+    url: SITE_URL,
+    description: settings.footerText || settings.siteName,
+    inLanguage: settings.locale === 'de' ? 'de-DE' : settings.locale,
+    ...(settings.socialLinks.length > 0 ? { sameAs: settings.socialLinks } : {}),
   }
 }
 
-export async function buildBreadcrumbJsonLd(pathname: string) {
-  try {
-    const menuItems = await getMenuItems()
-    const items: { name: string; url: string }[] = [
-      { name: 'Startseite', url: SITE_URL },
-    ]
-
-    for (const item of menuItems) {
-      if (item.href === pathname) {
-        items.push({ name: item.label, url: `${SITE_URL}${item.href}` })
-        break
-      }
-
-      for (const child of item.children) {
-        if (child.href === pathname) {
-          if (item.href !== '#') {
-            items.push({ name: item.label, url: `${SITE_URL}${item.href}` })
-          }
-          items.push({ name: child.label, url: `${SITE_URL}${child.href}` })
-          break
+/**
+ * Organization JSON-LD, tenant-aware. `sameAs` from SiteSettings.socialLinks
+ * is the single strongest Knowledge Graph anchor — it connects this org to
+ * its verified external presence (Facebook, Instagram, later Wikidata).
+ */
+export async function getOrganizationJsonLd() {
+  const settings = await getSiteSettings()
+  const logo = settings.logoUrl || `${SITE_URL}/e-ventschau-logo.png`
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: settings.siteName,
+    url: SITE_URL,
+    logo,
+    description: settings.footerText || settings.siteName,
+    ...(settings.socialLinks.length > 0 ? { sameAs: settings.socialLinks } : {}),
+    ...(settings.contactAddress?.email || settings.contactAddress?.telephone
+      ? {
+          contactPoint: {
+            '@type': 'ContactPoint',
+            contactType: 'general inquiry',
+            ...(settings.contactAddress.telephone
+              ? { telephone: settings.contactAddress.telephone }
+              : {}),
+            ...(settings.contactAddress.email ? { email: settings.contactAddress.email } : {}),
+            availableLanguage: ['de'],
+          },
         }
-      }
-    }
-
-    if (items.length <= 1) return null
-
-    return {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: items.map((item, i) => ({
-        '@type': 'ListItem',
-        position: i + 1,
-        name: item.name,
-        item: item.url,
-      })),
-    }
-  } catch (error) {
-    console.error('[buildBreadcrumbJsonLd] Failed:', error)
-    return null
+      : {}),
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// (c) Diese drei Exporte NEU anhängen:
+
+/**
+ * MusicFestival JSON-LD for the homepage. Establishes e-Ventschau as a
+ * recurring named entity. The featured event provides start/end/location;
+ * up to 6 published editions become subEvent entries (past ones marked
+ * EventCompleted) so crawlers understand the recurrence.
+ * Returns null when no featured event exists — never emit an empty festival.
+ */
+export async function getMusicFestivalJsonLd() {
+  const [settings, featured, all] = await Promise.all([
+    getSiteSettings(),
+    getFeaturedEvent(),
+    getPublishedEvents(),
+  ])
+
+  if (!featured) return null
+
+  const now = new Date()
+  const subEvents = all.slice(0, 6).map((event) => ({
+    '@type': 'MusicEvent',
+    name: event.title,
+    startDate: event.startDate.toISOString(),
+    ...(event.endDate ? { endDate: event.endDate.toISOString() } : {}),
+    url: `${SITE_URL}/events/${event.slug}`,
+    ...(event.locationName
+      ? { location: { '@type': 'Place', name: event.locationName } }
+      : {}),
+    eventStatus:
+      event.startDate < now
+        ? 'https://schema.org/EventCompleted'
+        : 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+  }))
+
+  const addr = settings.contactAddress
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'MusicFestival',
+    name: settings.siteName,
+    url: SITE_URL,
+    description: settings.footerText || `${settings.siteName} — Benefiz-Musikfestival`,
+    ...(settings.logoUrl || settings.backgroundImage
+      ? { image: settings.backgroundImage || settings.logoUrl }
+      : {}),
+    ...(settings.socialLinks.length > 0 ? { sameAs: settings.socialLinks } : {}),
+    startDate: featured.startDate.toISOString(),
+    ...(featured.endDate ? { endDate: featured.endDate.toISOString() } : {}),
+    eventStatus: 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    ...(featured.locationName || addr
+      ? {
+          location: {
+            '@type': 'Place',
+            name: featured.locationName || settings.siteName,
+            ...(addr
+              ? {
+                  address: {
+                    '@type': 'PostalAddress',
+                    ...(addr.streetAddress ? { streetAddress: addr.streetAddress } : {}),
+                    ...(addr.addressLocality ? { addressLocality: addr.addressLocality } : {}),
+                    ...(addr.postalCode ? { postalCode: addr.postalCode } : {}),
+                    ...(addr.addressRegion ? { addressRegion: addr.addressRegion } : {}),
+                    ...(addr.addressCountry ? { addressCountry: addr.addressCountry } : {}),
+                  },
+                  ...(addr.latitude !== undefined && addr.longitude !== undefined
+                    ? {
+                        geo: {
+                          '@type': 'GeoCoordinates',
+                          latitude: addr.latitude,
+                          longitude: addr.longitude,
+                        },
+                      }
+                    : {}),
+                }
+              : {}),
+          },
+        }
+      : {}),
+    organizer: {
+      '@type': 'Organization',
+      name: settings.siteName,
+      url: SITE_URL,
+    },
+    ...(subEvents.length > 0 ? { subEvent: subEvents } : {}),
+  }
+}
+
+/**
+ * LocalBusiness JSON-LD for /kontakt and /impressum (wired up in wave 2b).
+ * LocalBusiness over MusicVenue: organizer address and festival venue are
+ * often different — venue specifics live on the Event JSON-LD instead.
+ */
+export async function getLocalBusinessJsonLd() {
+  const settings = await getSiteSettings()
+  const addr = settings.contactAddress
+  if (!addr) return null
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: settings.siteName,
+    url: SITE_URL,
+    ...(settings.logoUrl ? { image: settings.logoUrl } : {}),
+    ...(addr.telephone ? { telephone: addr.telephone } : {}),
+    ...(addr.email ? { email: addr.email } : {}),
+    address: {
+      '@type': 'PostalAddress',
+      ...(addr.streetAddress ? { streetAddress: addr.streetAddress } : {}),
+      ...(addr.addressLocality ? { addressLocality: addr.addressLocality } : {}),
+      ...(addr.postalCode ? { postalCode: addr.postalCode } : {}),
+      ...(addr.addressRegion ? { addressRegion: addr.addressRegion } : {}),
+      ...(addr.addressCountry ? { addressCountry: addr.addressCountry } : {}),
+    },
+    ...(addr.latitude !== undefined && addr.longitude !== undefined
+      ? {
+          geo: {
+            '@type': 'GeoCoordinates',
+            latitude: addr.latitude,
+            longitude: addr.longitude,
+          },
+        }
+      : {}),
+    ...(settings.socialLinks.length > 0 ? { sameAs: settings.socialLinks } : {}),
+  }
+}
+
+/**
+ * Speakable spec for voice search — attach as `speakable` property to
+ * Event/Artist JSON-LD (wave 2b) and mark the summary paragraph with
+ * data-speakable in the template.
+ */
+export const SPEAKABLE_SELECTORS = {
+  '@type': 'SpeakableSpecification',
+  cssSelector: ['h1', '[data-speakable]'],
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// (d) Deprecated Re-Exports ans Dateiende (Entfernung: wave 3):
+
+/**
+ * @deprecated Use `getWebsiteJsonLd()` (async, tenant-aware). Kept only so
+ * existing static imports keep compiling during the wave transition.
+ */
 export const websiteJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'e-Ventschau',
   url: SITE_URL,
-  description: 'Das e-Ventschau-Benefiz-Festival – internationale Musik für den guten Zweck im Landkreis Lüneburg.',
+  description: 'Benefiz-Musikfestival e-Ventschau',
   inLanguage: 'de-DE',
 }
 
-export function buildVendorJsonLd(vendor: {
-  name: string
-  slug: string
-  description: string | null
-  website: string | null
-  imageUrl: string | null
-  detail: { street?: string | null; city?: string | null; zip?: string | null; country?: string | null } | null
-}) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: vendor.name,
-    url: vendor.website || `${SITE_URL}/haendler/${vendor.slug}`,
-    description: vendor.description || undefined,
-    ...(vendor.imageUrl ? { logo: vendor.imageUrl, image: vendor.imageUrl } : {}),
-    ...(vendor.detail
-      ? {
-          address: {
-            '@type': 'PostalAddress',
-            streetAddress: vendor.detail.street || undefined,
-            addressLocality: vendor.detail.city || undefined,
-            postalCode: vendor.detail.zip || undefined,
-            addressCountry: vendor.detail.country || 'DE',
-          },
-        }
-      : {}),
-  }
-}
-
-export function buildArtistJsonLd(artist: {
-  name: string; slug: string; origin?: string | null; genres?: string[]
-  heroImage?: string | null; excerpt?: string | null; socials?: { platform: string; url: string }[] | null
-}) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'MusicGroup',
-    name: artist.name,
-    url: `${SITE_URL}/kuenstler/${artist.slug}`,
-    ...(artist.genres?.length ? { genre: artist.genres } : {}),
-    ...(artist.heroImage ? { image: artist.heroImage } : {}),
-    ...(artist.excerpt ? { description: artist.excerpt } : {}),
-    ...(artist.origin ? { foundingLocation: artist.origin } : {}),
-    ...(artist.socials?.length ? { sameAs: artist.socials.map((s) => s.url) } : {}),
-  }
-}
-
-export function buildEventJsonLd(event: {
-  title: string
-  slug: string
-  startDate: string | Date
-  endDate?: string | Date | null
-  excerpt?: string | null
-  heroImage?: string | null
-  locationName?: string | null
-  locationAddress?: string | null
-  performers?: { name: string; slug: string }[] | null
-  priceTiers?: { name: string; price: number | null; currency?: string | null; buyUrl?: string | null; isSoldOut?: boolean }[] | null
-}) {
-  const iso = (d: string | Date) => (typeof d === 'string' ? d : d.toISOString())
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'MusicEvent',
-    name: event.title,
-    url: `${SITE_URL}/events/${event.slug}`,
-    startDate: iso(event.startDate),
-    eventStatus: 'https://schema.org/EventScheduled',
-    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-    ...(event.endDate ? { endDate: iso(event.endDate) } : {}),
-    ...(event.excerpt ? { description: event.excerpt } : {}),
-    ...(event.heroImage ? { image: event.heroImage } : {}),
-    ...(event.locationName
-      ? {
-          location: {
-            '@type': 'Place',
-            name: event.locationName,
-            ...(event.locationAddress ? { address: event.locationAddress } : {}),
-          },
-        }
-      : {}),
-    ...(event.performers?.length
-      ? { performer: event.performers.map((p) => ({ '@type': 'MusicGroup', name: p.name, url: `${SITE_URL}/kuenstler/${p.slug}` })) }
-      : {}),
-    ...(event.priceTiers?.length
-      ? {
-          offers: event.priceTiers.map((t) => ({
-            '@type': 'Offer',
-            name: t.name,
-            ...(t.price !== null && t.price !== undefined ? { price: t.price, priceCurrency: t.currency || 'EUR' } : {}),
-            availability: t.isSoldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
-            url: t.buyUrl || `${SITE_URL}/events/${event.slug}`,
-          })),
-        }
-      : {}),
-  }
-}
-
+/** @deprecated Use `getOrganizationJsonLd()`. See websiteJsonLd note. */
 export const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: 'e-Ventschau e. V.',
+  name: 'e-Ventschau',
   url: SITE_URL,
-  logo: `${SITE_URL}/logo.png`,
-  description:
-    'Das e-Ventschau-Benefiz-Festival in Ventschau (Landkreis Lüneburg) – internationale Live-Musik, Ausstellungen und Vorträge zugunsten von Opfern nuklearer Katastrophen in Tschernobyl und Fukushima.',
-  sameAs: ['https://www.facebook.com/groups/436038379848640/'],
+  logo: `${SITE_URL}/e-ventschau-logo.png`,
+  description: 'Benefiz-Musikfestival e-Ventschau',
+  sameAs: [] as string[],
 }
