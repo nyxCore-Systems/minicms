@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import type { TElement } from '@udecode/plate'
 import { SlashCommandMenu } from './SlashCommandMenu'
+import { Toolbar, ToolbarButton, ToolbarToggleButton, ToolbarSeparator } from './toolbar'
 
 interface PlateToolbarProps {
   onInsertNode: (node: TElement) => void
@@ -14,6 +15,10 @@ interface PlateToolbarProps {
 export function PlateToolbar({ onInsertNode, onToggleMark, onInsertImage, activeMarks }: PlateToolbarProps) {
   const [showBlockMenu, setShowBlockMenu] = useState(false)
   const blockBtnRef = useRef<HTMLButtonElement>(null)
+  // True while a menu selection is being committed, so the paired close does
+  // NOT steal focus back to the trigger — the insert already returned the caret
+  // to the editor (consistent with the H1/H2/H3 buttons).
+  const justInsertedRef = useRef(false)
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | undefined>()
 
   const openBlockMenu = useCallback(() => {
@@ -24,7 +29,26 @@ export function PlateToolbar({ onInsertNode, onToggleMark, onInsertImage, active
     setShowBlockMenu(true)
   }, [])
 
-  // Close on outside click
+  // Menu selection: mark it so the paired close keeps focus in the editor.
+  const insertFromMenu = useCallback((node: TElement) => {
+    justInsertedRef.current = true
+    onInsertNode(node)
+  }, [onInsertNode])
+
+  // Menu-driven close. SlashCommandMenu calls this on Escape (alone) and right
+  // after every select (following onInsert). On select → the insert already
+  // focused the editor, so leave the caret there; on Escape → return focus to
+  // the trigger.
+  const closeBlockMenu = useCallback(() => {
+    setShowBlockMenu(false)
+    if (justInsertedRef.current) {
+      justInsertedRef.current = false
+      return
+    }
+    blockBtnRef.current?.focus()
+  }, [])
+
+  // Outside click: close WITHOUT refocusing the trigger (user is elsewhere).
   useEffect(() => {
     if (!showBlockMenu) return
     const handler = (e: MouseEvent) => {
@@ -35,103 +59,66 @@ export function PlateToolbar({ onInsertNode, onToggleMark, onInsertImage, active
     return () => document.removeEventListener('mousedown', handler)
   }, [showBlockMenu])
 
-  const ToolBtn = ({ label, mark, children }: { label: string; mark?: string; children: React.ReactNode }) => (
-    <button
-      type="button"
-      onMouseDown={(e) => {
-        e.preventDefault()
-        if (mark) onToggleMark(mark)
-      }}
-      className={`p-1.5 rounded transition-colors ${
-        mark && activeMarks[mark] ? 'bg-brand-accent/10 text-brand-accent' : 'text-brand-text-muted hover:bg-brand-bg-dark hover:text-gray-700'
-      }`}
-      title={label}
-    >
-      {children}
-    </button>
-  )
-
   return (
     <>
-      <div className="glass rounded-lg px-2 py-1 mb-2 flex items-center gap-0.5 flex-wrap">
-        <ToolBtn label="Fett" mark="bold">
+      <Toolbar
+        label="Formatierung"
+        className="glass rounded-lg px-2 py-1 mb-2 flex items-center gap-0.5 flex-wrap"
+      >
+        <ToolbarToggleButton label="Fett" pressed={!!activeMarks.bold} onActivate={() => onToggleMark('bold')}>
           <span className="text-xs font-bold">B</span>
-        </ToolBtn>
-        <ToolBtn label="Kursiv" mark="italic">
+        </ToolbarToggleButton>
+        <ToolbarToggleButton label="Kursiv" pressed={!!activeMarks.italic} onActivate={() => onToggleMark('italic')}>
           <span className="text-xs italic">I</span>
-        </ToolBtn>
-        <ToolBtn label="Durchgestrichen" mark="strikethrough">
+        </ToolbarToggleButton>
+        <ToolbarToggleButton
+          label="Durchgestrichen"
+          pressed={!!activeMarks.strikethrough}
+          onActivate={() => onToggleMark('strikethrough')}
+        >
           <span className="text-xs line-through">S</span>
-        </ToolBtn>
+        </ToolbarToggleButton>
 
-        <div className="w-px h-4 bg-gray-200 mx-1" />
+        <ToolbarSeparator />
 
-        <button
-          type="button"
-          onMouseDown={(e) => {
-            e.preventDefault()
-            onInsertNode({ type: 'h1', children: [{ text: '' }] })
-          }}
-          className="p-1.5 rounded text-brand-text-muted hover:bg-brand-bg-dark hover:text-gray-700 transition-colors"
-          title="Überschrift 1"
-        >
+        <ToolbarButton label="Überschrift 1" onActivate={() => onInsertNode({ type: 'h1', children: [{ text: '' }] })}>
           <span className="text-xs font-bold">H1</span>
-        </button>
-        <button
-          type="button"
-          onMouseDown={(e) => {
-            e.preventDefault()
-            onInsertNode({ type: 'h2', children: [{ text: '' }] })
-          }}
-          className="p-1.5 rounded text-brand-text-muted hover:bg-brand-bg-dark hover:text-gray-700 transition-colors"
-          title="Überschrift 2"
-        >
+        </ToolbarButton>
+        <ToolbarButton label="Überschrift 2" onActivate={() => onInsertNode({ type: 'h2', children: [{ text: '' }] })}>
           <span className="text-xs font-bold">H2</span>
-        </button>
-        <button
-          type="button"
-          onMouseDown={(e) => {
-            e.preventDefault()
-            onInsertNode({ type: 'h3', children: [{ text: '' }] })
-          }}
-          className="p-1.5 rounded text-brand-text-muted hover:bg-brand-bg-dark hover:text-gray-700 transition-colors"
-          title="Überschrift 3"
-        >
+        </ToolbarButton>
+        <ToolbarButton label="Überschrift 3" onActivate={() => onInsertNode({ type: 'h3', children: [{ text: '' }] })}>
           <span className="text-xs font-bold">H3</span>
-        </button>
+        </ToolbarButton>
 
-        <div className="w-px h-4 bg-gray-200 mx-1" />
+        <ToolbarSeparator />
 
-        <button
-          type="button"
-          onMouseDown={(e) => { e.preventDefault(); onInsertImage() }}
-          className="p-1.5 rounded text-brand-text-muted hover:bg-brand-bg-dark hover:text-gray-700 transition-colors"
-          title="Bild einfügen"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 0 0 1.5-1.5V5.25a1.5 1.5 0 0 0-1.5-1.5H3.75a1.5 1.5 0 0 0-1.5 1.5v14.25c0 .828.672 1.5 1.5 1.5Z" />
+        <ToolbarButton label="Bild einfügen" onActivate={onInsertImage}>
+          <svg
+            className="w-3.5 h-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 0 0 1.5-1.5V5.25a1.5 1.5 0 0 0-1.5-1.5H3.75a1.5 1.5 0 0 0-1.5 1.5v14.25c0 .828.672 1.5 1.5 1.5Z"
+            />
           </svg>
-        </button>
+        </ToolbarButton>
 
-        <div className="w-px h-4 bg-gray-200 mx-1" />
+        <ToolbarSeparator />
 
-        <button
-          ref={blockBtnRef}
-          type="button"
-          onMouseDown={(e) => { e.preventDefault(); openBlockMenu() }}
-          className="px-2 py-1 rounded text-xs font-medium text-brand-text-muted hover:bg-brand-bg-dark hover:text-gray-700 transition-colors"
-          title="Block einfügen"
-        >
-          + Block
-        </button>
-      </div>
+        <ToolbarButton ref={blockBtnRef} label="Block einfügen" onActivate={openBlockMenu}>
+          <span className="text-xs font-medium">+ Block</span>
+        </ToolbarButton>
+      </Toolbar>
 
       {showBlockMenu && (
-        <SlashCommandMenu
-          onInsert={onInsertNode}
-          onClose={() => setShowBlockMenu(false)}
-          position={menuPos}
-        />
+        <SlashCommandMenu onInsert={insertFromMenu} onClose={closeBlockMenu} position={menuPos} />
       )}
     </>
   )
