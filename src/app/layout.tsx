@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
-import { Inter, Playfair_Display, Space_Grotesk, IBM_Plex_Mono } from 'next/font/google'
+import { Inter, Playfair_Display, Space_Grotesk } from 'next/font/google'
 import JsonLd from '@/components/JsonLd'
-import { organizationJsonLd } from '@/lib/seo'
+import { getOrganizationJsonLd, getWebsiteJsonLd } from '@/lib/seo'
 import { getSiteSettings } from '@/lib/menu'
 import { getTheme, themeToStyleString } from '@/lib/themes'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 
 const inter = Inter({
@@ -24,13 +26,6 @@ const spaceGrotesk = Space_Grotesk({
   display: 'swap',
 })
 
-const ibmPlexMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-mono',
-  display: 'swap',
-})
-
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings()
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://e-ventschau.de'
@@ -41,20 +36,29 @@ export async function generateMetadata(): Promise<Metadata> {
       default: settings.siteName,
       template: `%s | ${settings.siteName}`,
     },
-    description: settings.siteName,
+    description: settings.footerText || settings.siteName,
     authors: [{ name: settings.siteName }],
+    alternates: {
+      canonical: siteUrl,
+    },
     openGraph: {
       type: 'website',
       locale: 'de_DE',
       url: siteUrl,
       siteName: settings.siteName,
       title: settings.siteName,
+      description: settings.footerText || settings.siteName,
       ...(settings.logoUrl || settings.backgroundImage
         ? { images: [{ url: settings.backgroundImage || settings.logoUrl! }] }
         : {}),
     },
     twitter: {
       card: 'summary_large_image',
+      title: settings.siteName,
+      description: settings.footerText || settings.siteName,
+      ...(settings.logoUrl || settings.backgroundImage
+        ? { images: [settings.backgroundImage || settings.logoUrl!] }
+        : {}),
     },
     robots: {
       index: true,
@@ -76,9 +80,7 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   const settings = await getSiteSettings()
-  // NEXT_PUBLIC_THEME_OVERRIDE lets a preview deploy force a theme without
-  // mutating the shared production DB (e.g. previewing 'noir' before go-live).
-  const theme = getTheme(process.env.NEXT_PUBLIC_THEME_OVERRIDE || settings.themeSlug || 'eventschau')
+  const theme = getTheme(settings.themeSlug || 'messer')
   const isDark = settings.defaultDarkMode || theme.defaultDarkMode
 
   const lightVars = themeToStyleString(theme, false)
@@ -86,15 +88,23 @@ export default async function RootLayout({
   const fontVars = `--font-heading: '${theme.fontHeading}', serif;\n  --font-body: '${theme.fontBody}', sans-serif;`
   const themeStyle = `:root {\n  ${lightVars}\n  ${fontVars}\n}\n.dark {\n  ${darkVars}\n  ${fontVars}\n}`
 
+  // JSON-LD data pulled in parallel with settings — both hit SiteSettings so
+  // Prisma's query planner batches them; extra latency is negligible.
+  const [organizationLd, websiteLd] = await Promise.all([
+    getOrganizationJsonLd(),
+    getWebsiteJsonLd(),
+  ])
+
   return (
     <html
       lang={settings.locale || 'de'}
-      className={`${inter.variable} ${playfair.variable} ${spaceGrotesk.variable} ${ibmPlexMono.variable} ${isDark ? 'dark' : ''}`}
+      className={`${inter.variable} ${playfair.variable} ${spaceGrotesk.variable} ${isDark ? 'dark' : ''}`}
       data-theme={theme.slug}
       suppressHydrationWarning
     >
       <head>
-        <JsonLd data={organizationJsonLd} />
+        <JsonLd data={organizationLd} />
+        <JsonLd data={websiteLd} />
         <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
         {settings.faviconUrl && <link rel="icon" href={settings.faviconUrl} />}
         <script
@@ -105,6 +115,8 @@ export default async function RootLayout({
       </head>
       <body className="font-sans min-h-screen">
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
