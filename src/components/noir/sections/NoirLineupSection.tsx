@@ -56,7 +56,8 @@ function LineupCard({ slot, index }: { slot: LineupSlot; index: number }) {
       <div className="nh-act-b">
         {slot.meta && <div className="meta">{slot.meta}</div>}
         <h3>{slot.name}</h3>
-        {genreLine && <p>{genreLine}</p>}
+        {slot.excerpt && <p className="nh-act-desc">{slot.excerpt}</p>}
+        {genreLine && <p className="nh-act-gen">{genreLine}</p>}
       </div>
     </>
   )
