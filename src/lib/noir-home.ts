@@ -1,5 +1,6 @@
 import { cache } from 'react'
 import { getFeaturedEvent, getFeaturedEventLineup, getPublishedEventBySlug } from '@/lib/events'
+import { CATEGORY_LABELS } from '@/lib/lineup'
 import type { NoirDay } from '@/components/noir/NoirTimetable'
 
 // Single source of truth for the event-driven data behind the Noir homepage
@@ -19,13 +20,6 @@ const fmtMonthShort = (d: Date) =>
   new Intl.DateTimeFormat('de-DE', { month: 'short', timeZone: TZ }).format(d).replace('.', '').toUpperCase()
 const dayKey = (d: Date) =>
   new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: TZ }).format(d)
-
-const ROLE_TYPE: Record<string, string> = {
-  headliner: 'Headliner',
-  support: 'Musik',
-  guest: 'Gast',
-  break: 'Pause',
-}
 
 export type NoirLineupItem = Awaited<ReturnType<typeof getFeaturedEventLineup>>[number]
 
@@ -93,8 +87,8 @@ export const getNoirHomeData = cache(async (): Promise<NoirHomeData> => {
             time: fmtTime(ap.startTime),
             title: ap.artist?.name ?? ap.title ?? '—',
             subtitle: subParts.join(' · '),
-            type: ROLE_TYPE[ap.role] ?? 'Programm',
-            highlight: ap.role === 'headliner',
+            type: CATEGORY_LABELS[ap.category] ?? 'Programm',
+            highlight: false,
           }
         }),
       })

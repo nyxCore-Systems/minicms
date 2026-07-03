@@ -31,7 +31,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const appearance = await prisma.appearance.create({
     data: {
       eventId: id, stageId: clean.stageId, artistId: clean.artistId, title: clean.title,
-      role: clean.role, startTime: clean.startTime, endTime: clean.endTime, note: clean.note, sortOrder: clean.sortOrder,
+      category: clean.category, startTime: clean.startTime, endTime: clean.endTime, note: clean.note, sortOrder: clean.sortOrder,
     },
   })
   return NextResponse.json(appearance, { status: 201 })

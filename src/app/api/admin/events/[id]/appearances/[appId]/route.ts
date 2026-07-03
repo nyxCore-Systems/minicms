@@ -36,7 +36,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     where: { id: appId },
     data: {
       stageId: clean.stageId, artistId: clean.artistId, title: clean.title,
-      role: clean.role, startTime: clean.startTime, endTime: clean.endTime, note: clean.note, sortOrder: clean.sortOrder,
+      category: clean.category, startTime: clean.startTime, endTime: clean.endTime, note: clean.note, sortOrder: clean.sortOrder,
     },
   })
   return NextResponse.json(appearance)

@@ -12,26 +12,27 @@ import { CSS } from '@dnd-kit/utilities'
 import {
   localDayKey, localClock, combineDayClock, resolveEndDate, eventDays, type DayOption,
 } from '@/lib/timetable-datetime'
+import { CATEGORY_LABELS } from '@/lib/lineup'
 
 type Stage = { id: string; name: string }
 type ArtistOpt = { id: string; name: string }
 type Row = {
   id: string; stageId: string; artistId: string | null; title: string | null
-  role: string; day: string; startClock: string; endClock: string; sortOrder: number
+  category: string; day: string; startClock: string; endClock: string; sortOrder: number
   note: string | null
 }
 type ApiAppearance = {
   id: string; stageId: string; artistId: string | null; title: string | null
-  role: string; startTime: string; endTime: string | null; sortOrder: number; note: string | null
+  category: string; startTime: string; endTime: string | null; sortOrder: number; note: string | null
 }
 
-const ROLES = ['headliner', 'support', 'guest', 'break']
+const CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'break']
 
 function toRow(a: ApiAppearance): Row {
   const start = new Date(a.startTime)
   const end = a.endTime ? new Date(a.endTime) : null
   return {
-    id: a.id, stageId: a.stageId, artistId: a.artistId, title: a.title, role: a.role,
+    id: a.id, stageId: a.stageId, artistId: a.artistId, title: a.title, category: a.category,
     day: isNaN(start.getTime()) ? '' : localDayKey(start),
     startClock: isNaN(start.getTime()) ? '' : localClock(start),
     endClock: end && !isNaN(end.getTime()) ? localClock(end) : '',
@@ -98,7 +99,7 @@ export default function TimetableBuilder({ eventId }: { eventId: string }) {
     const res = await fetch(`/api/admin/events/${eventId}/appearances`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        stageId: stages[0].id, title: 'Neuer Slot', role: 'support',
+        stageId: stages[0].id, title: 'Neuer Slot', category: 'musik',
         startTime, sortOrder: rows.length,
       }),
     })
@@ -117,7 +118,7 @@ export default function TimetableBuilder({ eventId }: { eventId: string }) {
         stageId: row.stageId,
         artistId: row.artistId || null,
         title: row.artistId ? null : (row.title || null),
-        role: row.role,
+        category: row.category,
         startTime: start.toISOString(),
         endTime: end ? end.toISOString() : null,
         sortOrder: row.sortOrder,
@@ -225,10 +226,10 @@ function SortableRow({
             <label className="flex flex-col gap-1"><span className="sr-only" id={`ap-title-${i}`}>Titel (falls kein Künstler)</span>
               <input aria-labelledby={`ap-title-${i}`} placeholder="Titel" className="glass rounded px-2 py-1" value={row.title || ''} disabled={!!row.artistId}
                 onChange={(e) => patch(row.id, { title: e.target.value })} onBlur={() => persist(row)} /></label>
-            <label className="flex flex-col gap-1"><span className="sr-only" id={`ap-role-${i}`}>Rolle</span>
-              <select aria-labelledby={`ap-role-${i}`} className="glass rounded px-2 py-1" value={row.role}
-                onChange={(e) => patch(row.id, { role: e.target.value })} onBlur={() => persist(row)}>
-                {ROLES.map((ro) => <option key={ro} value={ro}>{ro}</option>)}
+            <label className="flex flex-col gap-1"><span className="sr-only" id={`ap-category-${i}`}>Kategorie</span>
+              <select aria-labelledby={`ap-category-${i}`} className="glass rounded px-2 py-1" value={row.category}
+                onChange={(e) => patch(row.id, { category: e.target.value })} onBlur={() => persist(row)}>
+                {CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
               </select></label>
             <label className="flex flex-col gap-1"><span className="sr-only" id={`ap-day-${i}`}>Tag</span>
               <select aria-labelledby={`ap-day-${i}`} className="glass rounded px-2 py-1" value={row.day}
