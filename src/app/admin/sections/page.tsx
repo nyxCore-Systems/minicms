@@ -29,6 +29,14 @@ import HelpButton from '@/components/admin/HelpButton'
 import MarkdownEditorField from '@/components/admin/MarkdownEditorField'
 import type { TElement } from '@udecode/plate'
 import { sectionContentToValue, valueToSectionContent, type EditorMode } from '@/lib/contentEditor'
+import {
+  DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext, verticalListSortingStrategy, useSortable, sortableKeyboardCoordinates, arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { orderSlots, CATEGORY_LABELS, LINEUP_DEFAULT_CATEGORIES, type LineupSlot } from '@/lib/lineup'
 
 // ---------------------------------------------------------------------------
 // Types & Constants
@@ -489,6 +497,15 @@ export default function AdminSectionsPage() {
   const [noirDonateCardSubtext, setNoirDonateCardSubtext] = useState('')
   const [noirDonateRaised, setNoirDonateRaised] = useState('')
   const [noirDonateTarget, setNoirDonateTarget] = useState('')
+  // Noir Line-up
+  const [noirLineupCategories, setNoirLineupCategories] = useState<string[]>(LINEUP_DEFAULT_CATEGORIES)
+  const [noirLineupOrder, setNoirLineupOrder] = useState<string[]>([])
+  const [noirLineupSlots, setNoirLineupSlots] = useState<LineupSlot[]>([])
+
+  const lineupSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
 
   // ---------------------------------------------------------------------------
   // Data fetching
@@ -531,6 +548,18 @@ export default function AdminSectionsPage() {
       fetchSliders()
     }
   }, [showAddForm, editingId, formType, fetchSliders])
+
+  // Line-up preview — reloads when the category filter (or manual order) changes.
+  useEffect(() => {
+    if (formType !== 'noir_lineup') return
+    let ignore = false
+    const qs = noirLineupCategories.join(',')
+    fetch(`/api/admin/lineup/preview?categories=${encodeURIComponent(qs)}`)
+      .then((r) => (r.ok ? r.json() : { slots: [] }))
+      .then((d) => { if (!ignore) setNoirLineupSlots(orderSlots(d.slots ?? [], noirLineupOrder)) })
+      .catch(() => { if (!ignore) setNoirLineupSlots([]) })
+    return () => { ignore = true }
+  }, [formType, noirLineupCategories]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------------------------------------------------------------------------
   // Form helpers
@@ -597,6 +626,10 @@ export default function AdminSectionsPage() {
     setNoirDonateCardSubtext('')
     setNoirDonateRaised('')
     setNoirDonateTarget('')
+    // Noir Line-up
+    setNoirLineupCategories(LINEUP_DEFAULT_CATEGORIES)
+    setNoirLineupOrder([])
+    setNoirLineupSlots([])
     // UI
     setShowAddForm(false)
     setEditingId(null)
@@ -720,7 +753,13 @@ export default function AdminSectionsPage() {
       setNoirDonateTarget(content?.target !== undefined ? String(content.target) : '')
       setFormContent('')
       setFormConfig('')
-    } else if (section.type === 'noir_marquee' || section.type === 'noir_lineup' || section.type === 'noir_timetable') {
+    } else if (section.type === 'noir_lineup') {
+      const cats = Array.isArray(content?.categories) ? (content!.categories as string[]) : LINEUP_DEFAULT_CATEGORIES
+      setNoirLineupCategories(cats)
+      setNoirLineupOrder(Array.isArray(content?.order) ? (content!.order as string[]) : [])
+      setFormContent('')
+      setFormConfig('')
+    } else if (section.type === 'noir_marquee' || section.type === 'noir_timetable') {
       // Auto data from events/artists; only title/subtitle (already set above) apply.
       setFormContent('')
       setFormConfig('')
@@ -847,7 +886,9 @@ export default function AdminSectionsPage() {
           ...(Number.isFinite(raisedNum) ? { raised: raisedNum } : {}),
           ...(Number.isFinite(targetNum) ? { target: targetNum } : {}),
         }
-      } else if (formType === 'noir_marquee' || formType === 'noir_lineup' || formType === 'noir_timetable') {
+      } else if (formType === 'noir_lineup') {
+        parsedContent = { categories: noirLineupCategories, order: noirLineupOrder }
+      } else if (formType === 'noir_marquee' || formType === 'noir_timetable') {
         // Live data from events/artists; heading/intro carried by title/subtitle.
         parsedContent = null
       } else if (formContent.trim()) {
@@ -1922,7 +1963,61 @@ export default function AdminSectionsPage() {
             {/* =========================================================== */}
             {/* Noir element fields                                          */}
             {/* =========================================================== */}
-            {(formType === 'noir_lineup' || formType === 'noir_timetable') && (
+            {formType === 'noir_lineup' && (
+              <div className="space-y-4">
+                <InfoBox>
+                  Inhalte kommen aus den <a href="/admin/events" className="underline">Timetable-Slots</a> des
+                  Hauptevents. Wähle die Kategorien und sortiere die Reihenfolge per Drag&nbsp;&amp;&nbsp;Drop.
+                </InfoBox>
+                <div>
+                  <label className={labelClass}>Kategorien</label>
+                  <div className="flex flex-wrap gap-3">
+                    {(['musik','film','performance','kinder','break'] as const).map((c) => (
+                      <label key={c} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={noirLineupCategories.includes(c)}
+                          onChange={(e) => {
+                            setNoirLineupCategories((prev) =>
+                              e.target.checked ? [...prev, c] : prev.filter((x) => x !== c))
+                          }}
+                        />
+                        {CATEGORY_LABELS[c]}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClass}>Reihenfolge ({noirLineupSlots.length})</label>
+                  {noirLineupSlots.length === 0 ? (
+                    <p className="text-sm text-brand-text-muted">Keine passenden Slots.</p>
+                  ) : (
+                    <DndContext
+                      sensors={lineupSensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={(e: DragEndEvent) => {
+                        const { active, over } = e
+                        if (!over || active.id === over.id) return
+                        const oldI = noirLineupSlots.findIndex((s) => s.appearanceId === active.id)
+                        const newI = noirLineupSlots.findIndex((s) => s.appearanceId === over.id)
+                        if (oldI < 0 || newI < 0) return
+                        const reordered = arrayMove(noirLineupSlots, oldI, newI)
+                        setNoirLineupSlots(reordered)
+                        setNoirLineupOrder(reordered.map((s) => s.appearanceId))
+                      }}
+                    >
+                      <SortableContext items={noirLineupSlots.map((s) => s.appearanceId)} strategy={verticalListSortingStrategy}>
+                        <div className="space-y-2">
+                          {noirLineupSlots.map((s) => <SortableLineupRow key={s.appearanceId} slot={s} />)}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {formType === 'noir_timetable' && (
               <InfoBox>
                 Die Inhalte (Künstler bzw. Programm) kommen automatisch aus{' '}
                 <a href="/admin/events" className="underline">Events</a> &amp;{' '}
@@ -2383,6 +2478,25 @@ export default function AdminSectionsPage() {
           })}
         </div>
       )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Sub-component: sortable row for the noir_lineup drag-and-drop order editor
+// ---------------------------------------------------------------------------
+
+function SortableLineupRow({ slot }: { slot: LineupSlot }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: slot.appearanceId })
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
+  return (
+    <div ref={setNodeRef} style={style} className="glass-card flex items-center gap-3 p-2 text-sm">
+      <button type="button" {...attributes} {...listeners}
+        aria-label={`${slot.name} verschieben`}
+        className="cursor-grab touch-none px-1 text-brand-text-muted select-none active:cursor-grabbing">⠿</button>
+      <span className="rounded bg-brand-accent/10 px-2 py-0.5 text-xs">{slot.categoryLabel}</span>
+      <span className="flex-1 font-medium">{slot.name}</span>
+      <span className="text-xs text-brand-text-muted">{slot.meta}</span>
     </div>
   )
 }

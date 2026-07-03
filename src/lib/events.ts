@@ -7,7 +7,7 @@ export type EventWithRelations = Prisma.EventGetPayload<{
   include: {
     stages: true
     priceTiers: true
-    appearances: { include: { artist: { select: { slug: true; name: true } }; stage: true } }
+    appearances: { include: { artist: { select: { slug: true; name: true; isFeatured: true } }; stage: true } }
   }
 }>
 
@@ -22,8 +22,6 @@ export type EventSummary = {
   excerpt: string | null
   isFeatured: boolean
 }
-
-const ROLE_RANK: Record<string, number> = { headliner: 0, support: 1, guest: 2, break: 3 }
 
 export async function getPublishedEvents(): Promise<EventSummary[]> {
   try {
@@ -50,7 +48,7 @@ export async function getPublishedEventBySlug(slug: string): Promise<EventWithRe
         stages: { orderBy: { sortOrder: 'asc' } },
         priceTiers: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
         appearances: {
-          include: { artist: { select: { slug: true, name: true } }, stage: true },
+          include: { artist: { select: { slug: true, name: true, isFeatured: true } }, stage: true },
           orderBy: [{ startTime: 'asc' }, { sortOrder: 'asc' }],
         },
       },
@@ -102,7 +100,7 @@ export async function getFeaturedEventLineup(): Promise<ArtistSummary[]> {
       },
       orderBy: [{ startTime: 'asc' }],
     })
-    const sorted = [...appearances].sort((a, b) => (ROLE_RANK[a.role] ?? 9) - (ROLE_RANK[b.role] ?? 9))
+    const sorted = appearances
     const seen = new Set<string>()
     const lineup: ArtistSummary[] = []
     for (const ap of sorted) {

@@ -4,7 +4,8 @@ import { normalizeSlug, isValidSlug, safeHttpsUrl, safeCloudinaryUrl } from './s
 export { normalizeSlug, isValidSlug, safeHttpsUrl, safeCloudinaryUrl }
 
 export const ALLOWED_EVENT_TYPES = ['festival', 'concert', 'workshop', 'other'] as const
-export const ALLOWED_ROLES = ['headliner', 'support', 'guest', 'break'] as const
+export const ALLOWED_SLOT_CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'break'] as const
+export const DEFAULT_SLOT_CATEGORY = 'musik'
 export const ALLOWED_CURRENCIES = ['EUR', 'USD', 'CHF', 'GBP'] as const
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{3,8}$/
@@ -37,7 +38,7 @@ export type AppearanceInput = {
   stageId: string
   artistId: string | null
   title: string | null
-  role: string
+  category: string
   startTime: Date
   endTime: Date | null
   note: string | null
@@ -60,12 +61,12 @@ export function sanitizeAppearance(raw: unknown, index = 0): AppearanceInput | n
   const endTime = parseDate(r.endTime)
   if (endTime && endTime <= startTime) return null
 
-  const roleRaw = String(r.role || 'support').toLowerCase().trim()
-  const role = (ALLOWED_ROLES as readonly string[]).includes(roleRaw) ? roleRaw : 'support'
+  const catRaw = String(r.category || DEFAULT_SLOT_CATEGORY).toLowerCase().trim()
+  const category = (ALLOWED_SLOT_CATEGORIES as readonly string[]).includes(catRaw) ? catRaw : DEFAULT_SLOT_CATEGORY
   const note = r.note ? String(r.note).slice(0, 500).trim() : null
   const sortOrder = Number.isFinite(Number(r.sortOrder)) ? Number(r.sortOrder) : index
 
-  return { stageId, artistId, title, role, startTime, endTime, note, sortOrder }
+  return { stageId, artistId, title, category, startTime, endTime, note, sortOrder }
 }
 
 export type PriceTierInput = {

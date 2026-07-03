@@ -250,26 +250,26 @@ async function main() {
     bySlug('jed-thomas-band'), bySlug('rovar'), bySlug('nanny-goats'), bySlug('the-klaxon'),
   ])
 
-  const eventAppearances: { stageId: string; artistId?: string; title?: string; role: string; startTime: Date }[] = [
+  const eventAppearances: { stageId: string; artistId?: string; title?: string; category: string; startTime: Date }[] = [
     // Freitag 07.08.
-    { stageId: haupt.id, artistId: nanny?.id, role: 'support', startTime: new Date('2026-08-07T18:00:00+02:00') },
-    { stageId: haupt.id, artistId: rovar?.id, role: 'support', startTime: new Date('2026-08-07T19:00:00+02:00') },
-    { stageId: zelt.id, artistId: klaxon?.id, role: 'support', startTime: new Date('2026-08-07T19:00:00+02:00') },
-    { stageId: haupt.id, artistId: jed?.id, role: 'support', startTime: new Date('2026-08-07T20:30:00+02:00') },
-    { stageId: zelt.id, artistId: killa?.id, role: 'guest', startTime: new Date('2026-08-07T20:30:00+02:00') },
-    { stageId: haupt.id, artistId: risager?.id, role: 'headliner', startTime: new Date('2026-08-07T22:00:00+02:00') },
+    { stageId: haupt.id, artistId: nanny?.id, category: 'musik', startTime: new Date('2026-08-07T18:00:00+02:00') },
+    { stageId: haupt.id, artistId: rovar?.id, category: 'musik', startTime: new Date('2026-08-07T19:00:00+02:00') },
+    { stageId: zelt.id, artistId: klaxon?.id, category: 'musik', startTime: new Date('2026-08-07T19:00:00+02:00') },
+    { stageId: haupt.id, artistId: jed?.id, category: 'musik', startTime: new Date('2026-08-07T20:30:00+02:00') },
+    { stageId: zelt.id, artistId: killa?.id, category: 'musik', startTime: new Date('2026-08-07T20:30:00+02:00') },
+    { stageId: haupt.id, artistId: risager?.id, category: 'musik', startTime: new Date('2026-08-07T22:00:00+02:00') },
     // Samstag 08.08.
-    { stageId: haupt.id, title: 'Soundcheck & Begrüßung', role: 'break', startTime: new Date('2026-08-08T17:30:00+02:00') },
-    { stageId: haupt.id, artistId: lebron?.id, role: 'support', startTime: new Date('2026-08-08T19:00:00+02:00') },
-    { stageId: zelt.id, artistId: nanny?.id, role: 'support', startTime: new Date('2026-08-08T19:00:00+02:00') },
-    { stageId: haupt.id, artistId: killa?.id, role: 'headliner', startTime: new Date('2026-08-08T21:30:00+02:00') },
+    { stageId: haupt.id, title: 'Soundcheck & Begrüßung', category: 'break', startTime: new Date('2026-08-08T17:30:00+02:00') },
+    { stageId: haupt.id, artistId: lebron?.id, category: 'musik', startTime: new Date('2026-08-08T19:00:00+02:00') },
+    { stageId: zelt.id, artistId: nanny?.id, category: 'musik', startTime: new Date('2026-08-08T19:00:00+02:00') },
+    { stageId: haupt.id, artistId: killa?.id, category: 'musik', startTime: new Date('2026-08-08T21:30:00+02:00') },
   ]
   for (const [i, a] of eventAppearances.entries()) {
     await prisma.appearance.create({
       data: {
         eventId: festival.id, stageId: a.stageId,
         artistId: a.artistId ?? null, title: a.title ?? null,
-        role: a.role, startTime: a.startTime, sortOrder: i,
+        category: a.category, startTime: a.startTime, sortOrder: i,
       },
     })
   }

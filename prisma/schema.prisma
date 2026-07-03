@@ -729,7 +729,7 @@ model Appearance {
   stageId   String
   artistId  String?
   title     String?
-  role      String    @default("support")
+  category  String    @default("musik")
   startTime DateTime
   endTime   DateTime?
   note      String?

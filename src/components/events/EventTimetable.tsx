@@ -13,12 +13,10 @@ function slotLabel(a: Appearance) {
 }
 
 function Slot({ a }: { a: Appearance }) {
-  const isHeadliner = a.role === 'headliner'
-  const star = isHeadliner ? '★ ' : ''
   if (a.artist) {
     return (
       <Link href={`/kuenstler/${a.artist.slug}`} className="block rounded-pill px-2 py-1 text-sm font-medium text-brand-text hover:text-brand-accent">
-        {star}{a.artist.name}
+        {a.artist.name}
       </Link>
     )
   }
@@ -49,7 +47,7 @@ export default function EventTimetable({ event }: { event: EventWithRelations })
                 {rows.map((a) => (
                   <li key={a.id} className="flex items-baseline gap-3 text-sm">
                     <span className="w-12 shrink-0 tabular-nums text-brand-text-muted">{timeLabel(a.startTime)}</span>
-                    <span className="flex-1">{a.role === 'headliner' ? '★ ' : ''}{slotLabel(a) || '—'}</span>
+                    <span className="flex-1">{slotLabel(a) || '—'}</span>
                     <span className="shrink-0 text-xs text-brand-text-muted">{a.stage?.name}</span>
                   </li>
                 ))}
@@ -101,7 +99,7 @@ export default function EventTimetable({ event }: { event: EventWithRelations })
           )
         })}
       </div>
-      <p className="mt-3 text-xs text-brand-text-muted">★ = Headliner · klickbare Slots führen zur Künstler-Seite</p>
+      <p className="mt-3 text-xs text-brand-text-muted">klickbare Slots führen zur Künstler-Seite</p>
     </section>
   )
 }
