@@ -37,6 +37,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { orderSlots, CATEGORY_LABELS, LINEUP_DEFAULT_CATEGORIES, type LineupSlot } from '@/lib/lineup'
+import { NOIR_LINEUP_DEFAULTS } from '@/lib/noir-home-defaults'
 
 // ---------------------------------------------------------------------------
 // Types & Constants
@@ -501,6 +502,7 @@ export default function AdminSectionsPage() {
   const [noirLineupCategories, setNoirLineupCategories] = useState<string[]>(LINEUP_DEFAULT_CATEGORIES)
   const [noirLineupOrder, setNoirLineupOrder] = useState<string[]>([])
   const [noirLineupSlots, setNoirLineupSlots] = useState<LineupSlot[]>([])
+  const [noirLineupHeading, setNoirLineupHeading] = useState('')
 
   const lineupSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -630,6 +632,7 @@ export default function AdminSectionsPage() {
     setNoirLineupCategories(LINEUP_DEFAULT_CATEGORIES)
     setNoirLineupOrder([])
     setNoirLineupSlots([])
+    setNoirLineupHeading('')
     // UI
     setShowAddForm(false)
     setEditingId(null)
@@ -757,6 +760,7 @@ export default function AdminSectionsPage() {
       const cats = Array.isArray(content?.categories) ? (content!.categories as string[]) : LINEUP_DEFAULT_CATEGORIES
       setNoirLineupCategories(cats)
       setNoirLineupOrder(Array.isArray(content?.order) ? (content!.order as string[]) : [])
+      setNoirLineupHeading(typeof content?.heading === 'string' ? content.heading : '')
       setFormContent('')
       setFormConfig('')
     } else if (section.type === 'noir_marquee' || section.type === 'noir_timetable') {
@@ -887,7 +891,11 @@ export default function AdminSectionsPage() {
           ...(Number.isFinite(targetNum) ? { target: targetNum } : {}),
         }
       } else if (formType === 'noir_lineup') {
-        parsedContent = { categories: noirLineupCategories, order: noirLineupOrder }
+        parsedContent = {
+          categories: noirLineupCategories,
+          order: noirLineupOrder,
+          ...(noirLineupHeading.trim() ? { heading: noirLineupHeading.trim() } : {}),
+        }
       } else if (formType === 'noir_marquee' || formType === 'noir_timetable') {
         // Live data from events/artists; heading/intro carried by title/subtitle.
         parsedContent = null
@@ -1969,6 +1977,19 @@ export default function AdminSectionsPage() {
                   Inhalte kommen aus den <a href="/admin/events" className="underline">Timetable-Slots</a> des
                   Hauptevents. Wähle die Kategorien und sortiere die Reihenfolge per Drag&nbsp;&amp;&nbsp;Drop.
                 </InfoBox>
+                <div>
+                  <label className={labelClass}>Überschrift (2. Zeile)</label>
+                  <input
+                    type="text"
+                    value={noirLineupHeading}
+                    onChange={(e) => setNoirLineupHeading(e.target.value)}
+                    className={inputClass}
+                    placeholder={NOIR_LINEUP_DEFAULTS.heading}
+                  />
+                  <p className="text-xs text-brand-text-muted mt-1">
+                    Die erste Zeile („N&nbsp;Programmpunkte.") wird automatisch gesetzt. Leer = Standard „{NOIR_LINEUP_DEFAULTS.heading}".
+                  </p>
+                </div>
                 <div>
                   <label className={labelClass}>Kategorien</label>
                   <div className="flex flex-wrap gap-3">

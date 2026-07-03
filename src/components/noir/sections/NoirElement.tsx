@@ -28,7 +28,7 @@ export default function NoirElement({
     case 'noir_marquee':
       return <NoirMarqueeSection />
     case 'noir_lineup':
-      return <NoirLineupSection title={title} subtitle={subtitle} content={content as { categories?: string[]; order?: string[] } | null} />
+      return <NoirLineupSection title={title} subtitle={subtitle} content={content as { categories?: string[]; order?: string[]; heading?: string } | null} />
     case 'noir_timetable':
       return <NoirProgrammSection title={title} subtitle={subtitle} />
     case 'noir_manifest':
