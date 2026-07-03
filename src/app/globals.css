@@ -568,6 +568,8 @@
 .nh-act-b .meta { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold, #FAB90C); }
 .nh-act-b h3 { font-size: 23px; margin: 10px 0 8px; line-height: 1.02; color: var(--sand, #FBF7EF); }
 .nh-act-b p { font-size: 13.5px; color: var(--muted, #8AA0B4); }
+.nh-act-b .nh-act-desc { margin-top: 8px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.nh-act-b .nh-act-gen { margin-top: 10px; font-size: 12px; letter-spacing: 0.03em; opacity: 0.85; }
 .nh-gens { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
 .nh-gen { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sand, #FBF7EF); border: 1px solid var(--b3, #1C5489); padding: 4px 9px; }
 .nh-act-xl { grid-column: span 6; }
