@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { buildMetadata, buildMusicFestivalJsonLd } from '../seo'
+import { buildMetadata, buildMusicFestivalJsonLd, mergeSameAs } from '../seo'
 
 // buildMetadata must emit alternates.canonical so tracking-param variants
 // (?utm_*, ?fbclid) collapse to a single indexable URL in Search Console.
@@ -15,6 +15,19 @@ test('buildMetadata sets an absolute alternates.canonical for the given path', (
 test('buildMetadata canonical matches the OpenGraph url', () => {
   const md = buildMetadata(null, '/events/foo', { title: 'Foo', description: 'x' })
   assert.equal(String(md.alternates?.canonical ?? ''), String(md.openGraph?.url ?? ''))
+})
+
+// sameAs must not list the same profile twice just because one form has a
+// trailing slash (admin-entered URL vs. hardcoded fallback).
+test('mergeSameAs de-duplicates ignoring trailing slashes, keeping the first-seen form', () => {
+  const merged = mergeSameAs(
+    ['https://www.instagram.com/e.ventschau/', 'https://www.facebook.com/groups/436038379848640'],
+    ['https://www.facebook.com/groups/436038379848640/'],
+  )
+  assert.deepEqual(merged, [
+    'https://www.instagram.com/e.ventschau/',
+    'https://www.facebook.com/groups/436038379848640',
+  ])
 })
 
 // ── MusicFestival JSON-LD (homepage entity) ────────────────────────────────

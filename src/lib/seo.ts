@@ -14,14 +14,20 @@ const ORG_DESCRIPTION =
   'Das e-Ventschau-Benefiz-Festival in Ventschau (Landkreis Lüneburg) – internationale Live-Musik, Ausstellungen und Vorträge zugunsten von Opfern nuklearer Katastrophen in Tschernobyl und Fukushima.'
 const DEFAULT_SAME_AS = ['https://www.facebook.com/groups/436038379848640/']
 
-/** Union of URL lists, de-duplicated, order-preserving (earlier lists win). */
-function mergeSameAs(...lists: string[][]): string[] {
+/**
+ * Union of URL lists, de-duplicated, order-preserving (earlier lists win).
+ * Trailing slashes are ignored when de-duping (admin-entered URL vs. fallback),
+ * but the first-seen original form is kept.
+ */
+export function mergeSameAs(...lists: string[][]): string[] {
   const seen = new Set<string>()
   const out: string[] = []
   for (const list of lists) {
     for (const url of list) {
-      if (url && !seen.has(url)) {
-        seen.add(url)
+      if (!url) continue
+      const key = url.replace(/\/+$/, '')
+      if (!seen.has(key)) {
+        seen.add(key)
         out.push(url)
       }
     }

@@ -2,23 +2,16 @@ import type { HomepageSection } from '@prisma/client'
 
 interface SectionStructuredDataProps {
   sections: HomepageSection[]
-  siteUrl?: string
-  siteName?: string
 }
 
-export default function SectionStructuredData({ sections, siteUrl = 'https://e-ventschau.de', siteName = 'e-Ventschau' }: SectionStructuredDataProps) {
+export default function SectionStructuredData({ sections }: SectionStructuredDataProps) {
   const visibleSections = sections.filter(s => s.isVisible)
   const jsonLd: Record<string, unknown>[] = []
 
-  // WebSite schema
-  jsonLd.push({
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: siteName,
-    url: siteUrl,
-  })
-
-  // FAQ schema from faq sections
+  // WebSite + Organization JSON-LD are emitted globally (root layout renders the
+  // Organization, the homepage renders WebSite + MusicFestival via lib/seo.ts).
+  // This component only contributes the FAQPage derived from an faq section, so
+  // the homepage carries one clean entity of each type — no duplicates.
   const faqSection = visibleSections.find(s => s.type === 'faq')
   if (faqSection) {
     const content = faqSection.content as { items?: { question: string; answer: string }[] } | null
@@ -37,14 +30,6 @@ export default function SectionStructuredData({ sections, siteUrl = 'https://e-v
       })
     }
   }
-
-  // Organization schema
-  jsonLd.push({
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: siteName,
-    url: siteUrl,
-  })
 
   if (jsonLd.length === 0) return null
 
