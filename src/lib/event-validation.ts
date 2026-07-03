@@ -2,10 +2,13 @@
 // checks (artist-tenant ownership) live in the appearances route.
 import { normalizeSlug, isValidSlug, safeHttpsUrl, safeCloudinaryUrl } from './slug'
 export { normalizeSlug, isValidSlug, safeHttpsUrl, safeCloudinaryUrl }
+// Slot-category canon lives in lib/lineup.ts (single source). Re-export under the
+// validation-domain name so existing importers/tests keep working.
+import { SLOT_CATEGORIES, DEFAULT_SLOT_CATEGORY } from './lineup'
+export const ALLOWED_SLOT_CATEGORIES = SLOT_CATEGORIES
+export { DEFAULT_SLOT_CATEGORY }
 
 export const ALLOWED_EVENT_TYPES = ['festival', 'concert', 'workshop', 'other'] as const
-export const ALLOWED_SLOT_CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'break', 'vortrag'] as const
-export const DEFAULT_SLOT_CATEGORY = 'musik'
 export const ALLOWED_CURRENCIES = ['EUR', 'USD', 'CHF', 'GBP'] as const
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{3,8}$/
