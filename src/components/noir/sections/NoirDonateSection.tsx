@@ -1,11 +1,13 @@
 import Link from 'next/link'
 import { NOIR_DONATE_DEFAULTS, type NoirDonateContent } from '@/lib/noir-home-defaults'
 import PayPalHostedButton from './PayPalHostedButton'
+import PayPalDonateButton from './PayPalDonateButton'
 
-// PayPal "No-Code Payments" hosted buttons, embedded inline (lazy-loaded + try/catch
-// with a graceful link fallback — see PayPalHostedButton). Ticket + donation IDs:
+// Tickets use a PayPal "No-Code Payments" hosted button (SDK, iframe-isolated —
+// see PayPalHostedButton). Donations use the classic PayPal "Donate" button (a
+// plain <form>, see PayPalDonateButton) — a different PayPal product + id, no SDK.
 const PAYPAL_TICKET_BUTTON = 'MGNNL73RQ88DG'
-const PAYPAL_DONATE_BUTTON = 'QT6LRLS3DQTW4'
+const PAYPAL_DONATE_BUTTON = 'GCRR5BM8K8D22'
 const ncpUrl = (id: string) => `https://www.paypal.com/ncp/payment/${id}`
 
 export default function NoirDonateSection({ content }: { content?: NoirDonateContent | null }) {
@@ -77,11 +79,7 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
             <div className="nh-lab">Spenden</div>
             <h3>{cardHeading}</h3>
             <p className="nh-card-sub">{cardSubtext}</p>
-            <PayPalHostedButton
-              hostedButtonId={PAYPAL_DONATE_BUTTON}
-              fallbackUrl={ncpUrl(PAYPAL_DONATE_BUTTON)}
-              fallbackLabel="Jetzt spenden via PayPal"
-            />
+            <PayPalDonateButton hostedButtonId={PAYPAL_DONATE_BUTTON} label="Jetzt spenden via PayPal" />
             <div className="nh-bank">
               <div className="nh-bank-title">Spendenkonto</div>
               <dl className="nh-bank-list">
