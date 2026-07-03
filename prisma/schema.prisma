@@ -98,6 +98,8 @@ model SiteSettings {
   openaiApiKeyEncrypted String?  @db.Text
   openaiModel     String   @default("auto")
   maintenanceMode Boolean  @default(false)
+  socialLinks     Json?
+  contactAddress  Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

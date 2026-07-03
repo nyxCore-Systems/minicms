@@ -1,8 +1,33 @@
 import type { Metadata } from 'next'
 import type { ContentData, FaqItem } from './markdown'
-import { getMenuItems } from './menu'
+import { getMenuItems, getSiteSettings } from './menu'
+import { getFeaturedEvent, getPublishedEvents } from './events'
+import type { ContactAddress } from './settings-normalize'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://e-ventschau.de'
+
+// Legal organizer entity and its stable description. The festival's public
+// contact address and social profiles are editable in /admin/setup; DEFAULT_SAME_AS
+// keeps the Facebook link present even before that list is filled.
+const ORGANIZER_NAME = 'e-Ventschau e. V.'
+const ORG_DESCRIPTION =
+  'Das e-Ventschau-Benefiz-Festival in Ventschau (Landkreis Lüneburg) – internationale Live-Musik, Ausstellungen und Vorträge zugunsten von Opfern nuklearer Katastrophen in Tschernobyl und Fukushima.'
+const DEFAULT_SAME_AS = ['https://www.facebook.com/groups/436038379848640/']
+
+/** Union of URL lists, de-duplicated, order-preserving (earlier lists win). */
+function mergeSameAs(...lists: string[][]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const list of lists) {
+    for (const url of list) {
+      if (url && !seen.has(url)) {
+        seen.add(url)
+        out.push(url)
+      }
+    }
+  }
+  return out
+}
 
 export function buildMetadata(
   data: ContentData | null,
@@ -193,13 +218,144 @@ export function buildEventJsonLd(event: {
   }
 }
 
-export const organizationJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'e-Ventschau e. V.',
-  url: SITE_URL,
-  logo: `${SITE_URL}/logo.png`,
-  description:
-    'Das e-Ventschau-Benefiz-Festival in Ventschau (Landkreis Lüneburg) – internationale Live-Musik, Ausstellungen und Vorträge zugunsten von Opfern nuklearer Katastrophen in Tschernobyl und Fukushima.',
-  sameAs: ['https://www.facebook.com/groups/436038379848640/'],
+/**
+ * Organization JSON-LD (rendered on every page via the root layout).
+ * Name/description are the stable legal-entity strings; `logo` and `sameAs`
+ * are data-driven — `sameAs` merges the admin-editable social list with the
+ * Facebook fallback so the site-wide entity never loses it.
+ */
+export async function getOrganizationJsonLd() {
+  const settings = await getSiteSettings()
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: ORGANIZER_NAME,
+    url: SITE_URL,
+    logo: settings.logoUrl || `${SITE_URL}/logo.png`,
+    description: ORG_DESCRIPTION,
+    sameAs: mergeSameAs(settings.socialLinks, DEFAULT_SAME_AS),
+  }
+}
+
+export interface MusicFestivalInput {
+  siteUrl: string
+  name: string
+  description?: string | null
+  image?: string | null
+  organizerName: string
+  sameAs: string[]
+  address: ContactAddress | null
+  /** The upcoming/featured edition — anchors the festival's dates. */
+  featured: {
+    title: string
+    slug: string
+    startDate: Date
+    endDate: Date | null
+    locationName: string | null
+  } | null
+  /** All published editions, rendered as subEvents (recurring-brand signal). */
+  editions: { title: string; slug: string; startDate: Date; endDate: Date | null }[]
+}
+
+/** Build a schema.org Place from the venue address, or undefined if empty. */
+function buildPlace(address: ContactAddress | null, fallbackName: string | null) {
+  const name = address?.venueName || fallbackName || undefined
+  const hasAddress = !!address && !!(address.street || address.postalCode || address.locality)
+  const hasGeo = !!address && typeof address.lat === 'number' && typeof address.lng === 'number'
+  if (!name && !hasAddress && !hasGeo) return undefined
+
+  return {
+    '@type': 'Place',
+    ...(name ? { name } : {}),
+    ...(hasAddress
+      ? {
+          address: {
+            '@type': 'PostalAddress',
+            ...(address!.street ? { streetAddress: address!.street } : {}),
+            ...(address!.postalCode ? { postalCode: address!.postalCode } : {}),
+            ...(address!.locality ? { addressLocality: address!.locality } : {}),
+            ...(address!.region ? { addressRegion: address!.region } : {}),
+            addressCountry: address!.country || 'DE',
+          },
+        }
+      : {}),
+    ...(hasGeo
+      ? { geo: { '@type': 'GeoCoordinates', latitude: address!.lat, longitude: address!.lng } }
+      : {}),
+  }
+}
+
+/**
+ * Pure builder for the homepage `MusicFestival` entity — establishes e-Ventschau
+ * as a recurring festival brand (venue, organizer, edition chain, social links).
+ * Returns null when there is no featured edition to anchor the required dates.
+ */
+export function buildMusicFestivalJsonLd(input: MusicFestivalInput) {
+  const { featured } = input
+  if (!featured) return null
+  const iso = (d: Date) => d.toISOString()
+  const place = buildPlace(input.address, featured.locationName)
+
+  const subEvent = input.editions.map((e) => ({
+    '@type': 'MusicEvent',
+    name: e.title,
+    url: `${input.siteUrl}/events/${e.slug}`,
+    startDate: iso(e.startDate),
+    ...(e.endDate ? { endDate: iso(e.endDate) } : {}),
+  }))
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'MusicFestival',
+    name: input.name,
+    url: `${input.siteUrl}/`,
+    ...(input.description ? { description: input.description } : {}),
+    ...(input.image ? { image: input.image } : {}),
+    startDate: iso(featured.startDate),
+    ...(featured.endDate ? { endDate: iso(featured.endDate) } : {}),
+    eventStatus: 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    ...(place ? { location: place } : {}),
+    organizer: { '@type': 'Organization', name: input.organizerName, url: `${input.siteUrl}/` },
+    ...(subEvent.length ? { subEvent } : {}),
+    ...(input.sameAs.length ? { sameAs: input.sameAs } : {}),
+  }
+}
+
+/**
+ * Fetch the data-driven inputs and build the homepage MusicFestival entity.
+ * Pulls stable identity from SiteSettings and dynamic dates/editions from the
+ * event helpers. Returns null when there is no published event.
+ */
+export async function getMusicFestivalJsonLd() {
+  const [settings, featured, editions] = await Promise.all([
+    getSiteSettings(),
+    getFeaturedEvent(),
+    getPublishedEvents(),
+  ])
+
+  return buildMusicFestivalJsonLd({
+    siteUrl: SITE_URL,
+    name: settings.siteName || 'e-Ventschau',
+    description: settings.footerText,
+    image: settings.logoUrl || settings.backgroundImage,
+    organizerName: ORGANIZER_NAME,
+    sameAs: mergeSameAs(settings.socialLinks, DEFAULT_SAME_AS),
+    address: settings.contactAddress,
+    featured: featured
+      ? {
+          title: featured.title,
+          slug: featured.slug,
+          startDate: featured.startDate,
+          endDate: featured.endDate,
+          locationName: featured.locationName,
+        }
+      : null,
+    editions: editions.map((e) => ({
+      title: e.title,
+      slug: e.slug,
+      startDate: e.startDate,
+      endDate: e.endDate,
+    })),
+  })
 }

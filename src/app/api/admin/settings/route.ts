@@ -69,6 +69,17 @@ export async function PUT(request: Request) {
       : null
   }
 
+  // socialLinks (string[]) and contactAddress (object) are free-form JSON columns.
+  // Send [] / {} to clear them; the read path normalizes junk away.
+  const socialLinksUpdate =
+    body.socialLinks !== undefined
+      ? { socialLinks: Array.isArray(body.socialLinks) ? body.socialLinks : null }
+      : {}
+  const contactAddressUpdate =
+    body.contactAddress !== undefined
+      ? { contactAddress: body.contactAddress && typeof body.contactAddress === 'object' ? body.contactAddress : null }
+      : {}
+
   const settings = await prisma.siteSettings.upsert({
     where: { tenantId: tenant.id },
     update: {
@@ -81,6 +92,8 @@ export async function PUT(request: Request) {
       openaiModel: body.openaiModel ?? undefined,
       maintenanceMode: body.maintenanceMode !== undefined ? body.maintenanceMode : undefined,
       ...openaiKeyUpdate,
+      ...socialLinksUpdate,
+      ...contactAddressUpdate,
     },
     create: {
       tenantId: tenant.id,
@@ -93,6 +106,8 @@ export async function PUT(request: Request) {
       openaiModel: body.openaiModel ?? 'auto',
       maintenanceMode: body.maintenanceMode ?? false,
       ...openaiKeyUpdate,
+      ...socialLinksUpdate,
+      ...contactAddressUpdate,
     },
   })
 

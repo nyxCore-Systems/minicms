@@ -1,5 +1,10 @@
 import { prisma, withRetry } from './prisma'
 import { getTenant } from './tenant'
+import {
+  normalizeSocialLinks,
+  normalizeContactAddress,
+  type ContactAddress,
+} from './settings-normalize'
 
 export interface MenuItemChild {
   id: string
@@ -39,6 +44,10 @@ export interface SiteSettingsData {
   locale: string
   logoMode: string
   maintenanceMode: boolean
+  /** Social profile URLs (feed JSON-LD sameAs). Editable in /admin/setup. */
+  socialLinks: string[]
+  /** Structured venue/contact address for JSON-LD Place. Editable in /admin/setup. */
+  contactAddress: ContactAddress | null
 }
 
 const defaultSettings: SiteSettingsData = {
@@ -60,6 +69,8 @@ const defaultSettings: SiteSettingsData = {
   locale: 'de',
   logoMode: 'auto',
   maintenanceMode: false,
+  socialLinks: [],
+  contactAddress: null,
 }
 
 export async function getMenuItems(location: string = 'header'): Promise<MenuItemData[]> {
@@ -118,5 +129,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     locale: settings.locale,
     logoMode: settings.logoMode,
     maintenanceMode: settings.maintenanceMode,
+    socialLinks: normalizeSocialLinks(settings.socialLinks),
+    contactAddress: normalizeContactAddress(settings.contactAddress),
   }
 }

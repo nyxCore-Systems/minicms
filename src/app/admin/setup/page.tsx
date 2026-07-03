@@ -26,6 +26,17 @@ interface SiteSettings {
   hasOpenaiApiKey: boolean
   openaiModel: string
   maintenanceMode: boolean
+  socialLinks: string[] | null
+  contactAddress: {
+    venueName?: string
+    street?: string
+    postalCode?: string
+    locality?: string
+    region?: string
+    country?: string
+    lat?: number
+    lng?: number
+  } | null
 }
 
 interface MenuItem {
@@ -74,6 +85,10 @@ export default function SetupPage() {
   const [openaiModel, setOpenaiModel] = useState('auto')
   const [showApiKey, setShowApiKey] = useState(false)
   const [maintenanceMode, setMaintenanceMode] = useState(false)
+  const [socialLinksText, setSocialLinksText] = useState('')
+  const [address, setAddress] = useState({
+    venueName: '', street: '', postalCode: '', locality: '', region: '', country: '', lat: '', lng: '',
+  })
 
   const fetchData = useCallback(async () => {
     try {
@@ -96,6 +111,13 @@ export default function SetupPage() {
       setHasOpenaiApiKey(settingsData.hasOpenaiApiKey ?? false)
       setOpenaiModel(settingsData.openaiModel ?? 'auto')
       setMaintenanceMode(settingsData.maintenanceMode ?? false)
+      setSocialLinksText(Array.isArray(settingsData.socialLinks) ? settingsData.socialLinks.join('\n') : '')
+      const ca = settingsData.contactAddress ?? {}
+      setAddress({
+        venueName: ca.venueName ?? '', street: ca.street ?? '', postalCode: ca.postalCode ?? '',
+        locality: ca.locality ?? '', region: ca.region ?? '', country: ca.country ?? '',
+        lat: ca.lat != null ? String(ca.lat) : '', lng: ca.lng != null ? String(ca.lng) : '',
+      })
 
       // Separate top-level items (with children already included from API)
       const topLevel = menuData.filter((item) => !item.parentId)
@@ -116,11 +138,23 @@ export default function SetupPage() {
     setSaved(false)
     setError('')
     try {
+      const socialLinks = socialLinksText.split('\n').map((s) => s.trim()).filter(Boolean)
+      const contactAddress = {
+        venueName: address.venueName.trim() || undefined,
+        street: address.street.trim() || undefined,
+        postalCode: address.postalCode.trim() || undefined,
+        locality: address.locality.trim() || undefined,
+        region: address.region.trim() || undefined,
+        country: address.country.trim() || undefined,
+        lat: address.lat.trim() ? Number(address.lat) : undefined,
+        lng: address.lng.trim() ? Number(address.lng) : undefined,
+      }
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           siteName, logoUrl, backgroundImage, darkMode, themeSlug, logoMode, openaiModel, maintenanceMode,
+          socialLinks, contactAddress,
           ...(openaiApiKey ? { openaiApiKey } : {}),
         }),
       })
@@ -482,6 +516,69 @@ export default function SetupPage() {
             </div>
           </div>
 
+        </div>
+      </div>
+
+      {/* Contact & Social Media (structured data / JSON-LD) */}
+      <div className="glass rounded-2xl p-6">
+        <h2 className="text-lg font-display font-bold text-brand-text mb-1">
+          Kontakt & Social Media
+        </h2>
+        <p className="text-sm text-brand-text-muted mb-4">
+          Fließt in die strukturierten Daten (JSON-LD) für Google &amp; Co. — Veranstaltungsort und Social-Profile des Festivals.
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-brand-text-muted mb-1">
+              Social-Media-Profile
+            </label>
+            <textarea
+              value={socialLinksText}
+              onChange={(e) => setSocialLinksText(e.target.value)}
+              rows={3}
+              className="input-glass w-full text-sm font-mono"
+              placeholder={'https://www.facebook.com/...\nhttps://www.instagram.com/e.ventschau/'}
+            />
+            <p className="text-[11px] text-brand-text-muted mt-1.5">
+              Eine URL pro Zeile (Facebook, Instagram, YouTube …). Erscheint als „sameAs“ in den strukturierten Daten.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-brand-text-muted mb-1">Veranstaltungsort</label>
+              <input type="text" value={address.venueName} onChange={(e) => setAddress({ ...address, venueName: e.target.value })} className="input-glass w-full text-sm" placeholder="Hof Thiele" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-brand-text-muted mb-1">Straße &amp; Nr.</label>
+              <input type="text" value={address.street} onChange={(e) => setAddress({ ...address, street: e.target.value })} className="input-glass w-full text-sm" placeholder="Am Bruch 1-2" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-brand-text-muted mb-1">PLZ</label>
+              <input type="text" value={address.postalCode} onChange={(e) => setAddress({ ...address, postalCode: e.target.value })} className="input-glass w-full text-sm" placeholder="21371" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-brand-text-muted mb-1">Ort</label>
+              <input type="text" value={address.locality} onChange={(e) => setAddress({ ...address, locality: e.target.value })} className="input-glass w-full text-sm" placeholder="Tosterglope-Ventschau" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-brand-text-muted mb-1">Bundesland</label>
+              <input type="text" value={address.region} onChange={(e) => setAddress({ ...address, region: e.target.value })} className="input-glass w-full text-sm" placeholder="Niedersachsen" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-brand-text-muted mb-1">Land (ISO)</label>
+              <input type="text" value={address.country} onChange={(e) => setAddress({ ...address, country: e.target.value })} className="input-glass w-full text-sm" placeholder="DE" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-brand-text-muted mb-1">Breitengrad (lat)</label>
+              <input type="text" inputMode="decimal" value={address.lat} onChange={(e) => setAddress({ ...address, lat: e.target.value })} className="input-glass w-full text-sm font-mono" placeholder="53.207676" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-brand-text-muted mb-1">Längengrad (lng)</label>
+              <input type="text" inputMode="decimal" value={address.lng} onChange={(e) => setAddress({ ...address, lng: e.target.value })} className="input-glass w-full text-sm font-mono" placeholder="10.859330" />
+            </div>
+          </div>
         </div>
       </div>
 

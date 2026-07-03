@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Playfair_Display, Space_Grotesk, IBM_Plex_Mono } from 'next/font/google'
 import JsonLd from '@/components/JsonLd'
-import { organizationJsonLd } from '@/lib/seo'
+import { getOrganizationJsonLd } from '@/lib/seo'
 import { getSiteSettings } from '@/lib/menu'
 import { getTheme, themeToStyleString } from '@/lib/themes'
 import './globals.css'
@@ -75,7 +75,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const settings = await getSiteSettings()
+  const [settings, organizationLd] = await Promise.all([getSiteSettings(), getOrganizationJsonLd()])
   // NEXT_PUBLIC_THEME_OVERRIDE lets a preview deploy force a theme without
   // mutating the shared production DB (e.g. previewing 'noir' before go-live).
   const theme = getTheme(process.env.NEXT_PUBLIC_THEME_OVERRIDE || settings.themeSlug || 'eventschau')
@@ -94,7 +94,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <JsonLd data={organizationJsonLd} />
+        <JsonLd data={organizationLd} />
         <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
         {settings.faviconUrl && <link rel="icon" href={settings.faviconUrl} />}
         <script

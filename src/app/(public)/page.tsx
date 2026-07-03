@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { getSiteSettings } from '@/lib/menu'
-import { buildMetadata, websiteJsonLd } from '@/lib/seo'
+import { buildMetadata, websiteJsonLd, getMusicFestivalJsonLd } from '@/lib/seo'
 import JsonLd from '@/components/JsonLd'
 import HomepageSectionRenderer from '@/components/sections/HomepageSectionRenderer'
 import NoirElement from '@/components/noir/sections/NoirElement'
@@ -39,11 +39,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const sections = await getHomepageSections()
+  const [sections, festivalJsonLd] = await Promise.all([
+    getHomepageSections(),
+    getMusicFestivalJsonLd(),
+  ])
 
   return (
     <div className="nh">
       <JsonLd data={websiteJsonLd} />
+      {festivalJsonLd && <JsonLd data={festivalJsonLd} />}
       {sections.length > 0 ? (
         // Editor-composed homepage: ordered/visible elements from /admin/sections
         <HomepageSectionRenderer sections={sections} />
