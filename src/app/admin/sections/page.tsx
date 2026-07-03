@@ -36,7 +36,7 @@ import {
   SortableContext, verticalListSortingStrategy, useSortable, sortableKeyboardCoordinates, arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { orderSlots, CATEGORY_LABELS, LINEUP_DEFAULT_CATEGORIES, type LineupSlot } from '@/lib/lineup'
+import { orderSlots, CATEGORY_LABELS, SLOT_CATEGORIES, LINEUP_DEFAULT_CATEGORIES, type LineupSlot } from '@/lib/lineup'
 import { NOIR_LINEUP_DEFAULTS } from '@/lib/noir-home-defaults'
 
 // ---------------------------------------------------------------------------
@@ -1993,7 +1993,7 @@ export default function AdminSectionsPage() {
                 <div>
                   <label className={labelClass}>Kategorien</label>
                   <div className="flex flex-wrap gap-3">
-                    {(['musik','film','performance','vortrag','kinder','break'] as const).map((c) => (
+                    {SLOT_CATEGORIES.map((c) => (
                       <label key={c} className="flex items-center gap-2 text-sm">
                         <input
                           type="checkbox"

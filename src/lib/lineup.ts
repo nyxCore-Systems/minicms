@@ -1,14 +1,23 @@
 // Pure, client-safe core for the slot-driven line-up section. NO prisma import
 // here — the admin client bundle imports orderSlots/CATEGORY_LABELS from this
 // file. Server data access lives in lineup-data.ts.
+//
+// SINGLE SOURCE OF TRUTH for timetable slot categories: to add/rename a
+// category, edit CATEGORY_LABELS only. Everything else (the ordered canon, the
+// validation allow-list in event-validation.ts, the admin dropdown + filter
+// checkboxes) derives from it.
 export const CATEGORY_LABELS: Record<string, string> = {
   musik: 'Musik', film: 'Film', performance: 'Performance', kinder: 'Kinder', vortrag: 'Vortrag', break: 'Break',
 }
 
-const ALL_CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'vortrag', 'break']
+/** Canonical ordered list of slot categories (insertion order of CATEGORY_LABELS). */
+export const SLOT_CATEGORIES: string[] = Object.keys(CATEGORY_LABELS)
+
+/** Default slot category when none/invalid is supplied. */
+export const DEFAULT_SLOT_CATEGORY = 'musik'
 
 /** Lineup default: all content categories except breaks. */
-export const LINEUP_DEFAULT_CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'vortrag']
+export const LINEUP_DEFAULT_CATEGORIES = SLOT_CATEGORIES.filter((c) => c !== 'break')
 
 export interface LineupSlot {
   appearanceId: string
@@ -26,7 +35,7 @@ export interface LineupSlot {
 /** Validate raw categories against the canon; empty/all-invalid → default. */
 export function resolveLineupCategories(raw: unknown): string[] {
   const list = Array.isArray(raw) ? raw : []
-  const valid = list.filter((c): c is string => typeof c === 'string' && ALL_CATEGORIES.includes(c))
+  const valid = list.filter((c): c is string => typeof c === 'string' && SLOT_CATEGORIES.includes(c))
   return valid.length > 0 ? valid : LINEUP_DEFAULT_CATEGORIES
 }
 

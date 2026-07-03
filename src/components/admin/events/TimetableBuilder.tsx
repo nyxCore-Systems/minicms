@@ -12,7 +12,7 @@ import { CSS } from '@dnd-kit/utilities'
 import {
   localDayKey, localClock, combineDayClock, resolveEndDate, eventDays, type DayOption,
 } from '@/lib/timetable-datetime'
-import { CATEGORY_LABELS } from '@/lib/lineup'
+import { CATEGORY_LABELS, SLOT_CATEGORIES, DEFAULT_SLOT_CATEGORY } from '@/lib/lineup'
 
 type Stage = { id: string; name: string }
 type ArtistOpt = { id: string; name: string }
@@ -26,7 +26,6 @@ type ApiAppearance = {
   category: string; startTime: string; endTime: string | null; sortOrder: number; note: string | null
 }
 
-const CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'vortrag', 'break']
 
 function toRow(a: ApiAppearance): Row {
   const start = new Date(a.startTime)
@@ -99,7 +98,7 @@ export default function TimetableBuilder({ eventId }: { eventId: string }) {
     const res = await fetch(`/api/admin/events/${eventId}/appearances`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        stageId: stages[0].id, title: 'Neuer Slot', category: 'musik',
+        stageId: stages[0].id, title: 'Neuer Slot', category: DEFAULT_SLOT_CATEGORY,
         startTime, sortOrder: rows.length,
       }),
     })
@@ -229,7 +228,7 @@ function SortableRow({
             <label className="flex flex-col gap-1"><span className="sr-only" id={`ap-category-${i}`}>Kategorie</span>
               <select aria-labelledby={`ap-category-${i}`} className="glass rounded px-2 py-1" value={row.category}
                 onChange={(e) => patch(row.id, { category: e.target.value })} onBlur={() => persist(row)}>
-                {CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
+                {SLOT_CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
               </select></label>
             <label className="flex flex-col gap-1"><span className="sr-only" id={`ap-day-${i}`}>Tag</span>
               <select aria-labelledby={`ap-day-${i}`} className="glass rounded px-2 py-1" value={row.day}
