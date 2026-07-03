@@ -26,7 +26,7 @@ type ApiAppearance = {
   category: string; startTime: string; endTime: string | null; sortOrder: number; note: string | null
 }
 
-const CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'break']
+const CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'vortrag', 'break']
 
 function toRow(a: ApiAppearance): Row {
   const start = new Date(a.startTime)

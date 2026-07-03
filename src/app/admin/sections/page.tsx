@@ -1993,7 +1993,7 @@ export default function AdminSectionsPage() {
                 <div>
                   <label className={labelClass}>Kategorien</label>
                   <div className="flex flex-wrap gap-3">
-                    {(['musik','film','performance','kinder','break'] as const).map((c) => (
+                    {(['musik','film','performance','vortrag','kinder','break'] as const).map((c) => (
                       <label key={c} className="flex items-center gap-2 text-sm">
                         <input
                           type="checkbox"

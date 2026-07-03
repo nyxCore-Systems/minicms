@@ -4,7 +4,7 @@ import { normalizeSlug, isValidSlug, safeHttpsUrl, safeCloudinaryUrl } from './s
 export { normalizeSlug, isValidSlug, safeHttpsUrl, safeCloudinaryUrl }
 
 export const ALLOWED_EVENT_TYPES = ['festival', 'concert', 'workshop', 'other'] as const
-export const ALLOWED_SLOT_CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'break'] as const
+export const ALLOWED_SLOT_CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'break', 'vortrag'] as const
 export const DEFAULT_SLOT_CATEGORY = 'musik'
 export const ALLOWED_CURRENCIES = ['EUR', 'USD', 'CHF', 'GBP'] as const
 
