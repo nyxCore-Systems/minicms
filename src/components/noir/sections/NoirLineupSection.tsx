@@ -11,11 +11,12 @@ export default async function NoirLineupSection({
 }: {
   title?: string | null
   subtitle?: string | null
-  content?: { categories?: string[]; order?: string[] } | null
+  content?: { categories?: string[]; order?: string[]; heading?: string } | null
 }) {
   const slots = await getLineupSlots({ categories: content?.categories, order: content?.order })
   if (slots.length === 0) return null
   const label = title || NOIR_LINEUP_DEFAULTS.label
+  const heading = content?.heading || NOIR_LINEUP_DEFAULTS.heading
   const intro = subtitle || NOIR_LINEUP_DEFAULTS.intro
 
   return (
@@ -26,7 +27,7 @@ export default async function NoirLineupSection({
           <h2>
             {slots.length} Programmpunkte.
             <br />
-            Zwei Nächte. Ein Hof.
+            {heading}
           </h2>
           <p className="nh-sub">{intro}</p>
         </div>

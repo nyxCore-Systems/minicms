@@ -68,6 +68,7 @@ export const NOIR_HERO_DEFAULTS = {
 
 export const NOIR_LINEUP_DEFAULTS = {
   label: 'Line-up 2026',
+  heading: 'Zwei Nächte. Ein Hof.',
   intro:
     'Von skandinavischem Blues-Rock bis kolumbianischem Club-Beat – kuratiert für die Nacht, gespielt unter freiem Himmel.',
 }
