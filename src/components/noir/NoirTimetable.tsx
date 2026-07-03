@@ -3,7 +3,6 @@ export type NoirSlot = {
   title: string
   subtitle: string
   type: string
-  highlight: boolean
 }
 
 export type NoirDay = {
@@ -32,7 +31,7 @@ export default function NoirTimetable({ days }: { days: NoirDay[] }) {
               <span role="columnheader">Art</span>
             </div>
             {day.rows.map((row, idx) => (
-              <div key={`${day.id}-${idx}`} className={`nh-prow${row.highlight ? ' hl' : ''}`} role="row">
+              <div key={`${day.id}-${idx}`} className="nh-prow" role="row">
                 <span className="tm" role="cell">
                   {row.time}
                 </span>

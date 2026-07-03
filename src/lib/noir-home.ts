@@ -27,11 +27,6 @@ export interface NoirHomeData {
   /** A published, active event exists (line-up / timetable have content). */
   hasEvent: boolean
   lineup: NoirLineupItem[]
-  /** First 2 acts (rendered as xl cards). The remaining acts render as md
-   *  cards straight from `lineup` — the line-up section shows ALL acts. */
-  features: NoirLineupItem[]
-  /** artist slug → "Fr · 22:00 · Hauptbühne" for the line-up cards. */
-  apMetaBySlug: Map<string, string>
   /** Timetable grouped by calendar day. */
   days: NoirDay[]
   stageCount: number
@@ -50,17 +45,6 @@ export const getNoirHomeData = cache(async (): Promise<NoirHomeData> => {
 
   // Map artist slug → richer summary (origin/genres) for timetable subtitles
   const lineupBySlug = new Map(lineup.map((a) => [a.slug, a]))
-
-  // Per-artist appearance meta (earliest slot) for the line-up cards
-  const apMetaBySlug = new Map<string, string>()
-  if (event) {
-    for (const ap of event.appearances) {
-      if (!ap.artist || apMetaBySlug.has(ap.artist.slug)) continue
-      const parts = [fmtDayShort(ap.startTime), fmtTime(ap.startTime)]
-      if (ap.stage?.name) parts.push(ap.stage.name)
-      apMetaBySlug.set(ap.artist.slug, parts.join(' · '))
-    }
-  }
 
   // Timetable days grouped by calendar day (Europe/Berlin)
   const days: NoirDay[] = []
@@ -88,7 +72,6 @@ export const getNoirHomeData = cache(async (): Promise<NoirHomeData> => {
             title: ap.artist?.name ?? ap.title ?? '—',
             subtitle: subParts.join(' · '),
             type: CATEGORY_LABELS[ap.category] ?? 'Programm',
-            highlight: false,
           }
         }),
       })
@@ -109,8 +92,6 @@ export const getNoirHomeData = cache(async (): Promise<NoirHomeData> => {
   return {
     hasEvent: !!event,
     lineup,
-    features: lineup.slice(0, 2),
-    apMetaBySlug,
     days,
     stageCount: event?.stages.length ?? 0,
     kicker,
