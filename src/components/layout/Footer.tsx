@@ -82,6 +82,18 @@ export default async function Footer() {
                 {settings.footerText ||
                   'Das e-Ventschau-Benefiz-Festival – internationale Live-Musik für den guten Zweck in Ventschau, Landkreis Lüneburg.'}
               </p>
+              <div className="mt-4">
+                <span className="block text-xs text-brand-text-light mb-2 uppercase tracking-wider">
+                  Gefördert von
+                </span>
+                <Image
+                  src="/foerderer-sparkassenstiftung.png"
+                  alt="Sparkassenstiftung Lüneburg"
+                  width={1200}
+                  height={342}
+                  className="h-auto w-[200px] max-w-full object-contain"
+                />
+              </div>
             </div>
 
             {hasContentGroups
