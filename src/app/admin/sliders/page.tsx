@@ -455,7 +455,9 @@ export default function AdminSlidersPage() {
         const res = await fetch(`/api/admin/media?search=${encodeURIComponent(query)}`)
         if (!res.ok) throw new Error('Suche fehlgeschlagen')
         const data = await res.json()
-        setSearchResults(data.map((m: { id: string; url: string; type: string; filename: string }) => ({
+        const mediaItems: { id: string; url: string; type: string; filename: string }[] =
+          Array.isArray(data?.items) ? data.items : []
+        setSearchResults(mediaItems.map((m) => ({
           id: m.id,
           label: m.filename,
           sub: m.type === 'IMAGE' ? 'Bild' : 'Video',

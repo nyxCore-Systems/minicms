@@ -30,7 +30,7 @@ export default function MediaPickerDialog({ open, onClose, onSelect }: MediaPick
     fetch('/api/admin/media')
       .then((res) => res.json())
       .then((data) => {
-        setMedia(data)
+        setMedia(Array.isArray(data?.items) ? data.items : [])
         setLoading(false)
       })
       .catch(() => setLoading(false))

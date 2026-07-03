@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getToken } from 'next-auth/jwt'
-import { prisma } from '@/lib/prisma'
+import { prisma, withRetry } from '@/lib/prisma'
 import { getTenant } from '@/lib/tenant'
 import { cloudinary } from '@/lib/cloudinary'
+import { parseMediaQuery, buildMediaWhere, paginate } from '@/lib/media-query'
 
 async function getSessionToken() {
   const cookieStore = await cookies()
@@ -29,20 +30,34 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url)
-  const search = searchParams.get('search')?.trim()
+  const query = parseMediaQuery(searchParams)
+  const where = buildMediaWhere(tenant.id, query)
 
-  const where: Record<string, unknown> = { tenantId: tenant.id }
-  if (search) {
-    where.filename = { contains: search, mode: 'insensitive' }
+  try {
+    // Fetch one extra row to detect whether a further page exists. Order by
+    // createdAt desc with id as a stable tiebreak so the cursor is deterministic.
+    // The total only changes with the filter, so compute it on the first page
+    // (no cursor) and let the client keep it across "load more" requests.
+    const [rows, total] = await withRetry(() =>
+      Promise.all([
+        prisma.media.findMany({
+          where,
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          take: query.limit + 1,
+          ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+        }),
+        query.cursor
+          ? Promise.resolve<number | undefined>(undefined)
+          : prisma.media.count({ where }),
+      ]),
+    )
+
+    const { items, nextCursor } = paginate(rows, query.limit)
+    return NextResponse.json({ items, nextCursor, total })
+  } catch (err) {
+    console.error('Media list error:', err)
+    return NextResponse.json({ error: 'Failed to load media' }, { status: 500 })
   }
-
-  const media = await prisma.media.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-  })
-
-  return NextResponse.json(media)
 }
 
 export async function POST(request: Request) {
