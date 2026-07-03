@@ -2,13 +2,13 @@
 // here — the admin client bundle imports orderSlots/CATEGORY_LABELS from this
 // file. Server data access lives in lineup-data.ts.
 export const CATEGORY_LABELS: Record<string, string> = {
-  musik: 'Musik', film: 'Film', performance: 'Performance', kinder: 'Kinder', break: 'Break',
+  musik: 'Musik', film: 'Film', performance: 'Performance', kinder: 'Kinder', vortrag: 'Vortrag', break: 'Break',
 }
 
-const ALL_CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'break']
+const ALL_CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'vortrag', 'break']
 
 /** Lineup default: all content categories except breaks. */
-export const LINEUP_DEFAULT_CATEGORIES = ['musik', 'film', 'performance', 'kinder']
+export const LINEUP_DEFAULT_CATEGORIES = ['musik', 'film', 'performance', 'kinder', 'vortrag']
 
 export interface LineupSlot {
   appearanceId: string
