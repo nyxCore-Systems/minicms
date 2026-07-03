@@ -552,12 +552,14 @@ export default function AdminSectionsPage() {
   // Line-up preview — reloads when the category filter (or manual order) changes.
   useEffect(() => {
     if (formType !== 'noir_lineup') return
+    let ignore = false
     const qs = noirLineupCategories.join(',')
     fetch(`/api/admin/lineup/preview?categories=${encodeURIComponent(qs)}`)
       .then((r) => (r.ok ? r.json() : { slots: [] }))
-      .then((d) => setNoirLineupSlots(orderSlots(d.slots ?? [], noirLineupOrder)))
-      .catch(() => setNoirLineupSlots([]))
-  }, [formType, noirLineupCategories, noirLineupOrder])
+      .then((d) => { if (!ignore) setNoirLineupSlots(orderSlots(d.slots ?? [], noirLineupOrder)) })
+      .catch(() => { if (!ignore) setNoirLineupSlots([]) })
+    return () => { ignore = true }
+  }, [formType, noirLineupCategories]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------------------------------------------------------------------------
   // Form helpers
