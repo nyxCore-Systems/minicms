@@ -1,0 +1,77 @@
+name: Purge tracking data
+
+# One-off, manually-triggered cleanup. Runs prisma/purge-tracking.ts inside the
+# migrator container ON the server, where the compose env_file (.env) provides
+# the live DATABASE_URL (self-hosted eventschau Postgres). Deletes analytics +
+# impression rows created before a cutoff (default: launch, 2026-07-01 Berlin).
+#
+# SAFETY: `dry_run` defaults to true — the first run only COUNTS. Re-run with
+# dry_run unchecked to actually delete. Take a DB backup first (db-backup.yml).
+# Requires the source already rsynced to the server by a normal deploy (push to
+# main), so run AFTER this branch is merged + deployed.
+#
+# Reuses the deploy SSH secrets: DEPLOY_SSH_KEY / DEPLOY_HOST / DEPLOY_USER / DEPLOY_PORT.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Nur zählen, nichts löschen (für den ersten Lauf)'
+        type: boolean
+        default: true
+      cutoff:
+        description: 'Stichtag (ISO). Alles mit createdAt davor wird gelöscht.'
+        type: string
+        default: '2026-07-01T00:00:00+02:00'
+
+concurrency:
+  group: purge-eventschau-production
+  cancel-in-progress: false
+
+env:
+  APP_DIR: /opt/e-ventschau
+  MIGRATE_SERVICE: eventschau-migrate
+
+jobs:
+  purge:
+    name: Purge tracking (migrator container)
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "${DEPLOY_PORT:-22}" -H "${DEPLOY_HOST:-nyxcore.cloud}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Run purge in migrator container
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DRY_RUN_INPUT: ${{ inputs.dry_run }}
+          CUTOFF_INPUT: ${{ inputs.cutoff }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_deploy -p "${DEPLOY_PORT:-22}" \
+            "${DEPLOY_USER:-root}@${DEPLOY_HOST:-nyxcore.cloud}" \
+            APP_DIR="$APP_DIR" MIGRATE_SVC="$MIGRATE_SERVICE" \
+            DRY_RUN_INPUT="$DRY_RUN_INPUT" CUTOFF_INPUT="$CUTOFF_INPUT" \
+            'bash -seuo pipefail' <<'REMOTE'
+          cd "$APP_DIR"
+          # Contract with prisma/purge-tracking.ts: DRY_RUN present => count only,
+          # absent => real delete (the script checks `process.env.DRY_RUN === '1'`).
+          # Pass the -e flag ONLY for a dry run, so there is no empty-string-vs-unset
+          # ambiguity that a future refactor of either side could silently invert.
+          DRY_FLAG=""
+          if [ "$DRY_RUN_INPUT" = "true" ]; then DRY_FLAG="-e DRY_RUN=1"; fi
+          docker compose --profile migrate run --rm --build \
+            $DRY_FLAG -e CUTOFF="$CUTOFF_INPUT" "$MIGRATE_SVC" \
+            npx tsx prisma/purge-tracking.ts
+          REMOTE
