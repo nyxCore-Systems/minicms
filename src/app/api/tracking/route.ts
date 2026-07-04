@@ -1,8 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/lib/prisma'
+import { shouldSkipTracking } from '@/lib/tracking'
+
+async function getSessionToken() {
+  const cookieStore = await cookies()
+  return getToken({
+    req: {
+      cookies: Object.fromEntries(
+        cookieStore.getAll().map((c) => [c.name, c.value]),
+      ),
+    } as never,
+    secret: process.env.NEXTAUTH_SECRET,
+  })
+}
 
 export async function POST(request: NextRequest) {
   try {
+    // Drop hits from logged-in staff (ADMIN/EDITOR) so their own visits to the
+    // public site don't skew analytics. Same 204 as success — the client's
+    // fire-and-forget beacon/fetch never sees a difference.
+    if (shouldSkipTracking(await getSessionToken())) {
+      return new NextResponse(null, { status: 204 })
+    }
+
     const body = await request.json()
     const { path, eventType, sessionId, eventData, referrer, userAgent } = body
 
