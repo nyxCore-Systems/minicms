@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getTenant } from '@/lib/tenant'
 import { normalizeSlug, isValidSlug, safeHttpsUrl, safeCloudinaryUrl, sanitizeSocials } from '@/lib/artist-validation'
 import { getArtistsForAdmin } from '@/lib/artists'
+import { submitUrls } from '@/lib/indexnow'
 
 async function getSessionToken() {
   const cookieStore = await cookies()
@@ -65,5 +66,11 @@ export async function POST(req: NextRequest) {
       updatedById: (token.sub as string) || null,
     },
   })
+  // A newly created artist can be published immediately (unlike pages/events,
+  // which are created as drafts and pinged on the publish PUT). Best-effort;
+  // no-ops off-prod and never throws.
+  if (artist.isPublished && artist.isActive) {
+    void submitUrls([`/kuenstler/${artist.slug}`, '/kuenstler'])
+  }
   return NextResponse.json(artist, { status: 201 })
 }
