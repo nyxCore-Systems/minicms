@@ -6,9 +6,16 @@ on:
     - cron: '0 3 * * *'
   workflow_dispatch: # Manueller Trigger über GitHub UI
 
+# Backups gehen nach Hetzner Object Storage (S3-kompatibel, Falkenstein/fsn1).
+# Endpoint/Region/Bucket sind öffentliche Konfiguration; nur die Zugangsschlüssel
+# sind Secrets (S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY, Repo-Ebene).
+# WICHTIG: Hetzner verlangt, dass die S3-Region der Location entspricht -> fsn1
+# (nicht eu-central-1), sonst LocationConstraintConflict.
 env:
   BACKUP_RETENTION_DAYS: 30
-  R2_BUCKET: e-ventschau-backups
+  S3_BUCKET: e-ventschau-backups
+  S3_ENDPOINT: https://fsn1.your-objectstorage.com
+  S3_REGION: fsn1
 
 jobs:
   backup:
@@ -44,42 +51,42 @@ jobs:
           SIZE_H=$(du -h "${FILENAME}" | cut -f1)
           echo "Backup created: ${FILENAME} (${SIZE_H})"
 
-      - name: Configure AWS CLI for R2
+      - name: Configure AWS CLI for Hetzner S3
         run: |
-          aws configure set aws_access_key_id "${{ secrets.R2_ACCESS_KEY_ID }}"
-          aws configure set aws_secret_access_key "${{ secrets.R2_SECRET_ACCESS_KEY }}"
-          aws configure set default.region auto
+          aws configure set aws_access_key_id "${{ secrets.S3_ACCESS_KEY_ID }}"
+          aws configure set aws_secret_access_key "${{ secrets.S3_SECRET_ACCESS_KEY }}"
+          aws configure set default.region "${S3_REGION}"
 
-      - name: Upload backup to Cloudflare R2
+      - name: Upload backup to Hetzner S3
         run: |
           aws s3 cp "${FILENAME}" \
-            "s3://${R2_BUCKET}/db/${FILENAME}" \
-            --endpoint-url "${{ secrets.R2_ENDPOINT }}"
+            "s3://${S3_BUCKET}/db/${FILENAME}" \
+            --endpoint-url "${S3_ENDPOINT}"
 
-          echo "Uploaded ${FILENAME} to R2"
+          echo "Uploaded ${FILENAME} to ${S3_BUCKET}/db/"
 
       - name: Delete old backups (> ${{ env.BACKUP_RETENTION_DAYS }} days)
         run: |
           CUTOFF_DATE=$(date -d "-${BACKUP_RETENTION_DAYS} days" +%Y-%m-%d)
           echo "Deleting backups older than ${CUTOFF_DATE}"
 
-          aws s3 ls "s3://${R2_BUCKET}/db/" \
-            --endpoint-url "${{ secrets.R2_ENDPOINT }}" \
+          aws s3 ls "s3://${S3_BUCKET}/db/" \
+            --endpoint-url "${S3_ENDPOINT}" \
             | while read -r line; do
               FILE=$(echo "$line" | awk '{print $4}')
               # Extract date from filename (neondb_YYYY-MM-DD_HH-MM.sql.gz)
               FILE_DATE=$(echo "$FILE" | grep -oP '\d{4}-\d{2}-\d{2}' | head -1)
               if [[ -n "$FILE_DATE" && "$FILE_DATE" < "$CUTOFF_DATE" ]]; then
                 echo "Deleting old backup: ${FILE}"
-                aws s3 rm "s3://${R2_BUCKET}/db/${FILE}" \
-                  --endpoint-url "${{ secrets.R2_ENDPOINT }}"
+                aws s3 rm "s3://${S3_BUCKET}/db/${FILE}" \
+                  --endpoint-url "${S3_ENDPOINT}"
               fi
             done
 
-      - name: Verify backup exists in R2
+      - name: Verify backup exists in Hetzner S3
         run: |
           aws s3api head-object \
-            --bucket "${R2_BUCKET}" \
+            --bucket "${S3_BUCKET}" \
             --key "db/${FILENAME}" \
-            --endpoint-url "${{ secrets.R2_ENDPOINT }}"
-          echo "Backup verified in R2: db/${FILENAME}"
+            --endpoint-url "${S3_ENDPOINT}"
+          echo "Backup verified: ${S3_BUCKET}/db/${FILENAME}"
