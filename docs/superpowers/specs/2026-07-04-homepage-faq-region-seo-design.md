@@ -10,6 +10,10 @@ Guarantee a festival FAQ on the homepage — visible **and** emitting exactly on
 broaden the site's regional terms ("Norddeutschland" / "Niedersachsen") for
 generic "Festivals im Norden"-style discovery.
 
+Additionally, wire up **IndexNow** (host the ownership key file and auto-submit
+changed URLs to IndexNow — which shares them with Bing and other participating
+engines — on admin publish/update).
+
 This is an on-page SEO/AEO improvement. No new dependencies, no schema change.
 
 ## Background / current state (verified)
@@ -147,6 +151,70 @@ export function resolveHomepageFaq(
 - Manual/inspection: exactly one `FAQPage` block in the rendered homepage HTML
   in each of the three cases above.
 
+## IndexNow (chosen: "auto-ping on publish")
+
+Protocol (confirmed from indexnow.org): host `https://e-ventschau.de/{key}.txt`
+containing exactly the key; submit changes via `POST https://api.indexnow.org/indexnow`
+with `Content-Type: application/json; charset=utf-8` and body
+`{ host, key, keyLocation, urlList }` (≤10,000 URLs). A root-level key covers all
+paths; submitting to one engine shares with all. Key
+`3488822b5c7046ca8b5bcb16286d3d0b` (32 hex chars) is valid.
+
+### 6. `public/3488822b5c7046ca8b5bcb16286d3d0b.txt` (NEW)
+
+Static file, content = the key verbatim (`3488822b5c7046ca8b5bcb16286d3d0b`, no
+trailing newline). Served by Next.js at
+`https://e-ventschau.de/3488822b5c7046ca8b5bcb16286d3d0b.txt`.
+
+### 7. `src/lib/indexnow.ts` (NEW — pure builders unit-tested; `submitUrls` is the thin side effect)
+
+```ts
+export const INDEXNOW_KEY: string           // process.env.INDEXNOW_KEY || the key above
+
+/** True only for the real prod host over https (never localhost/dev). */
+export function indexNowEnabled(siteUrl?: string): boolean
+
+/** Dedupe + map paths to absolute prod URLs, dropping off-host/invalid ones. */
+export function toAbsoluteUrls(paths: string[], siteUrl?: string): string[]
+
+/** The POST body: { host, key, keyLocation, urlList }. */
+export function buildIndexNowBody(urls: string[], siteUrl?: string, key?: string): {
+  host: string; key: string; keyLocation: string; urlList: string[]
+}
+
+/** Best-effort, never throws. No-ops unless indexNowEnabled() and NODE_ENV==='production'. */
+export async function submitUrls(paths: string[]): Promise<void>
+```
+
+`SITE_URL` = `process.env.NEXT_PUBLIC_SITE_URL || 'https://e-ventschau.de'`
+(same as `sitemap.ts`/`seo.ts`). `keyLocation = ${SITE_URL}/${INDEXNOW_KEY}.txt`.
+
+### 8. Admin route hooks (MODIFY — fire-and-forget `void submitUrls(paths)` after a successful mutation)
+
+The routes run on the Node runtime and already do post-mutation side effects
+(`revalidatePath`), so a non-blocking ping fits. URL mapping mirrors `sitemap.ts`:
+
+| Route | When | Paths submitted |
+| --- | --- | --- |
+| `pages/route.ts` POST, `pages/[id]/route.ts` PUT | page is `isPublished` | `[page.path || '/'+page.slug]` |
+| `artists/route.ts` POST, `artists/[id]/route.ts` PUT | artist `isPublished && isActive` | `['/kuenstler/'+slug, '/kuenstler']` |
+| `events/route.ts` POST, `events/[id]/route.ts` PUT | event `isPublished && isActive` | `['/events/'+slug, '/events']` |
+| `sections/route.ts` POST/PUT/DELETE, `sections/reorder`, `sections/import-homepage` | any | `['/']` |
+
+A tiny local call (`void submitUrls([...])`) at each site; no `await` (best-effort,
+must not add latency or fail the save). `submitUrls` swallows all errors.
+
+### 9. `src/lib/__tests__/indexnow.test.ts` (NEW)
+
+- `indexNowEnabled`: `https://e-ventschau.de` → true; `http://…` and
+  `http://localhost:3000` → false.
+- `toAbsoluteUrls`: prefixes SITE_URL, dedupes, drops off-host/empty.
+- `buildIndexNowBody`: correct `host`, `keyLocation` (`…/{key}.txt`), `urlList`,
+  and `key` echoes `INDEXNOW_KEY`.
+- Key format guard: `INDEXNOW_KEY` matches `/^[A-Za-z0-9-]{8,128}$/`, and
+  `public/${INDEXNOW_KEY}.txt` exists and its trimmed content equals the key
+  (catches filename/constant drift).
+
 ## Out of scope (declined in brainstorm)
 
 - Re-adding a hero date/location tile (`dateMeta`).
@@ -159,5 +227,9 @@ export function resolveHomepageFaq(
 - German UI copy. No new dependencies. No Prisma schema change.
 - Reuse `buildFaqJsonLd` (`lib/seo.ts`) for JSON-LD; never emit more than one
   `FAQPage` on the homepage.
-- `lib/faq.ts` stays import-free of React/Prisma (unit-testable).
+- `lib/faq.ts` and `lib/indexnow.ts` keep their pure builders import-free of
+  React/Prisma (unit-testable); only `submitUrls` does I/O.
+- IndexNow submission is **best-effort and never blocks or fails an admin save**;
+  it no-ops outside production / the prod host. The key is public (hosted), so it
+  is not a secret — a hardcoded default is acceptable, `INDEXNOW_KEY` env overrides.
 - Deploy is push-to-`main`; ship as a PR (no direct main writes).
