@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/lib/prisma'
 import { getTenant } from '@/lib/tenant'
+import { submitUrls } from '@/lib/indexnow'
 
 async function getSessionToken() {
   const cookieStore = await cookies()
@@ -66,6 +67,8 @@ export async function POST(request: Request) {
     },
   })
 
+  void submitUrls(['/'])
+
   return NextResponse.json(section, { status: 201 })
 }
 
@@ -104,6 +107,8 @@ export async function PUT(request: Request) {
     },
   })
 
+  void submitUrls(['/'])
+
   return NextResponse.json(section)
 }
 
@@ -131,6 +136,8 @@ export async function DELETE(request: Request) {
   }
 
   await prisma.homepageSection.delete({ where: { id } })
+
+  void submitUrls(['/'])
 
   return NextResponse.json({ success: true })
 }

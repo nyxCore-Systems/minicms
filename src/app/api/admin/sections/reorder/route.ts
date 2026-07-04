@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/lib/prisma'
 import { getTenant } from '@/lib/tenant'
+import { submitUrls } from '@/lib/indexnow'
 
 async function getSessionToken() {
   const cookieStore = await cookies()
@@ -59,6 +60,8 @@ export async function PUT(request: Request) {
     where: { tenantId: tenant.id },
     orderBy: { sortOrder: 'asc' },
   })
+
+  void submitUrls(['/'])
 
   return NextResponse.json(updated)
 }
