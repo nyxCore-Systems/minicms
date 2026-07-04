@@ -25,7 +25,7 @@ npx tsx --test src/lib/__tests__/slug.test.ts     # single file
 
 ## Architecture
 
-Next.js 15 App Router with TypeScript, React 19, Tailwind 3.4, Prisma 6 (Neon PostgreSQL), NextAuth 4 (JWT strategy), Cloudinary for media, OpenAI for AI content/SEO assist. German-language website for the **e-Ventschau** benefit music festival (built on the reusable "minicms" CMS skeleton).
+Next.js 15 App Router with TypeScript, React 19, Tailwind 3.4, Prisma 6 (Neon PostgreSQL), NextAuth 4 (JWT strategy), Plate.js WYSIWYG editing, Cloudinary for media, OpenAI for AI content/SEO assist. German-language website for the **e-Ventschau** benefit music festival (built on the reusable "minicms" CMS skeleton).
 
 ### Route Groups & Layouts
 
@@ -44,14 +44,27 @@ DB access goes through `src/lib/prisma.ts`, which exports a singleton `prisma` c
 
 Page content (markdown) lives in the DB `Page` model (originally seeded from `src/content/*.md` via gray-matter). Public pages call helpers in `src/lib/markdown.ts` (e.g. `getContent`) — unpublished drafts return `null`, triggering `notFound()`. Pages are versioned via `PageVersion` (history API under `/api/admin/pages/[id]/versions`).
 
-**Directive blocks** are the core authoring primitive. `src/lib/directiveParser.ts` is the single source of truth shared by both the public renderer (`src/components/MarkdownContent.tsx`) and the **Plate.js WYSIWYG editor** (`src/components/admin/MarkdownEditorField.tsx`). Directives use `:::name … :::` fenced syntax (nesting supported) and render React components from `src/components/markdown/` — heroes, sliders, callouts (info/warning/tip/danger), columns, boxes, bento grids, plus dynamic `banner-*`, `slider-*`, and `products-*` blocks. When adding a directive, update the `DIRECTIVE_RE` regex and the `Block` union in `directiveParser.ts`, then both the parser-consuming renderer and editor.
+**Directive blocks** are the core authoring primitive. `src/lib/directiveParser.ts` is the single source of truth shared by both the public renderer (`src/components/MarkdownContent.tsx`) and the **Plate.js WYSIWYG editor** (`src/components/admin/editor/`). Directives use `:::name … :::` fenced syntax (nesting supported) and render React components from `src/components/markdown/` — heroes, sliders, callouts (info/warning/tip/danger), columns, boxes, bento grids, plus dynamic `banner-*`, `slider-*`, and `products-*` blocks. When adding a directive, update the `DIRECTIVE_RE` regex and the `Block` union in `directiveParser.ts`, then both the parser-consuming renderer and editor (see below).
+
+### WYSIWYG Editor (Plate.js)
+
+`src/components/admin/MarkdownEditorField.tsx` is the reusable content field. It offers three per-field modes — **Markdown** (raw textarea), **WYSIWYG** (Plate.js), **Vorschau** (live `MarkdownContent` preview). **Markdown is the source of truth**: `src/lib/contentEditor.ts` defines the `ContentEditorValue` triple `{ markdown, contentJson, editorMode }`, where `contentJson` is a lossless mirror of the Plate node tree that rehydrates the WYSIWYG surface (falling back to `markdownToPlate(markdown)` when empty). Every WYSIWYG edit regenerates markdown via `plateToMarkdown`.
+
+The editor lives under `src/components/admin/editor/` (loaded via `next/dynamic`, `ssr: false`):
+- `serialization/` — `markdownToPlate` / `plateToMarkdown`, the round-trip between directive markdown and Plate nodes (covered by `editor-roundtrip.test.ts` + `contentEditor.test.ts`).
+- `plugins/` — one Plate plugin per directive block (`createCalloutPlugin`, `createBoxPlugin`, `createHeroPlugin`, …; barrel in `plugins/index.ts`).
+- `elements/` — the React node components Plate renders for each block.
+- `toolbar/` — reusable accessible primitives (`Toolbar`, `ToolbarButton`, `ToolbarToggleButton`, `ToolbarSeparator`) implementing WAI-ARIA roving tabindex; the pure keyboard-nav core is `src/lib/toolbarNav.ts` (tested in `toolbarNav.test.ts`).
+- `SlashCommandMenu.tsx` — `/`-triggered block insertion.
+
+Persistence: `Page.contentJson` (`Json?`) + `Page.editorMode` (`String?`, default `"markdown"`) back the triple; `HomepageSection.content` stores the same shape as a JSON blob via `sectionContentToValue` / `valueToSectionContent`.
 
 ### Domain Models
 
 Beyond pages/media, the Prisma schema (`prisma/schema.prisma`) covers several content domains, each with admin CRUD pages + API routes + a `src/lib/*.ts` data helper:
 
 - **Artists** (`Artist`, `ArtistMedia`) → `lib/artists.ts`, public `/kuenstler`.
-- **Events** (`Event`, `Stage`, `Appearance`, `PriceTier`) → `lib/events.ts`, public `/events`; timetable builder in admin.
+- **Events** (`Event`, `Stage`, `Appearance`, `PriceTier`) → `lib/events.ts`, public `/events`; timetable builder in admin. `Appearance.category` (default `"musik"`, e.g. `vortrag`) classifies timetable slots; `lib/lineup.ts` derives the homepage line-up section from a featured event's slots, filtered and ordered by category.
 - **Vendors** (`Vendor`, `VendorDetail`, `VendorClick`, `VendorAd`) → `lib/vendors.ts` / `vendor-detail.ts`, with click/impression tracking.
 - **Products** (`Product`, `ProductCategory`) → `lib/products.ts` / `products-db.ts` / `categories.ts`.
 - **Sliders/Banners** (`Slider`, `SliderItem`, `SliderImpression`, banner impressions via `VendorAd`/`BannerImpression`) → `lib/sliders.ts` / `banners.ts`.
@@ -72,6 +85,8 @@ NextAuth CredentialsProvider with bcrypt password comparison (`src/lib/auth.ts`)
 
 Cloudinary uploads via `POST /api/admin/media` (signed uploads via `/api/admin/media/sign`). Metadata stored in the `Media` model. Images served from `res.cloudinary.com` (allowed in `next.config.ts` remote patterns). Media picker dialog (`components/admin/MediaPickerDialog.tsx`) available in the editor. Cloudinary config is fail-fast guarded — missing env surfaces a visible upload error.
 
+`GET /api/admin/media` is cursor-paginated (pure helpers in `src/lib/media-query.ts`, tested in `media-query.test.ts`) and returns `{ items, nextCursor, total }` — **not a bare array**; it accepts `?search=`, `?type=IMAGE|VIDEO`, `?cursor=`, `?limit=` (max 100). Any consumer must read `data.items`.
+
 ### Styling & Theming
 
 Liquid-glass morphism design system. Brand colors in `tailwind.config.ts`: forest (#2d5016), sage (#7c9a6c), copper (#b87333), cream (#faf8f0). Custom utilities: `.glass`, `.glass-strong`, `.glass-card`, `.btn-primary`, `.btn-secondary`. Theming is per-tenant via `SiteSettings.themeSlug` — `src/lib/themes.ts` maps a theme to CSS custom properties (`--brand-*`, `--glass-*`, gradients) injected at the layout level, so components read from CSS variables rather than hard-coded colors. Scroll animation/smoothing via Lenis (`components/providers/LenisProvider.tsx`).
@@ -85,7 +100,7 @@ Liquid-glass morphism design system. Brand colors in `tailwind.config.ts`: fores
 - **Prisma CLI reads `.env`, not `.env.local`** — ensure `.env` has `DATABASE_URL` for migrations/seeding. Next.js reads `.env.local` at runtime.
 - **Never use `redirect()` in admin layout** for the login route — causes infinite loop. The middleware matcher + conditional rendering pattern handles this.
 - **Next.js 15**: `headers()`, `cookies()`, `params`, `searchParams` are all async.
-- **Vercel env vars**: Use `printf 'val' | vercel env add` (not `<<<` which adds trailing newline).
+- **Deploy is push-to-`main`** (Vercel is gone): `.github/workflows/deploy.yml` verifies (test + build), rsyncs the checkout to the self-hosted server, and runs `docker compose up -d --build` plus a `migrate` profile for `prisma migrate deploy`. `ci.yml` runs the same test+build gate on PRs. Schema changes only go live once the migrate step runs — a green CI does not imply the migration applied.
 - **`force-dynamic`**: Public content pages use `export const dynamic = 'force-dynamic'` to always fetch fresh DB content.
 - **Tenant scoping**: a missing/unknown tenant makes `getTenant()` return `null` — helpers then return `null`/empty rather than throwing. Use `getTenantOrThrow()` where a tenant is required.
-- **Directive changes touch three files**: keep `directiveParser.ts`, the public renderer, and the Plate editor in sync.
+- **Directive changes fan out**: keep `directiveParser.ts`, the public renderer (`MarkdownContent.tsx`), and the Plate editor in sync — the editor side means its serializer (`markdownToPlate`/`plateToMarkdown`), a plugin, and an element under `src/components/admin/editor/`.
