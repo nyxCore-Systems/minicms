@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { authTenant } from '@/lib/admin-auth'
+import { submitUrls } from '@/lib/indexnow'
 import {
   normalizeSlug, isValidSlug, safeHttpsUrl, safeCloudinaryUrl,
   sanitizeEventType, sanitizePriceTier,
@@ -97,6 +98,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   const updated = await prisma.event.findUnique({ where: { id }, include: EVENT_INCLUDE })
+
+  if (updated?.isPublished && updated.isActive) {
+    void submitUrls([`/events/${updated.slug}`, '/events'])
+  }
+
   return NextResponse.json(updated)
 }
 

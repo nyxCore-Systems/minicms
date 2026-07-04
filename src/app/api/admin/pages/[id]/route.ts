@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/lib/prisma'
 import { simpleHash } from '@/lib/hash'
+import { submitUrls } from '@/lib/indexnow'
 
 async function getSessionToken() {
   const cookieStore = await cookies()
@@ -173,6 +174,10 @@ export async function PUT(
           })),
         })
       }
+    }
+
+    if (updated.isPublished) {
+      void submitUrls([updated.path || `/${updated.slug}`])
     }
 
     return NextResponse.json(updated)

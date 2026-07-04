@@ -4,6 +4,7 @@ import { getToken } from 'next-auth/jwt'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getTenant } from '@/lib/tenant'
+import { submitUrls } from '@/lib/indexnow'
 import {
   NOIR_HERO_DEFAULTS,
   NOIR_LINEUP_DEFAULTS,
@@ -80,6 +81,8 @@ export async function POST() {
   ]
 
   await prisma.homepageSection.createMany({ data: rows })
+
+  void submitUrls(['/'])
 
   return NextResponse.json({ success: true, count: rows.length }, { status: 201 })
 }

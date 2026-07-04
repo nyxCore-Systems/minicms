@@ -4,6 +4,7 @@ import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/lib/prisma'
 import { getTenant } from '@/lib/tenant'
 import { normalizeSlug, isValidSlug, safeHttpsUrl, safeCloudinaryUrl, sanitizeSocials, sanitizeGalleryItem } from '@/lib/artist-validation'
+import { submitUrls } from '@/lib/indexnow'
 
 async function getSessionToken() {
   const cookieStore = await cookies()
@@ -93,6 +94,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   const updated = await prisma.artist.findUnique({ where: { id }, include: { media: { orderBy: { sortOrder: 'asc' } } } })
+
+  if (updated?.isPublished && updated.isActive) {
+    void submitUrls([`/kuenstler/${updated.slug}`, '/kuenstler'])
+  }
+
   return NextResponse.json(updated)
 }
 
