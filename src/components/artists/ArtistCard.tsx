@@ -42,7 +42,10 @@ export default function ArtistCard({
           <span className="mt-1 inline-block rounded-pill bg-brand-accent/10 px-2 py-0.5 text-xs font-medium text-brand-accent">Headliner</span>
         )}
         {artist.genres?.length ? (
-          <p className="mt-2 text-sm text-brand-text-muted">{artist.genres.join(' · ')}</p>
+          <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-brand-accent">{artist.genres.join(' · ')}</p>
+        ) : null}
+        {!isList && artist.excerpt ? (
+          <p className="mt-2 line-clamp-3 text-sm text-brand-text-muted">{artist.excerpt}</p>
         ) : null}
       </div>
     </Link>
