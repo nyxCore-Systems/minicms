@@ -1,4 +1,5 @@
 import { NOIR_MANIFEST_DEFAULTS, type NoirManifestContent } from '@/lib/noir-home-defaults'
+import NoirRichText from './NoirRichText'
 
 export default function NoirManifestSection({ content }: { content?: NoirManifestContent | null }) {
   const text = content?.text || NOIR_MANIFEST_DEFAULTS.text
@@ -16,7 +17,7 @@ export default function NoirManifestSection({ content }: { content?: NoirManifes
             </>
           )}
         </h2>
-        <p>{text}</p>
+        <NoirRichText content={text} />
         <div className="nh-mstats">
           {stats.map((s, i) => (
             <div className="nh-ms" key={i}>

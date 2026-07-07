@@ -645,6 +645,23 @@
 .nh-ms .v { font-family: var(--font-space-grotesk), 'Space Grotesk', sans-serif; font-weight: 700; font-size: 52px; color: var(--gold, #FAB90C); line-height: 1; }
 .nh-ms .k { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted, #8AA0B4); margin-top: 8px; }
 
+/* rich text (markdown-rendered) inside noir sections — inherits size/colour from
+   the parent (.nh-sub, .nh-manifest …); only adds child spacing/link/list/rule styling */
+.nh-rich > :first-child { margin-top: 0; }
+.nh-rich > :last-child { margin-bottom: 0; }
+.nh-rich p { margin: 0 0 0.9em; }
+.nh-rich a { color: var(--gold, #FAB90C); text-decoration: underline; text-underline-offset: 2px; }
+.nh-rich a:hover { text-decoration: none; }
+.nh-rich strong, .nh-rich b { font-weight: 700; }
+.nh-rich em, .nh-rich i { font-style: italic; }
+.nh-rich ul, .nh-rich ol { margin: 0 0 0.9em; padding-left: 1.3em; }
+.nh-rich li { margin: 0.25em 0; }
+.nh-rich hr { border: 0; border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 1.2em 0; }
+.nh-rich code { font-family: var(--font-mono), 'IBM Plex Mono', monospace; font-size: 0.9em; }
+/* Manifest body markdown: keep its 18px body colour/size (overrides .nh-manifest p) */
+.nh-manifest .nh-rich { max-width: 58ch; margin-top: 26px; }
+.nh-manifest .nh-rich p, .nh-manifest .nh-rich li { font-size: 18px; color: #b7c6d6; }
+
 /* donate */
 .nh-don { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: start; }
 .nh-don h2 { font-size: clamp(34px, 4.8vw, 62px); color: var(--sand, #FBF7EF); }

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { NOIR_DONATE_DEFAULTS, type NoirDonateContent } from '@/lib/noir-home-defaults'
 import PayPalHostedButton from './PayPalHostedButton'
 import PayPalDonateButton from './PayPalDonateButton'
+import NoirRichText from './NoirRichText'
 
 // Tickets use a PayPal "No-Code Payments" hosted button (SDK, iframe-isolated —
 // see PayPalHostedButton). Donations use the classic PayPal "Donate" button (a
@@ -27,7 +28,7 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
         <div className="nh-sec-head">
           <div className="nh-lab">{label}</div>
           <h2>{heading}</h2>
-          <p className="nh-sub">{text}</p>
+          <NoirRichText content={text} className="nh-sub" />
         </div>
 
         <div className="nh-don">
