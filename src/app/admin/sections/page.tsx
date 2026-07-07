@@ -486,11 +486,15 @@ export default function AdminSectionsPage() {
   // Noir Manifest
   const [noirManifestHeading, setNoirManifestHeading] = useState('')
   const [noirManifestText, setNoirManifestText] = useState('')
+  const [noirManifestTextJson, setNoirManifestTextJson] = useState<TElement[]>([])
+  const [noirManifestTextMode, setNoirManifestTextMode] = useState<EditorMode>('markdown')
   const [noirManifestStats, setNoirManifestStats] = useState<NoirStatForm[]>([{ value: '', label: '' }])
   // Noir Donate
   const [noirDonateLabel, setNoirDonateLabel] = useState('')
   const [noirDonateHeading, setNoirDonateHeading] = useState('')
   const [noirDonateText, setNoirDonateText] = useState('')
+  const [noirDonateTextJson, setNoirDonateTextJson] = useState<TElement[]>([])
+  const [noirDonateTextMode, setNoirDonateTextMode] = useState<EditorMode>('markdown')
   const [noirDonateChips, setNoirDonateChips] = useState<NoirChipForm[]>([{ value: '' }])
   const [noirDonateCtaLabel, setNoirDonateCtaLabel] = useState('')
   const [noirDonateCtaHref, setNoirDonateCtaHref] = useState('')
@@ -616,11 +620,15 @@ export default function AdminSectionsPage() {
     // Noir Manifest
     setNoirManifestHeading('')
     setNoirManifestText('')
+    setNoirManifestTextJson([])
+    setNoirManifestTextMode('markdown')
     setNoirManifestStats([{ value: '', label: '' }])
     // Noir Donate
     setNoirDonateLabel('')
     setNoirDonateHeading('')
     setNoirDonateText('')
+    setNoirDonateTextJson([])
+    setNoirDonateTextMode('markdown')
     setNoirDonateChips([{ value: '' }])
     setNoirDonateCtaLabel('')
     setNoirDonateCtaHref('')
@@ -738,6 +746,8 @@ export default function AdminSectionsPage() {
     } else if (section.type === 'noir_manifest') {
       setNoirManifestHeading((content?.heading as string) || '')
       setNoirManifestText((content?.text as string) || '')
+      setNoirManifestTextJson([])
+      setNoirManifestTextMode('markdown')
       const stats = (content?.stats as NoirStatForm[]) || []
       setNoirManifestStats(stats.length > 0 ? stats : [{ value: '', label: '' }])
       setFormContent('')
@@ -746,6 +756,8 @@ export default function AdminSectionsPage() {
       setNoirDonateLabel((content?.label as string) || '')
       setNoirDonateHeading((content?.heading as string) || '')
       setNoirDonateText((content?.text as string) || '')
+      setNoirDonateTextJson([])
+      setNoirDonateTextMode('markdown')
       const chips = (content?.chips as string[]) || []
       setNoirDonateChips(chips.length > 0 ? chips.map((c) => ({ value: c })) : [{ value: '' }])
       setNoirDonateCtaLabel((content?.ctaLabel as string) || '')
@@ -2149,13 +2161,18 @@ export default function AdminSectionsPage() {
                   <p className="text-xs text-brand-text-muted mt-1">Leer = gestaltete Standard-Überschrift.</p>
                 </div>
                 <div>
-                  <label className={labelClass}>Text</label>
-                  <textarea
+                  <MarkdownEditorField
                     value={noirManifestText}
-                    onChange={(e) => setNoirManifestText(e.target.value)}
-                    rows={4}
-                    className={inputClass}
+                    contentJson={noirManifestTextJson}
+                    editorMode={noirManifestTextMode}
+                    onChange={(next) => {
+                      setNoirManifestText(next.markdown)
+                      setNoirManifestTextJson(next.contentJson)
+                      setNoirManifestTextMode(next.editorMode)
+                    }}
+                    label="Text"
                     placeholder="Seit 2013 erinnert e-Ventschau …"
+                    minHeight={140}
                   />
                 </div>
                 <div>
@@ -2213,13 +2230,18 @@ export default function AdminSectionsPage() {
                   </div>
                 </div>
                 <div>
-                  <label className={labelClass}>Text</label>
-                  <textarea
+                  <MarkdownEditorField
                     value={noirDonateText}
-                    onChange={(e) => setNoirDonateText(e.target.value)}
-                    rows={3}
-                    className={inputClass}
+                    contentJson={noirDonateTextJson}
+                    editorMode={noirDonateTextMode}
+                    onChange={(next) => {
+                      setNoirDonateText(next.markdown)
+                      setNoirDonateTextJson(next.contentJson)
+                      setNoirDonateTextMode(next.editorMode)
+                    }}
+                    label="Text"
                     placeholder="Der Eintritt bleibt sozial verträglich …"
+                    minHeight={140}
                   />
                 </div>
                 <div>
