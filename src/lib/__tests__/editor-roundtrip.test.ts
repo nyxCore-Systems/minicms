@@ -63,6 +63,16 @@ import { parseBlocks } from '@/lib/directiveParser'
   assert.equal(raw.rawMarkdown, ':::futuristic\nhello **world**\n:::')
   assert.equal(rt(md), md)
 }
+// --- PayPal donate directive: known leaf, parses + round-trips exactly ---
+{
+  const md = ':::donate\n:::'
+  const blocks = parseBlocks(md)
+  assert.equal(blocks.length, 1)
+  assert.equal(blocks[0].type, 'donate')
+  const node = firstOfType(markdownToPlate(md), 'donate')
+  assert.ok(node, 'donate element emitted')
+  assert.equal(rt(md), md)
+}
 // Empty unknown directive
 {
   const md = ':::foo\n:::'
@@ -93,6 +103,7 @@ const CORPUS: string[] = [
   ':::columns-3\nA\n---\nB\n---\nC\n:::',
   // dynamic directives (data-only)
   ':::banner-hero1\n:::',
+  ':::donate\n:::',
   ':::slider-main-2026\n:::',
   ':::products-merch\n:::',
   // callout wrapping an unknown directive

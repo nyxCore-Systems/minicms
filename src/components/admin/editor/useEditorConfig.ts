@@ -22,6 +22,7 @@ import {
   ELEMENT_SHOWCASE,
   ELEMENT_GRID,
   ELEMENT_BANNER,
+  ELEMENT_DONATE,
   ELEMENT_SLIDER,
   ELEMENT_PRODUCTS,
   ELEMENT_DIRECTIVE_RAW,
@@ -60,6 +61,7 @@ import { ProjectBentoElement } from './elements/ProjectBentoElement'
 import { ShowcaseElement } from './elements/ShowcaseElement'
 import { GridElement } from './elements/GridElement'
 import { BannerElement } from './elements/BannerElement'
+import { DonateElement } from './elements/DonateElement'
 import { SliderElement } from './elements/SliderElement'
 import { ProductsElement } from './elements/ProductsElement'
 import { DirectiveRawElement } from './elements/DirectiveRawElement'
@@ -75,6 +77,7 @@ import { createProjectBentoPlugin } from './plugins/projectBentoPlugin'
 import { createShowcasePlugin } from './plugins/showcasePlugin'
 import { createOrganicGridPlugin } from './plugins/organicGridPlugin'
 import { createBannerPlugin } from './plugins/bannerPlugin'
+import { createDonatePlugin } from './plugins/donatePlugin'
 import { createSliderPlugin } from './plugins/sliderPlugin'
 import { createProductsPlugin } from './plugins/productsPlugin'
 import { createDirectiveRawPlugin } from './plugins/directiveRawPlugin'
@@ -106,6 +109,7 @@ export function useEditorConfig(initialValue: TElement[]) {
       createShowcasePlugin(),
       createOrganicGridPlugin(),
       createBannerPlugin(),
+      createDonatePlugin(),
       createSliderPlugin(),
       createProductsPlugin(),
       createDirectiveRawPlugin(),
@@ -144,6 +148,7 @@ export function useEditorConfig(initialValue: TElement[]) {
         [ELEMENT_SHOWCASE]: ShowcaseElement,
         [ELEMENT_GRID]: GridElement,
         [ELEMENT_BANNER]: BannerElement,
+        [ELEMENT_DONATE]: DonateElement,
         [ELEMENT_SLIDER]: SliderElement,
         [ELEMENT_PRODUCTS]: ProductsElement,
         [ELEMENT_DIRECTIVE_RAW]: DirectiveRawElement,

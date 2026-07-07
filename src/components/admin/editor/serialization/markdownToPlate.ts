@@ -13,6 +13,7 @@ import {
   ELEMENT_SHOWCASE,
   ELEMENT_GRID,
   ELEMENT_BANNER,
+  ELEMENT_DONATE,
   ELEMENT_SLIDER,
   ELEMENT_PRODUCTS,
   ELEMENT_DIRECTIVE_RAW,
@@ -404,6 +405,12 @@ function blockToPlateNodes(block: Block): TElement[] {
       return [{
         type: ELEMENT_BANNER,
         bannerId: block.directiveId || undefined,
+        children: [{ text: '' }],
+      } as TElement]
+
+    case 'donate':
+      return [{
+        type: ELEMENT_DONATE,
         children: [{ text: '' }],
       } as TElement]
 
