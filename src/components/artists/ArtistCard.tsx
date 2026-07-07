@@ -45,7 +45,7 @@ export default function ArtistCard({
           <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-brand-accent">{artist.genres.join(' · ')}</p>
         ) : null}
         {!isList && artist.excerpt ? (
-          <p className="mt-2 line-clamp-3 text-sm text-brand-text-muted">{artist.excerpt}</p>
+          <p className="mt-2 line-clamp-5 text-sm text-brand-text-muted">{artist.excerpt}</p>
         ) : null}
       </div>
     </Link>
