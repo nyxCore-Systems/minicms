@@ -6,15 +6,20 @@ description: Unterstützen Sie e-Ventschau durch Spenden, Sponsoring oder freiwi
 navLabel: Ihre Spende
 ---
 
-## Unterstützen Sie e-Ventschau
+# Unterstützen Sie e-Ventschau
 
-### Volontäre
+e-Ventschau lebt von Menschen, die mit anpacken – und von finanzieller Unterstützung. Jeder überschüssige Euro fließt in den Benefiz-Zweck.
+
+:::donate
+:::
+
+## Volontäre
 e-Ventschau ist darauf angewiesen, dass Menschen bereit sind, ihr Knowhow und ihre Arbeitskraft zur Vorbereitung und Durchführung des Festivals einzubringen. Freiwilligenarbeit im Sinne von selbstbestimmtem Zupacken.
 
-### Sponsoren
+## Sponsoren
 Sponsoring- und Präsentationsmöglichkeiten rund um das Benefiz-Open-Air e-Ventschau. Sponsoren erleben Image-Transfer und helfen, das Fest in der regionalen Kulturlandschaft zu etablieren.
 
-### Förderer / Patenschaften
+## Förderer / Patenschaften
 Jeder kann ein Förderer sein und die gute Sache mit einer finanziellen Zuwendung unterstützen.
 
-*(Förderantrag als PDF und Online-Bewerbung werden im Admin-Bereich ergänzt.)*
+Alle bisherigen Förderer und Sponsoren finden Sie auf der Seite [Unsere Förderer](/foerderer).

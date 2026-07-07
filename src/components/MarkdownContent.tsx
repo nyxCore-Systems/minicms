@@ -12,6 +12,10 @@ import FeatureBox from '@/components/markdown/FeatureBox'
 import HeroBlock from '@/components/markdown/HeroBlock'
 import ShowcaseBlock from '@/components/markdown/ShowcaseBlock'
 import OrganicGrid from '@/components/markdown/OrganicGrid'
+import PayPalDonateButton from '@/components/noir/sections/PayPalDonateButton'
+
+// PayPal "Donate" hosted-button id — mirrors PAYPAL_DONATE_BUTTON in NoirDonateSection.
+const PAYPAL_DONATE_BUTTON = 'GCRR5BM8K8D22'
 
 const HeroSection = dynamic(() => import('@/components/markdown/HeroSection'), { ssr: false })
 const CvTimeline = dynamic(() => import('@/components/markdown/CvTimeline'), { ssr: false })
@@ -170,6 +174,16 @@ function RenderBlocks({ content }: { content: string }) {
               <FeatureBox key={i}>
                 <RenderBlocks content={block.content} />
               </FeatureBox>
+            )
+
+          case 'donate':
+            return (
+              <div key={i} className="my-6 flex justify-center">
+                <PayPalDonateButton
+                  hostedButtonId={PAYPAL_DONATE_BUTTON}
+                  label="Jetzt spenden via PayPal"
+                />
+              </div>
             )
 
           case 'banner':

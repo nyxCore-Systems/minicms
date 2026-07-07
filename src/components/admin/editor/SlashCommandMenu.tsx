@@ -15,6 +15,7 @@ import {
   ELEMENT_SHOWCASE,
   ELEMENT_GRID,
   ELEMENT_BANNER,
+  ELEMENT_DONATE,
   ELEMENT_SLIDER,
   ELEMENT_PRODUCTS,
 } from './types'
@@ -105,6 +106,9 @@ function createItems(): SlashMenuItem[] {
     // Einbettungen
     { label: 'Banner', description: 'Werbebanner', category: 'Einbettungen', insert: () => ({
       type: ELEMENT_BANNER, children: [{ text: '' }],
+    }) },
+    { label: 'PayPal-Spende', description: 'PayPal-Spendenbutton', category: 'Einbettungen', insert: () => ({
+      type: ELEMENT_DONATE, children: [{ text: '' }],
     }) },
     { label: 'Slider', description: 'Inhalts-Slider', category: 'Einbettungen', insert: () => ({
       type: ELEMENT_SLIDER, slug: '', children: [{ text: '' }],

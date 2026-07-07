@@ -13,6 +13,7 @@ export const ELEMENT_PROJECT_BENTO = 'project-bento'
 export const ELEMENT_SHOWCASE = 'showcase'
 export const ELEMENT_GRID = 'grid'
 export const ELEMENT_BANNER = 'banner'
+export const ELEMENT_DONATE = 'donate'
 export const ELEMENT_SLIDER = 'slider'
 export const ELEMENT_PRODUCTS = 'products'
 export const ELEMENT_DIRECTIVE_RAW = 'directive-raw'
@@ -102,6 +103,11 @@ export interface BannerElement extends TElement {
   bannerId?: string
 }
 
+/** PayPal donate button — a content-less leaf directive (`:::donate:::`) */
+export interface DonateElement extends TElement {
+  type: typeof ELEMENT_DONATE
+}
+
 export interface SliderBlockElement extends TElement {
   type: typeof ELEMENT_SLIDER
   slug: string
@@ -133,6 +139,7 @@ export type DirectiveElement =
   | ShowcaseElement
   | GridElement
   | BannerElement
+  | DonateElement
   | SliderBlockElement
   | ProductsElement
   | DirectiveRawElement

@@ -12,6 +12,7 @@ import {
   ELEMENT_SHOWCASE,
   ELEMENT_GRID,
   ELEMENT_BANNER,
+  ELEMENT_DONATE,
   ELEMENT_SLIDER,
   ELEMENT_PRODUCTS,
   ELEMENT_DIRECTIVE_RAW,
@@ -228,6 +229,9 @@ function serializeNode(node: TElement | TText, depth: number = 0): string {
       if (banner.bannerId) return `:::banner-${banner.bannerId}\n:::`
       return `:::banner\n:::`
     }
+
+    case ELEMENT_DONATE:
+      return `:::donate\n:::`
 
     case ELEMENT_SLIDER: {
       const slider = el as unknown as SliderBlockElement
