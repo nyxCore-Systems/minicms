@@ -107,7 +107,7 @@ export default async function EventDetailPage({ params }: Props) {
           <h2 className="mb-4 font-display text-2xl font-bold text-brand-text">Line-up</h2>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {uniqueLineup.map((a) => (
-              <ArtistCard key={a.artist!.slug} artist={{ slug: a.artist!.slug, name: a.artist!.name, isFeatured: a.artist?.isFeatured ?? false }} />
+              <ArtistCard key={a.artist!.slug} artist={{ slug: a.artist!.slug, name: a.artist!.name, heroImage: a.artist!.heroImage, isFeatured: a.artist?.isFeatured ?? false }} />
             ))}
           </div>
         </section>
