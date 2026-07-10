@@ -7,7 +7,7 @@ export type EventWithRelations = Prisma.EventGetPayload<{
   include: {
     stages: true
     priceTiers: true
-    appearances: { include: { artist: { select: { slug: true; name: true; isFeatured: true } }; stage: true } }
+    appearances: { include: { artist: { select: { slug: true; name: true; isFeatured: true; heroImage: true } }; stage: true } }
   }
 }>
 
@@ -48,7 +48,7 @@ export async function getPublishedEventBySlug(slug: string): Promise<EventWithRe
         stages: { orderBy: { sortOrder: 'asc' } },
         priceTiers: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
         appearances: {
-          include: { artist: { select: { slug: true, name: true, isFeatured: true } }, stage: true },
+          include: { artist: { select: { slug: true, name: true, isFeatured: true, heroImage: true } }, stage: true },
           orderBy: [{ startTime: 'asc' }, { sortOrder: 'asc' }],
         },
       },
