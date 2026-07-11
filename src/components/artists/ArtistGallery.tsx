@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+import { embedUrl } from '@/lib/videoEmbed'
 
 type GalleryItem = {
   id: string
@@ -13,8 +14,9 @@ type GalleryItem = {
 }
 
 function embedSrc(item: GalleryItem): string | null {
-  if (item.kind === 'youtube' && item.videoId) return `https://www.youtube-nocookie.com/embed/${item.videoId}`
-  if (item.kind === 'vimeo' && item.videoId) return `https://player.vimeo.com/video/${item.videoId}`
+  if ((item.kind === 'youtube' || item.kind === 'vimeo') && item.videoId) {
+    return embedUrl({ kind: item.kind, id: item.videoId })
+  }
   return null
 }
 
