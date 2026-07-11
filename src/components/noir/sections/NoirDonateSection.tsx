@@ -37,7 +37,7 @@ export default function NoirDonateSection({ content }: { content?: NoirDonateCon
             <div className="nh-lab">Tickets</div>
             <h3>KombiTicket – beide Nächte</h3>
             <p className="nh-card-sub">
-              Online buchen per PayPal. An der Abendkasse gilt: zahl, was du kannst – kein Mindestpreis.
+              Online buchen per PayPal.
             </p>
             <PayPalHostedButton
               hostedButtonId={PAYPAL_TICKET_BUTTON}
