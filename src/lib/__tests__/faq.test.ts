@@ -1,6 +1,12 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { formatFestivalDateLabel, festivalFaqDefaults } from '../faq'
+import {
+  formatFestivalDateLabel,
+  festivalFaqDefaults,
+  resolveFestivalFaq,
+  HOMEPAGE_FAQ_TITLE,
+  HOMEPAGE_FAQ_SUBTITLE,
+} from '../faq'
 
 test('two-day range in one month → "7. und 8. August 2026"', () => {
   const start = new Date('2026-08-07T10:00:00+02:00')
@@ -32,4 +38,24 @@ test('festivalFaqDefaults interpolates date + location and carries region terms'
   assert.match(wo, /Hof Thiele, Ventschau/)
   assert.match(wo, /Niedersachsen/)
   assert.match(wo, /Norddeutschland/)
+})
+
+test('resolveFestivalFaq: uses the featured event date + location', () => {
+  const featured = {
+    startDate: new Date('2026-08-07T10:00:00+02:00'),
+    endDate: new Date('2026-08-08T10:00:00+02:00'),
+    locationName: 'Hof Meyer, Ventschau',
+  }
+  const faq = resolveFestivalFaq(featured)
+  assert.equal(faq.title, HOMEPAGE_FAQ_TITLE)
+  assert.equal(faq.subtitle, HOMEPAGE_FAQ_SUBTITLE)
+  assert.equal(faq.items.length, 5)
+  assert.match(faq.items[0].answer, /7\. und 8\. August 2026/)
+  assert.match(faq.items[1].answer, /Hof Meyer, Ventschau/)
+})
+
+test('resolveFestivalFaq: falls back to defaults when no featured event', () => {
+  const faq = resolveFestivalFaq(null)
+  assert.match(faq.items[0].answer, /7\. und 8\. August 2026/)
+  assert.match(faq.items[1].answer, /Hof Thiele, Ventschau/)
 })

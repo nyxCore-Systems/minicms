@@ -22,6 +22,26 @@ export function formatFestivalDateLabel(start: Date, end: Date | null): string {
   return `${day(start)}. ${month(start)} und ${day(end)}. ${month(end)} ${year(end)}`
 }
 
+/** Homepage FAQ heading + intro — shared by the public page and the admin seed. */
+export const HOMEPAGE_FAQ_TITLE = 'Häufig gestellte Fragen'
+export const HOMEPAGE_FAQ_SUBTITLE = 'Alles Wichtige zu Termin, Ort, Anreise und Eintritt.'
+
+/** Resolve the homepage FAQ (title/subtitle + items) from the featured event,
+ *  falling back to static defaults when no event is set. Pure — no Prisma. */
+export function resolveFestivalFaq(
+  featured: { startDate: Date; endDate: Date | null; locationName: string | null } | null,
+): { title: string; subtitle: string; items: FaqItem[] } {
+  const dateLabel = featured
+    ? formatFestivalDateLabel(featured.startDate, featured.endDate)
+    : '7. und 8. August 2026'
+  const location = featured?.locationName || 'Hof Thiele, Ventschau'
+  return {
+    title: HOMEPAGE_FAQ_TITLE,
+    subtitle: HOMEPAGE_FAQ_SUBTITLE,
+    items: festivalFaqDefaults({ dateLabel, location }),
+  }
+}
+
 /** The default festival FAQ. The "Wo?" answer carries the broad region terms. */
 export function festivalFaqDefaults(input: { dateLabel: string; location: string }): FaqItem[] {
   const { dateLabel, location } = input
