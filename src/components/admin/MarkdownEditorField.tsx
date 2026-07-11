@@ -70,7 +70,7 @@ export default function MarkdownEditorField({
       onClick={() => switchMode(mode)}
       className={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors ${
         editorMode === mode
-          ? 'bg-white text-brand-text shadow-sm'
+          ? 'bg-white text-brand-text shadow-sm dark:bg-slate-600'
           : 'text-brand-text-muted hover:text-brand-text'
       }`}
     >

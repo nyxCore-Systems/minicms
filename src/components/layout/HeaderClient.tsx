@@ -194,8 +194,8 @@ export default function HeaderClient({ navigation, settings }: HeaderClientProps
             {/* Desktop CTA + dark mode */}
             <div className="hidden lg:flex items-center gap-3">
               <DarkModeToggle />
-              <Link href="/unterstuetzung" className="btn-primary text-sm px-5 py-2.5">
-                Spenden
+              <Link href="/events/e-ventschau-2026#spenden" className="btn-primary text-sm px-5 py-2.5">
+                Tickets
               </Link>
             </div>
 
@@ -356,11 +356,11 @@ export default function HeaderClient({ navigation, settings }: HeaderClientProps
               {/* CTA button */}
               <div className="pt-6">
                 <Link
-                  href="/unterstuetzung"
+                  href="/events/e-ventschau-2026#spenden"
                   className="btn-primary text-base w-full text-center block"
                   onClick={() => setMobileOverlayOpen(false)}
                 >
-                  Spenden
+                  Tickets
                 </Link>
               </div>
             </div>
