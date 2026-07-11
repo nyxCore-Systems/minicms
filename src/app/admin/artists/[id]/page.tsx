@@ -6,22 +6,10 @@ import type { TElement } from '@udecode/plate'
 import MediaPickerDialog from '@/components/admin/MediaPickerDialog'
 import MarkdownEditorField from '@/components/admin/MarkdownEditorField'
 import { type EditorMode } from '@/lib/contentEditor'
+import { parseVideoUrl, youtubeThumb } from '@/lib/videoEmbed'
 
 type Social = { platform: string; url: string }
 type GalleryItem = { id?: string; kind: string; imageUrl?: string | null; videoId?: string | null; altText?: string | null }
-
-function parseVideoUrl(url: string): { kind: 'youtube' | 'vimeo'; videoId: string } | null {
-  // Vimeo: vimeo.com/123456789
-  const vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)
-  if (vimeo) return { kind: 'vimeo', videoId: vimeo[1] }
-  // YouTube: youtu.be/ID or ?v=ID or /embed/ID
-  const yt =
-    url.match(/youtu\.be\/([^?&/#]+)/) ||
-    url.match(/[?&]v=([^&/#]+)/) ||
-    url.match(/youtube\.com\/embed\/([^?&/#]+)/)
-  if (yt) return { kind: 'youtube', videoId: yt[1] }
-  return null
-}
 
 export default function EditArtistPage() {
   const params = useParams()
@@ -88,7 +76,7 @@ export default function EditArtistPage() {
       setVideoInputError('Ungültiger YouTube- oder Vimeo-Link')
       return
     }
-    setGallery((p) => [...p, { kind: parsed.kind, videoId: parsed.videoId }])
+    setGallery((p) => [...p, { kind: parsed.kind, videoId: parsed.id }])
     setVideoInputValue('')
     setVideoInputVisible(false)
   }
@@ -127,8 +115,12 @@ export default function EditArtistPage() {
           <textarea className="rounded-section border p-2" rows={2} value={form.excerpt} onChange={(e) => setForm((p) => ({ ...p, excerpt: e.target.value }))} />
         </label>
         <div className="flex items-center gap-3">
-          <span className="text-sm">Hero: {form.heroImage || '—'}</span>
-          <button type="button" className="btn-secondary px-3 py-1" onClick={() => setPick('hero')}>Medien…</button>
+          {form.heroImage && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={form.heroImage} alt="Hero-Vorschau" className="h-16 w-16 shrink-0 rounded-section object-cover" />
+          )}
+          <span className="truncate text-sm">Hero: {form.heroImage || '—'}</span>
+          <button type="button" className="btn-secondary shrink-0 px-3 py-1" onClick={() => setPick('hero')}>Medien…</button>
         </div>
         <label className="flex flex-col gap-1">
           <span className="text-sm font-medium">Website (https://)</span>
@@ -175,15 +167,28 @@ export default function EditArtistPage() {
       <div>
         <h2 className="mb-2 font-semibold">Galerie</h2>
         <div className="grid grid-cols-3 gap-2">
-          {gallery.map((g, i) => (
-            <div key={i} className="rounded-section border p-2 text-xs">
-              <p className="truncate">{g.kind}: {g.imageUrl || g.videoId}</p>
-              <label className="sr-only" htmlFor={`gallery-alt-${i}`}>Alt-Text</label>
-              <input id={`gallery-alt-${i}`} className="mt-1 w-full border p-1" placeholder="Alt-Text" value={g.altText || ''}
-                onChange={(e) => setGallery((p) => p.map((x, j) => (j === i ? { ...x, altText: e.target.value } : x)))} />
-              <button type="button" onClick={() => setGallery((p) => p.filter((_, j) => j !== i))} className="mt-1 text-red-600">Entfernen</button>
-            </div>
-          ))}
+          {gallery.map((g, i) => {
+            const thumb = g.kind === 'image' ? g.imageUrl : g.kind === 'youtube' && g.videoId ? youtubeThumb(g.videoId) : null
+            return (
+              <div key={i} className="rounded-section border p-2 text-xs">
+                <div className="mb-1 flex aspect-video items-center justify-center overflow-hidden rounded bg-black/5">
+                  {thumb ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={thumb} alt={g.altText || `${g.kind} ${i + 1}`} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="px-1 text-center text-[10px] text-brand-text-muted">
+                      {g.kind === 'vimeo' ? `Vimeo #${g.videoId}` : (g.imageUrl || g.videoId || g.kind)}
+                    </span>
+                  )}
+                </div>
+                <p className="truncate text-brand-text-muted">{g.kind}{g.videoId ? `: ${g.videoId}` : ''}</p>
+                <label className="sr-only" htmlFor={`gallery-alt-${i}`}>Alt-Text</label>
+                <input id={`gallery-alt-${i}`} className="mt-1 w-full border p-1" placeholder="Alt-Text" value={g.altText || ''}
+                  onChange={(e) => setGallery((p) => p.map((x, j) => (j === i ? { ...x, altText: e.target.value } : x)))} />
+                <button type="button" onClick={() => setGallery((p) => p.filter((_, j) => j !== i))} className="mt-1 text-red-600">Entfernen</button>
+              </div>
+            )
+          })}
         </div>
         <div className="mt-2 flex flex-wrap gap-2">
           <button type="button" className="btn-secondary px-3 py-1" onClick={() => setPick('gallery')}>+ Bild</button>

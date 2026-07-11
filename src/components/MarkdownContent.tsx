@@ -6,6 +6,8 @@ import type { Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import dynamic from 'next/dynamic'
 import { parseBlocks, splitColumns } from '@/lib/directiveParser'
+import { detectStandaloneVideo } from '@/lib/videoEmbed'
+import VideoEmbed from '@/components/markdown/VideoEmbed'
 import CalloutBox, { type CalloutType } from '@/components/markdown/CalloutBox'
 import ColumnLayout from '@/components/markdown/ColumnLayout'
 import FeatureBox from '@/components/markdown/FeatureBox'
@@ -68,7 +70,23 @@ function isVideoSrc(src: unknown): src is string {
   return typeof src === 'string' && /\.(mp4|webm)(\?|$)/i.test(src)
 }
 
+/** Concatenate the plain text of a hast node (react-markdown passes `node`). */
+type HastText = { value?: string; children?: HastText[] }
+function hastText(node: HastText | undefined): string {
+  if (!node) return ''
+  if (typeof node.value === 'string') return node.value
+  if (Array.isArray(node.children)) return node.children.map(hastText).join('')
+  return ''
+}
+
 const markdownComponents: Components = {
+  // A paragraph that is *only* a YouTube/Vimeo URL becomes an embedded player;
+  // inline or custom-labelled links stay as links.
+  p: ({ node, children, ...rest }) => {
+    const video = detectStandaloneVideo(hastText(node as unknown as HastText))
+    if (video) return <VideoEmbed video={video} />
+    return <p {...rest}>{children}</p>
+  },
   img: ({ src, alt: rawAlt, ...rest }) => {
     if (isVideoSrc(src)) {
       const { width, height } = parseImageAlt(rawAlt || '')
