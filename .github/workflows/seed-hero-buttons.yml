@@ -1,0 +1,54 @@
+name: Seed hero buttons
+
+# One-off, manually-triggered content tweak. Runs prisma/seed-hero-buttons.ts
+# inside the migrator container ON the server, where the compose env_file (.env)
+# provides the live DATABASE_URL (self-hosted eventschau Postgres). The script is
+# idempotent — safe to re-run. Requires the source already rsynced to the server
+# by the normal deploy (push to main), so run AFTER a deploy completes.
+#
+# Reuses the deploy SSH secrets: DEPLOY_SSH_KEY / DEPLOY_HOST / DEPLOY_USER / DEPLOY_PORT.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: seed-eventschau-production
+  cancel-in-progress: false
+
+env:
+  APP_DIR: /opt/e-ventschau
+  MIGRATE_SERVICE: eventschau-migrate
+
+jobs:
+  seed:
+    name: Seed hero buttons (migrator container)
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "${DEPLOY_PORT:-22}" -H "${DEPLOY_HOST:-nyxcore.cloud}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Run seed in migrator container
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_deploy -p "${DEPLOY_PORT:-22}" \
+            "${DEPLOY_USER:-root}@${DEPLOY_HOST:-nyxcore.cloud}" \
+            APP_DIR="$APP_DIR" MIGRATE_SVC="$MIGRATE_SERVICE" \
+            'bash -seuo pipefail' <<'REMOTE'
+          cd "$APP_DIR"
+          docker compose --profile migrate run --rm --build "$MIGRATE_SVC" \
+            npx tsx prisma/seed-hero-buttons.ts
+          REMOTE
