@@ -8,7 +8,7 @@ import { getHomepageSections } from '@/lib/sections'
 import { NOIR_DEFAULT_LAYOUT } from '@/lib/noir-home-defaults'
 import FAQ from '@/components/sections/FAQ'
 import { getFeaturedEvent } from '@/lib/events'
-import { festivalFaqDefaults, formatFestivalDateLabel } from '@/lib/faq'
+import { resolveFestivalFaq } from '@/lib/faq'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,17 +55,13 @@ export default async function HomePage() {
   // SectionStructuredData render + emit on their own). This guarantees exactly
   // one visible FAQ and one FAQPage in every layout.
   const hasDbFaq = sections.some((s) => s.type === 'faq' && s.isVisible)
-  const dateLabel = featured
-    ? formatFestivalDateLabel(featured.startDate, featured.endDate)
-    : '7. und 8. August 2026'
-  const location = featured?.locationName || 'Hof Thiele, Ventschau'
-  const faqItems = festivalFaqDefaults({ dateLabel, location })
+  const faq = resolveFestivalFaq(featured)
 
   return (
     <div className="nh">
       <JsonLd data={websiteJsonLd} />
       {festivalJsonLd && <JsonLd data={festivalJsonLd} />}
-      {!hasDbFaq && <JsonLd data={buildFaqJsonLd(faqItems)} />}
+      {!hasDbFaq && <JsonLd data={buildFaqJsonLd(faq.items)} />}
       {sections.length > 0 ? (
         // Editor-composed homepage: ordered/visible elements from /admin/sections
         <HomepageSectionRenderer sections={sections} />
@@ -75,13 +71,7 @@ export default async function HomePage() {
         NOIR_DEFAULT_LAYOUT.map((type) => <NoirElement key={type} type={type} />)
       )}
       {!hasDbFaq && (
-        <FAQ
-          data={{
-            title: 'Häufig gestellte Fragen',
-            subtitle: 'Alles Wichtige zu Termin, Ort, Anreise und Eintritt.',
-            items: faqItems,
-          }}
-        />
+        <FAQ data={faq} />
       )}
     </div>
   )

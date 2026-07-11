@@ -1078,6 +1078,30 @@ export default function AdminSectionsPage() {
     }
   }
 
+  // Pre-fill the add-form with the current default homepage FAQ so an editor can
+  // review and save it as a real, editable `faq` section. Nothing is persisted
+  // until they hit Speichern (the normal create flow).
+  async function seedFaqFromDefaults() {
+    setError(null)
+    try {
+      const res = await fetch('/api/admin/sections/faq-defaults')
+      if (!res.ok) throw new Error('FAQ-Vorlage konnte nicht geladen werden')
+      const data = await res.json()
+      resetForm()
+      setFormType('faq')
+      setFormTitle(data.title || '')
+      setFormSubtitle(data.subtitle || '')
+      setFaqItems(
+        Array.isArray(data.items) && data.items.length > 0
+          ? data.items
+          : [{ question: '', answer: '' }],
+      )
+      setShowAddForm(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Fehler')
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Section list detail helpers
   // ---------------------------------------------------------------------------
@@ -1231,6 +1255,16 @@ export default function AdminSectionsPage() {
               >
                 <ArrowPathIcon className={`w-4 h-4 ${importing ? 'animate-spin' : ''}`} />
                 Aktuelle Startseite übernehmen
+              </button>
+            )}
+            {!sections.some((s) => s.type === 'faq') && (
+              <button
+                onClick={seedFaqFromDefaults}
+                className="inline-flex items-center gap-1.5 px-4 py-2 glass text-brand-text rounded-xl text-sm font-medium hover:bg-brand-bg-dark transition-all"
+                title="Automatische Homepage-FAQ als bearbeitbare Sektion vorbefüllen"
+              >
+                <QuestionMarkCircleIcon className="w-4 h-4" />
+                FAQ aus Vorlage
               </button>
             )}
             <button
