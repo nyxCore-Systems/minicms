@@ -9,6 +9,9 @@ import JsonLd from '@/components/JsonLd'
 import MarkdownContent from '@/components/MarkdownContent'
 import ArtistCard from '@/components/artists/ArtistCard'
 import EventTimetable from '@/components/events/EventTimetable'
+import NoirDonateSection from '@/components/noir/sections/NoirDonateSection'
+import { getHomepageSections } from '@/lib/sections'
+import type { NoirDonateContent } from '@/lib/noir-home-defaults'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,10 +26,6 @@ function formatRange(start: Date, end: Date | null): string {
   return `${dayFmt.format(start)} – ${fmt.format(end)}`
 }
 
-function formatPrice(price: number | null, currency: string): string {
-  if (price === null) return 'auf Anfrage'
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(price)
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
@@ -44,6 +43,10 @@ export default async function EventDetailPage({ params }: Props) {
   const event = await getEvent(slug)
   if (!event) notFound()
 
+  // Reuse the homepage's "Spenden & Tickets" content so the section matches 1:1.
+  const sections = await getHomepageSections()
+  const donateContent = (sections.find((s) => s.type === 'noir_donate')?.content ?? null) as NoirDonateContent | null
+
   const lineup = event.appearances.filter((a) => a.artist)
   const seenArtists = new Set<string>()
   const uniqueLineup = lineup.filter((a) => {
@@ -53,6 +56,7 @@ export default async function EventDetailPage({ params }: Props) {
   })
 
   return (
+    <>
     <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:px-8">
       <JsonLd
         data={buildEventJsonLd({
@@ -113,30 +117,6 @@ export default async function EventDetailPage({ params }: Props) {
         </section>
       )}
 
-      {/* Preise */}
-      {event.priceTiers.length > 0 && (
-        <section className="mb-10">
-          <h2 className="mb-4 font-display text-2xl font-bold text-brand-text">Preise</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {event.priceTiers.map((t) => (
-              <div key={t.id} className="glass-card rounded-section p-5">
-                <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="font-display text-lg font-bold text-brand-text">{t.name}</h3>
-                  <span className="shrink-0 font-semibold text-brand-accent">{formatPrice(t.price, t.currency)}</span>
-                </div>
-                {t.description && <p className="mt-1 text-sm text-brand-text-muted">{t.description}</p>}
-                {t.isSoldOut && <span className="mt-2 inline-block rounded-pill bg-red-100 px-3 py-0.5 text-xs font-semibold text-red-700">Ausverkauft</span>}
-                {t.buyUrl && !t.isSoldOut && (
-                  <a href={t.buyUrl} target="_blank" rel="noopener noreferrer nofollow" className="btn-secondary mt-3 inline-block px-4 py-1.5 text-sm">
-                    Ticket kaufen
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Ticket-CTA */}
       {event.ticketUrl && (
         <section className="text-center">
@@ -146,5 +126,11 @@ export default async function EventDetailPage({ params }: Props) {
         </section>
       )}
     </div>
+
+      {/* Tickets & Spenden – identisch zur Startseite (ersetzt die Preisliste) */}
+      <div className="nh">
+        <NoirDonateSection content={donateContent} />
+      </div>
+    </>
   )
 }

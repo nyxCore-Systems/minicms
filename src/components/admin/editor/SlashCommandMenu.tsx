@@ -183,10 +183,10 @@ export function SlashCommandMenu({ onInsert, onClose, position }: SlashCommandMe
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 w-72 max-h-80 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden flex flex-col animate-fade-in"
+      className="fixed z-50 w-72 max-h-80 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-200 dark:border-slate-600 overflow-hidden flex flex-col animate-fade-in"
       style={position ? { top: position.top, left: position.left } : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
     >
-      <div className="p-2 border-b border-gray-100">
+      <div className="p-2 border-b border-gray-100 dark:border-slate-700">
         <input
           ref={inputRef}
           type="text"
@@ -194,7 +194,7 @@ export function SlashCommandMenu({ onInsert, onClose, position }: SlashCommandMe
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Block suchen..."
-          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
+          className="w-full text-sm border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-brand-text dark:text-slate-100 placeholder:text-brand-text-light dark:placeholder:text-slate-400 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
         />
       </div>
       <div className="flex-1 overflow-y-auto p-1">
