@@ -15,6 +15,8 @@ import {
   ELEMENT_DONATE,
   ELEMENT_SLIDER,
   ELEMENT_PRODUCTS,
+  ELEMENT_ARTISTS_GRID,
+  ELEMENT_UPCOMING_EVENTS,
   ELEMENT_DIRECTIVE_RAW,
   type HeroSliderElement,
   type ShowcaseElement,
@@ -242,6 +244,12 @@ function serializeNode(node: TElement | TText, depth: number = 0): string {
       const products = el as unknown as ProductsElement
       return `:::products-${products.slug}\n:::`
     }
+
+    case ELEMENT_ARTISTS_GRID:
+      return `:::artists-grid\n:::`
+
+    case ELEMENT_UPCOMING_EVENTS:
+      return `:::upcoming-events\n:::`
 
     case ELEMENT_DIRECTIVE_RAW: {
       return (el as any).rawMarkdown || ''

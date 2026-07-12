@@ -18,6 +18,8 @@ import {
   ELEMENT_DONATE,
   ELEMENT_SLIDER,
   ELEMENT_PRODUCTS,
+  ELEMENT_ARTISTS_GRID,
+  ELEMENT_UPCOMING_EVENTS,
 } from './types'
 
 interface SlashMenuItem {
@@ -115,6 +117,12 @@ function createItems(): SlashMenuItem[] {
     }) },
     { label: 'Produkte', description: 'Produktliste', category: 'Einbettungen', insert: () => ({
       type: ELEMENT_PRODUCTS, slug: '', children: [{ text: '' }],
+    }) },
+    { label: 'Künstler-Grid', description: 'Alle Künstler als Grid', category: 'Einbettungen', insert: () => ({
+      type: ELEMENT_ARTISTS_GRID, children: [{ text: '' }],
+    }) },
+    { label: 'Kommende Events', description: 'Alle kommenden Events als Grid', category: 'Einbettungen', insert: () => ({
+      type: ELEMENT_UPCOMING_EVENTS, children: [{ text: '' }],
     }) },
   ]
 }

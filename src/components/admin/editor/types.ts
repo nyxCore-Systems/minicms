@@ -16,6 +16,8 @@ export const ELEMENT_BANNER = 'banner'
 export const ELEMENT_DONATE = 'donate'
 export const ELEMENT_SLIDER = 'slider'
 export const ELEMENT_PRODUCTS = 'products'
+export const ELEMENT_ARTISTS_GRID = 'artists-grid'
+export const ELEMENT_UPCOMING_EVENTS = 'upcoming-events'
 export const ELEMENT_DIRECTIVE_RAW = 'directive-raw'
 
 // ── Editable blocks (rich text children) ────────────────────────────
@@ -118,6 +120,16 @@ export interface ProductsElement extends TElement {
   slug: string
 }
 
+/** All published artists as a grid — content-less leaf (`:::artists-grid:::`) */
+export interface ArtistsGridElement extends TElement {
+  type: typeof ELEMENT_ARTISTS_GRID
+}
+
+/** Upcoming events as a grid — content-less leaf (`:::upcoming-events:::`) */
+export interface UpcomingEventsElement extends TElement {
+  type: typeof ELEMENT_UPCOMING_EVENTS
+}
+
 /** Fallback: raw markdown preserved as-is for unknown/not-yet-implemented directives */
 export interface DirectiveRawElement extends TElement {
   type: typeof ELEMENT_DIRECTIVE_RAW
@@ -142,4 +154,6 @@ export type DirectiveElement =
   | DonateElement
   | SliderBlockElement
   | ProductsElement
+  | ArtistsGridElement
+  | UpcomingEventsElement
   | DirectiveRawElement

@@ -25,6 +25,8 @@ import {
   ELEMENT_DONATE,
   ELEMENT_SLIDER,
   ELEMENT_PRODUCTS,
+  ELEMENT_ARTISTS_GRID,
+  ELEMENT_UPCOMING_EVENTS,
   ELEMENT_DIRECTIVE_RAW,
 } from './types'
 
@@ -64,6 +66,8 @@ import { BannerElement } from './elements/BannerElement'
 import { DonateElement } from './elements/DonateElement'
 import { SliderElement } from './elements/SliderElement'
 import { ProductsElement } from './elements/ProductsElement'
+import { ArtistsGridElement } from './elements/ArtistsGridElement'
+import { UpcomingEventsElement } from './elements/UpcomingEventsElement'
 import { DirectiveRawElement } from './elements/DirectiveRawElement'
 
 import { createCalloutPlugin } from './plugins/calloutPlugin'
@@ -80,6 +84,8 @@ import { createBannerPlugin } from './plugins/bannerPlugin'
 import { createDonatePlugin } from './plugins/donatePlugin'
 import { createSliderPlugin } from './plugins/sliderPlugin'
 import { createProductsPlugin } from './plugins/productsPlugin'
+import { createArtistsGridPlugin } from './plugins/artistsGridPlugin'
+import { createUpcomingEventsPlugin } from './plugins/upcomingEventsPlugin'
 import { createDirectiveRawPlugin } from './plugins/directiveRawPlugin'
 
 export function useEditorConfig(initialValue: TElement[]) {
@@ -112,6 +118,8 @@ export function useEditorConfig(initialValue: TElement[]) {
       createDonatePlugin(),
       createSliderPlugin(),
       createProductsPlugin(),
+      createArtistsGridPlugin(),
+      createUpcomingEventsPlugin(),
       createDirectiveRawPlugin(),
     ],
     override: {
@@ -151,6 +159,8 @@ export function useEditorConfig(initialValue: TElement[]) {
         [ELEMENT_DONATE]: DonateElement,
         [ELEMENT_SLIDER]: SliderElement,
         [ELEMENT_PRODUCTS]: ProductsElement,
+        [ELEMENT_ARTISTS_GRID]: ArtistsGridElement,
+        [ELEMENT_UPCOMING_EVENTS]: UpcomingEventsElement,
         [ELEMENT_DIRECTIVE_RAW]: DirectiveRawElement,
       },
     },
