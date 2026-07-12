@@ -16,6 +16,8 @@ import {
   ELEMENT_DONATE,
   ELEMENT_SLIDER,
   ELEMENT_PRODUCTS,
+  ELEMENT_ARTISTS_GRID,
+  ELEMENT_UPCOMING_EVENTS,
   ELEMENT_DIRECTIVE_RAW,
   type HeroSliderSlide,
   type ShowcaseItem,
@@ -425,6 +427,18 @@ function blockToPlateNodes(block: Block): TElement[] {
       return [{
         type: ELEMENT_PRODUCTS,
         slug: block.directiveId || '',
+        children: [{ text: '' }],
+      } as TElement]
+
+    case 'artists-grid':
+      return [{
+        type: ELEMENT_ARTISTS_GRID,
+        children: [{ text: '' }],
+      } as TElement]
+
+    case 'upcoming-events':
+      return [{
+        type: ELEMENT_UPCOMING_EVENTS,
         children: [{ text: '' }],
       } as TElement]
 

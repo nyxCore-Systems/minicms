@@ -3,7 +3,7 @@
  * and the Plate.js WYSIWYG editor (serialization layer).
  */
 
-export const DIRECTIVE_RE = /^:::(hero-slider-viewport|hero-slider-full|hero-slider-fitted|hero|hero-section|cv-timeline|project-bento|showcase|grid|info|warning|tip|danger|columns-2|columns-3|box|donate|banner|banner-[a-zA-Z0-9]+|slider-[a-zA-Z0-9-]+|products-[a-zA-Z0-9-]+)\s*$/
+export const DIRECTIVE_RE = /^:::(hero-slider-viewport|hero-slider-full|hero-slider-fitted|hero|hero-section|cv-timeline|project-bento|showcase|grid|info|warning|tip|danger|columns-2|columns-3|box|artists-grid|upcoming-events|donate|banner|banner-[a-zA-Z0-9]+|slider-[a-zA-Z0-9-]+|products-[a-zA-Z0-9-]+)\s*$/
 export const CLOSE_RE = /^:::\s*$/
 /** Matches ANY opening fence `:::name` (known or not). Used for the
  * directive-raw safety net and for nesting-depth tracking. */
@@ -11,7 +11,7 @@ export const GENERIC_DIRECTIVE_RE = /^:::([a-zA-Z0-9][a-zA-Z0-9-]*)\s*$/
 export const CALLOUT_TYPES = new Set(['info', 'warning', 'tip', 'danger'])
 
 export interface Block {
-  type: 'markdown' | 'hero' | 'hero-section' | 'hero-slider' | 'cv-timeline' | 'project-bento' | 'showcase' | 'grid' | 'callout' | 'columns' | 'box' | 'donate' | 'banner' | 'slider' | 'products' | 'directive-raw'
+  type: 'markdown' | 'hero' | 'hero-section' | 'hero-slider' | 'cv-timeline' | 'project-bento' | 'showcase' | 'grid' | 'callout' | 'columns' | 'box' | 'artists-grid' | 'upcoming-events' | 'donate' | 'banner' | 'slider' | 'products' | 'directive-raw'
   content: string
   variant?: string
   columnCount?: 2 | 3
@@ -78,6 +78,10 @@ export function parseBlocks(raw: string): Block[] {
         blocks.push({ type: 'columns', content: innerContent, columnCount: count })
       } else if (directive === 'box') {
         blocks.push({ type: 'box', content: innerContent })
+      } else if (directive === 'artists-grid') {
+        blocks.push({ type: 'artists-grid', content: '' })
+      } else if (directive === 'upcoming-events') {
+        blocks.push({ type: 'upcoming-events', content: '' })
       } else if (directive === 'donate') {
         blocks.push({ type: 'donate', content: '' })
       } else if (directive === 'banner') {

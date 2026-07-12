@@ -106,6 +106,8 @@ const CORPUS: string[] = [
   ':::donate\n:::',
   ':::slider-main-2026\n:::',
   ':::products-merch\n:::',
+  ':::artists-grid\n:::',
+  ':::upcoming-events\n:::',
   // callout wrapping an unknown directive
   ':::tip\n:::futuristic\ndeep\n:::\n:::',
   // mixed document: heading, paragraph, blockquote, list, hr, code
@@ -168,6 +170,8 @@ const DIRECTIVE_CORPUS: string[] = [
   ':::box\n:::banner-hero1\n:::\n:::',
   ':::box\n:::slider-main-2026\n:::\n:::',
   ':::box\n:::products-merch\n:::\n:::',
+  ':::box\n:::artists-grid\n:::\n:::',
+  ':::box\n:::upcoming-events\n:::\n:::',
 ]
 
 for (const md of DIRECTIVE_CORPUS) {

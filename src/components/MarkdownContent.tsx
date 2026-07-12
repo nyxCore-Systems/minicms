@@ -26,6 +26,8 @@ const BannerSlot = dynamic(() => import('@/components/BannerSlot'), { ssr: false
 const SliderBlock = dynamic(() => import('@/components/markdown/SliderBlock'), { ssr: false })
 const HeroSliderImages = dynamic(() => import('@/components/markdown/HeroSliderImages'), { ssr: false })
 const ProductsBlock = dynamic(() => import('@/components/markdown/ProductsBlock'), { ssr: false })
+const ArtistsGridBlock = dynamic(() => import('@/components/markdown/ArtistsGridBlock'), { ssr: false })
+const UpcomingEventsBlock = dynamic(() => import('@/components/markdown/UpcomingEventsBlock'), { ssr: false })
 
 /**
  * Supported custom block syntax (supports nesting):
@@ -218,6 +220,12 @@ function RenderBlocks({ content }: { content: string }) {
 
           case 'products':
             return <ProductsBlock key={i} slug={block.directiveId || ''} />
+
+          case 'artists-grid':
+            return <ArtistsGridBlock key={i} />
+
+          case 'upcoming-events':
+            return <UpcomingEventsBlock key={i} />
 
           default:
             return <MarkdownSegment key={i} content={block.content} />
