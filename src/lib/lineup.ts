@@ -7,7 +7,7 @@
 // validation allow-list in event-validation.ts, the admin dropdown + filter
 // checkboxes) derives from it.
 export const CATEGORY_LABELS: Record<string, string> = {
-  musik: 'Musik', film: 'Film', performance: 'Performance', kinder: 'Kinder', vortrag: 'Vortrag', break: 'Break',
+  musik: 'Musik', film: 'Film', performance: 'Performance', kinder: 'Kinder', vortrag: 'Vortrag', party: 'Party', comedy: 'Comedy', break: 'Break',
 }
 
 /** Canonical ordered list of slot categories (insertion order of CATEGORY_LABELS). */
